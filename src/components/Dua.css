@@ -1,119 +1,207 @@
-/* File: src/components/Dua.css */
+/* Enhanced Dua.css with Animations and Micro-interactions */
+
 .dua-container {
-    padding: 20px;
-    max-width: 600px;
+    padding: 16px;
+    max-width: 100%;
     margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    min-height: 85vh;
   }
   
   .dua-title {
     text-align: center;
     margin-bottom: 24px;
     font-size: 24px;
-    font-weight: 500;
+    font-weight: 700;
+    color: #333;
   }
   
   .duas-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
   }
   
   .dua-item {
-    background-color: #f2f2f2;
+    background-color: #f5f5f5;
     border-radius: 12px;
     padding: 16px;
     position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+    overflow: hidden;
+    transform: translateX(0);
+    touch-action: pan-y; /* Prevent vertical scrolling issues on mobile */
+    will-change: transform; /* Optimize for animations */
+  }
+  
+  .dua-item:active {
+    background-color: #f0f0f0;
   }
   
   .dua-text {
-    font-size: 16px;
+    margin-bottom: 8px;
     line-height: 1.5;
-    position: relative;
+    font-size: 16px;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
   
-  .dua-actions {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    display: flex;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-  
-  .dua-text:hover .dua-actions {
-    opacity: 1;
-  }
-  
-  .edit-btn, .delete-btn {
+  .swipe-hint {
     font-size: 12px;
-    padding: 4px 8px;
-    margin-left: 5px;
-    border-radius: 4px;
+    color: #999;
+    text-align: right;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    margin-top: 8px;
+  }
+  
+  .dua-item:active .swipe-hint {
+    opacity: 0.7;
+  }
+  
+  .delete-indicator {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 70px;
+    background-color: #ff4d4d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    transform: translateX(100%);
+    z-index: -1;
+  }
+  
+  .edit-btn, .delete-btn, .save-btn, .cancel-btn, .add-btn {
+    background: none;
     border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
     cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease, transform 0.1s ease;
   }
   
   .edit-btn {
-    background-color: #4b70e2;
-    color: white;
+    color: #4285f4;
   }
   
   .delete-btn {
-    background-color: #e24b4b;
+    color: #ea4335;
+  }
+  
+  .save-btn {
+    background-color: #4285f4;
     color: white;
   }
   
-  .add-dua-prompt {
-    margin-top: auto;
-    text-align: center;
-    color: #777;
-    padding: 16px;
-    cursor: pointer;
-    font-size: 14px;
+  .cancel-btn {
+    background-color: #f1f1f1;
+    color: #333;
   }
   
-  .add-dua-form, .edit-dua-form {
+  .add-btn {
+    background-color: #34a853;
+    color: white;
+  }
+  
+  .add-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  .ripple-effect {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .ripple-effect:after {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(10, 10);
+    opacity: 0;
+    transition: transform 0.4s, opacity 0.5s;
+  }
+  
+  .ripple-effect:active:after {
+    transform: scale(0, 0);
+    opacity: 0.3;
+    transition: 0s;
+  }
+  
+  .edit-dua-form, .add-dua-form {
     display: flex;
     flex-direction: column;
     gap: 12px;
   }
   
-  .add-dua-textarea, .edit-dua-textarea {
+  .edit-dua-textarea, .add-dua-textarea {
     width: 100%;
-    padding: 12px;
-    border-radius: 8px;
     border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
     font-family: inherit;
     font-size: 16px;
     resize: vertical;
+    transition: border-color 0.2s ease;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
   }
   
-  .add-actions, .edit-actions {
+  .edit-dua-textarea:focus, .add-dua-textarea:focus {
+    border-color: #4285f4;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+  }
+  
+  .edit-actions, .add-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 12px;
   }
   
-  .add-btn, .save-btn {
-    padding: 8px 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
+  .add-dua-prompt {
+    text-align: center;
+    padding: 16px;
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    color: #666;
     cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.2s ease, transform 0.2s ease;
   }
   
-  .cancel-btn {
+  .add-dua-prompt:active {
+    background-color: #eaeaea;
+    transform: scale(0.98);
+  }
+  
+  .char-counter {
+    text-align: right;
+    font-size: 12px;
+    color: #666;
+  }
+  
+  .error-message {
+    background-color: #ffebee;
+    color: #c62828;
     padding: 8px 16px;
-    background-color: #f44336;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    text-align: center;
+    animation: shake 0.5s ease-in-out;
   }
   
   .loading {
@@ -121,33 +209,92 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    height: 50vh;
   }
   
   .loading-spinner {
     border: 4px solid #f3f3f3;
     border-top: 4px solid #3498db;
     border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    animation: spin 2s linear infinite;
+    width: 36px;
+    height: 36px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
   }
   
+  .gesture-hints {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 32px;
+    padding: 16px;
+    border-top: 1px solid #eaeaea;
+  }
+  
+  .hint-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .hint-icon {
+    font-size: 24px;
+  }
+  
+  .hint-text {
+    font-size: 12px;
+    color: #666;
+  }
+  
+  /* Animations */
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
   
-  @media (max-width: 480px) {
-    .dua-container {
-      padding: 16px;
-    }
-    
-    .dua-title {
-      font-size: 22px;
-    }
-    
-    .dua-item {
-      padding: 14px;
-    }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(10px); }
+  }
+  
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+  
+  .animate-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .animation-add {
+    animation: fadeIn 0.5s ease;
+  }
+  
+  .animation-update {
+    animation: flash 0.5s ease;
+  }
+  
+  .animation-delete {
+    animation: fadeOut 0.3s ease forwards;
+  }
+  
+  @keyframes flash {
+    0%, 100% { background-color: #f5f5f5; }
+    50% { background-color: #e0f2f1; }
   }
