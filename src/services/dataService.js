@@ -122,6 +122,8 @@ import {
           notes: ''
         };
       }
+
+      
       
       // Update prayer status
       userData.dailyLogs[today].namaz[prayer] = status;
@@ -206,7 +208,7 @@ import {
   // Get today's prayer times based on location
   export const getPrayerTimes = async (latitude, longitude) => {
     try {
-      // Using a free prayer times API
+      // Using Aladhan API for prayer times
       const response = await fetch(`https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=2`);
       const data = await response.json();
       
@@ -224,6 +226,7 @@ import {
       }
     } catch (error) {
       console.error("Error getting prayer times:", error);
+      // Fallback values if API fails
       return {
         fajr: "05:00",
         sunrise: "06:30",

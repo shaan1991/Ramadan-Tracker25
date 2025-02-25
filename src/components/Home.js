@@ -1,6 +1,7 @@
 // File: src/components/Home.js
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
+import { getPrayerTimes } from '../services/dataService';
 import './Home.css';
 
 // Components
@@ -12,6 +13,25 @@ import JuzTracker from './JuzTracker';
 
 const Home = () => {
   const { user, userData, ramadanDay, loading } = useUser();
+  const [prayerTimes, setPrayerTimes] = useState(null);
+
+  // Fetch prayer times when component mounts
+  useEffect(() => {
+    const fetchPrayerTimes = async () => {
+      try {
+        // For demo, using default coordinates for Mecca
+        // In production, you would get user's location or let them set their location
+        const latitude = 21.4225;
+        const longitude = 39.8262;
+        const times = await getPrayerTimes(latitude, longitude);
+        setPrayerTimes(times);
+      } catch (error) {
+        console.error("Error fetching prayer times:", error);
+      }
+    };
+
+    fetchPrayerTimes();
+  }, []);
 
   if (loading || !userData) {
     return (
@@ -22,26 +42,53 @@ const Home = () => {
     );
   }
 
-  // Calculate suhoor and iftar times (simplified example)
-  const suhoorTime = "6:00 AM"; // You may want to fetch this from an API
-  const iftarTime = "6:00 PM";  // You may want to fetch this from an API
+  // Format time to more readable format (6am instead of 06:00)
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    
+    try {
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours);
+      return `${hour % 12 || 12}${hour < 12 ? 'am' : 'pm'}`;
+    } catch (e) {
+      return timeString;
+    }
+  };
+
+  // Get suhoor and iftar times
+  const suhoorTime = formatTime(prayerTimes?.fajr || '06:00');
+  const iftarTime = formatTime(prayerTimes?.maghrib || '18:00');
 
   return (
     <div className="home-container">
-      <div className="welcome-header">
-        <div>
-          <p className="welcome-text">Welcome back {user.displayName?.split(' ')[0] || 'Shaan'}!</p>
-          <h2 className="motivation-text">Mashallah! going strong 💪</h2>
-        </div>
-        <div className="timing-info">
-          <p>Suhoor: {suhoorTime}</p>
-          <p>Today</p>
-          <p>Iftar: {iftarTime}</p>
+      <div className="welcome-header-card">
+        <div className="welcome-header">
+          <div className="welcome-text-container">
+            <p className="welcome-text">Welcome back {user.displayName?.split(' ')[0] || 'Shaan'}!</p>
+            <h2 className="motivation-text">Mashallah! going strong <span className="strong-emoji">💪</span></h2>
+          </div>
+          
+          <div className="timing-container">
+            <div className="timing-row">
+              <div className="timing-item suhoor">
+                <p>Suhoor: {suhoorTime}</p>
+              </div>
+              
+              <div className="timing-item today-dropdown">
+                <p>Today</p>
+                <span className="dropdown-icon">▼</span>
+              </div>
+              
+              <div className="timing-item iftar">
+                <p>Iftar: {iftarTime}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <DailyOverview />
-
+      
       <div className="suggested-sunnah">
         <p>Suggested Sunnah of the day</p>
         <p>🤲 Pray an Extra Sunnah Prayer</p>
