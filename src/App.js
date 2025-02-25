@@ -7,6 +7,7 @@ import { UserProvider, useUser } from './contexts/UserContext';
 import Login from './components/Login';
 import Home from './components/Home';
 import Tasbeeh from './components/Tasbeeh';
+import Dua from './components/Dua';  // New component
 import BottomNavigation from './components/BottomNavigation';
 
 // Styles
@@ -29,6 +30,7 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={user ? <Home /> : <Login />} />
         <Route path="/tasbeeh" element={user ? <Tasbeeh /> : <Login />} />
+        <Route path="/dua" element={user ? <Dua /> : <Login />} />  {/* New route */}
       </Routes>
       {user && <BottomNavigation />}
     </div>

@@ -1,182 +1,173 @@
+// File: src/components/Dua.js
 import React, { useState, useEffect } from 'react';
-import {
-  Container,
-  Typography,
-  Card,
-  CardContent,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  CircularProgress,
-  Snackbar,
-  Alert,
-} from '@mui/material';
-import { useLongPress } from 'use-long-press';
-import { Swipeable } from 'react-swipeable';
-import {
-  getDuas,
-  addDua,
-  updateDua,
-  deleteDua,
-} from '../services/dataService'; // Adjust path if needed
+import { useUser } from '../contexts/UserContext';
+import { getDuas, addDua, updateDua, deleteDua } from '../services/duaService';
+import './Dua.css';
 
-function Dua({ uid }) {
+const Dua = () => {
+  const { user } = useUser();
   const [duas, setDuas] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editDua, setEditDua] = useState(null);
-  const [newDuaText, setNewDuaText] = useState('');
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [editMode, setEditMode] = useState(null);
+  const [editText, setEditText] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newDua, setNewDua] = useState('');
 
   useEffect(() => {
     const fetchDuas = async () => {
-      try {
-        const fetchedDuas = await getDuas(uid);
-        setDuas(fetchedDuas);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message || 'Failed to fetch duas.');
-        setLoading(false);
+      if (user) {
+        try {
+          const userDuas = await getDuas(user.uid);
+          setDuas(userDuas);
+          setLoading(false);
+        } catch (error) {
+          console.error("Error fetching duas:", error);
+          setLoading(false);
+        }
       }
     };
+
     fetchDuas();
-  }, [uid]);
-
-  const handleLongPress = (dua) => {
-    setEditDua(dua);
-    setEditDialogOpen(true);
-  };
-
-  const handleSwipe = async (dua) => {
-    try {
-      await deleteDua(dua.id);
-      setDuas(duas.filter((d) => d.id !== dua.id));
-      showSnackbar('Dua deleted successfully', 'success');
-    } catch (err) {
-      showSnackbar(err.message || 'Failed to delete dua.', 'error');
-    }
-  };
-
-  const handleEditDialogClose = () => {
-    setEditDialogOpen(false);
-    setEditDua(null);
-  };
-
-  const handleEditSave = async () => {
-    try {
-      await updateDua(editDua.id, editDua.text);
-      setDuas(duas.map((d) => (d.id === editDua.id ? editDua : d)));
-      setEditDialogOpen(false);
-      showSnackbar('Dua updated successfully', 'success');
-    } catch (err) {
-      showSnackbar(err.message || 'Failed to update dua.', 'error');
-    }
-  };
+  }, [user]);
 
   const handleAddDua = async () => {
+    if (!newDua.trim()) return;
+    
     try {
-      await addDua(uid, newDuaText);
-      const fetchedDuas = await getDuas(uid);
-      setDuas(fetchedDuas);
-      setNewDuaText('');
-      showSnackbar('Dua added successfully', 'success');
-    } catch (err) {
-      showSnackbar(err.message || 'Failed to add dua.', 'error');
+      const duaId = await addDua(user.uid, newDua);
+      setDuas([...duas, { id: duaId, text: newDua }]);
+      setNewDua('');
+      setShowAddForm(false);
+    } catch (error) {
+      console.error("Error adding dua:", error);
     }
   };
 
-  const showSnackbar = (message, severity) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
+  const handleUpdateDua = async (id) => {
+    if (!editText.trim()) return;
+    
+    try {
+      await updateDua(user.uid, id, editText);
+      setDuas(duas.map(dua => dua.id === id ? { ...dua, text: editText } : dua));
+      setEditMode(null);
+      setEditText('');
+    } catch (error) {
+      console.error("Error updating dua:", error);
+    }
   };
 
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
+  const handleDeleteDua = async (id) => {
+    if (window.confirm("Are you sure you want to delete this dua?")) {
+      try {
+        await deleteDua(user.uid, id);
+        setDuas(duas.filter(dua => dua.id !== id));
+      } catch (error) {
+        console.error("Error deleting dua:", error);
+      }
+    }
+  };
+
+  const startEdit = (dua) => {
+    setEditMode(dua.id);
+    setEditText(dua.text);
   };
 
   if (loading) {
     return (
-      <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Typography color="error">{error}</Typography>
-      </Container>
+      <div className="loading">
+        <div className="loading-spinner"></div>
+        <p>Loading Duas...</p>
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 4, textAlign: 'center' }}>
-      <Typography variant="h5" sx={{ mb: 4 }}>
-        O Allah I pray for
-      </Typography>
-
-      {duas.map((dua) => (
-        <Swipeable key={dua.id} onSwiped={() => handleSwipe(dua)}>
-          <Card
-            sx={{ mb: 2, borderRadius: '16px', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)' }}
-            {...useLongPress(() => handleLongPress(dua))}
-          >
-            <CardContent>
-              <Typography variant="body1">{dua.text}</Typography>
-            </CardContent>
-          </Card>
-        </Swipeable>
-      ))}
-
-      <TextField
-        label="Add New Dua"
-        variant="outlined"
-        fullWidth
-        value={newDuaText}
-        onChange={(e) => setNewDuaText(e.target.value)}
-        sx={{ mt: 2 }}
-      />
-      <Button variant="contained" color="primary" onClick={handleAddDua} sx={{ mt: 2 }}>
-        Add Dua
-      </Button>
-
-      <Dialog open={editDialogOpen} onClose={handleEditDialogClose}>
-        <DialogTitle>Edit Dua</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Dua Text"
-            fullWidth
-            value={editDua ? editDua.text : ''}
-            onChange={(e) => setEditDua({ ...editDua, text: e.target.value })}
+    <div className="dua-container">
+      <h1 className="dua-title">O Allah I pray for</h1>
+      
+      <div className="duas-list">
+        {duas.map(dua => (
+          <div key={dua.id} className="dua-item">
+            {editMode === dua.id ? (
+              <div className="edit-dua-form">
+                <textarea
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  className="edit-dua-textarea"
+                  rows="4"
+                />
+                <div className="edit-actions">
+                  <button 
+                    onClick={() => handleUpdateDua(dua.id)}
+                    className="save-btn"
+                  >
+                    Save
+                  </button>
+                  <button 
+                    onClick={() => setEditMode(null)}
+                    className="cancel-btn"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="dua-text">
+                {dua.text}
+                <div className="dua-actions">
+                  <button 
+                    className="edit-btn"
+                    onClick={() => startEdit(dua)}
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    className="delete-btn"
+                    onClick={() => handleDeleteDua(dua.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      {showAddForm ? (
+        <div className="add-dua-form">
+          <textarea
+            value={newDua}
+            onChange={(e) => setNewDua(e.target.value)}
+            placeholder="Type your dua here..."
+            className="add-dua-textarea"
+            rows="4"
           />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEditDialogClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleEditSave} color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-    </Container>
+          <div className="add-actions">
+            <button 
+              onClick={handleAddDua}
+              className="add-btn"
+            >
+              Add Dua
+            </button>
+            <button 
+              onClick={() => {
+                setShowAddForm(false);
+                setNewDua('');
+              }}
+              className="cancel-btn"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="add-dua-prompt" onClick={() => setShowAddForm(true)}>
+          + Tap to Add New / Long press to edit
+        </div>
+      )}
+    </div>
   );
-}
+};
 
 export default Dua;

@@ -1,58 +1,57 @@
 // File: src/components/BottomNavigation.js
-import React, { useState } from 'react';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { logOut } from '../services/authService';
 import './BottomNavigation.css';
 
 const BottomNavigation = () => {
-  const [activeTab, setActiveTab] = useState('home');
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Error signing out:", error);
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const handleLogout = async () => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      try {
+        await logOut();
+        // The auth state change will be handled by onAuthStateChanged in App.js
+      } catch (error) {
+        console.error("Error logging out:", error);
+      }
     }
   };
-
+  
+  const isActive = (path) => location.pathname === path;
+  
   return (
     <div className="bottom-nav">
       <div 
-        className={`nav-item ${activeTab === 'home' ? 'active' : ''}`}
-        onClick={() => setActiveTab('home')}
+        className={`nav-item ${isActive('/') ? 'active' : ''}`}
+        onClick={() => navigate('/')}
       >
         <div className="nav-icon">🏠</div>
         <p>Home</p>
       </div>
       <div 
-        className={`nav-item ${activeTab === 'mosque' ? 'active' : ''}`}
-        onClick={() => setActiveTab('mosque')}
+        className={`nav-item ${isActive('/dua') ? 'active' : ''}`}
+        onClick={() => navigate('/dua')}
       >
-        <div className="nav-icon">🕌</div>
-        <p>Mosque</p>
+        <div className="nav-icon">📿</div>
+        <p>Dua</p>
       </div>
       <div 
-        className={`nav-item ${activeTab === 'time' ? 'active' : ''}`}
-        onClick={() => setActiveTab('time')}
+        className={`nav-item ${isActive('/tasbeeh') ? 'active' : ''}`}
+        onClick={() => navigate('/tasbeeh')}
       >
         <div className="nav-icon">⏰</div>
-        <p>Time</p>
+        <p>Tasbeeh</p>
       </div>
       <div 
-        className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-        onClick={() => {
-          setActiveTab('profile');
-          // For now, clicking profile signs out (you can change this later)
-          if (window.confirm("Do you want to sign out?")) {
-            handleSignOut();
-          }
-        }}
+        className="nav-item"
+        onClick={handleLogout}
       >
         <div className="nav-icon">👤</div>
         <p>Profile</p>
       </div>
     </div>
-    
   );
 };
 
