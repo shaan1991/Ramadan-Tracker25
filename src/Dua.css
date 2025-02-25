@@ -1,0 +1,32 @@
+/* src/Dua.css */
+.dua-container {
+    padding: 20px;
+  }
+  
+  .dua-item {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+  }
+  
+  input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0056b3;
+    color: white;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #004494;
+  }

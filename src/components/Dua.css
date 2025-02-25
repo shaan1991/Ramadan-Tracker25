@@ -1,0 +1,31 @@
+.dua-container {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .dua-title {
+    margin-bottom: 20px;
+  }
+  
+  .dua-card {
+    margin-bottom: 10px;
+    border-radius: 16px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .dua-card-content {
+    padding: 16px;
+  }
+  
+  .dua-add-text {
+    margin-top: 10px;
+    color: gray;
+  }
+  
+  .dua-add-input {
+    margin-top: 10px;
+  }
+  
+  .dua-add-button {
+    margin-top: 10px;
+  }

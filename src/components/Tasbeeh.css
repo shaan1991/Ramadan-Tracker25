@@ -1,0 +1,91 @@
+/* File: src/components/Tasbeeh.css */
+.tasbeeh-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(100vh - 70px); /* Adjust for BottomNavigation */
+  padding: 20px;
+  position: relative;
+  background-color: white;
+}
+
+.tasbeeh-title {
+  font-size: 28px;
+  font-weight: 500;
+  margin-top: 0;
+  text-align: center;
+}
+
+.reset-button {
+  background-color: #000;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 8px 24px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.reset-button:hover {
+  background-color: #333;
+}
+
+.counter-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+}
+
+.counter-number {
+  font-size: 120px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.tap-instruction {
+  color: #888;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+/* Ripple effect */
+.ripple {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: ripple-effect 0.6s ease-out;
+  pointer-events: none;
+}
+
+@keyframes ripple-effect {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.5;
+  }
+  100% {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .counter-number {
+    font-size: 100px;
+  }
+}
