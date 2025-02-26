@@ -1,4 +1,4 @@
-// src/components/Calendar.js - FIXED
+// src/components/Calendar.js - UPDATED
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
 import './Calendar.css';
@@ -79,9 +79,8 @@ const Calendar = ({ onDateSelect, onClose }) => {
     return `${year}-${monthStr}-${dayStr}`;
   };
 
-  // This function was causing issues with date consistency
+  // Fixed formatDate function that consistently uses UTC to avoid timezone issues
   const formatDate = (date) => {
-    // Use UTC methods to avoid timezone issues
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -170,8 +169,8 @@ const Calendar = ({ onDateSelect, onClose }) => {
         
         {/* Calendar days */}
         {monthData.map((day, index) => {
-          // Ensure we're using the correct date format consistently for comparison
-          const isSelected = day.date === formatDate(selectedDate);
+          // Compare with the formatted date string from the day object
+          const isSelected = day.date && day.date === formatDate(selectedDate);
           
           return (
             <div 

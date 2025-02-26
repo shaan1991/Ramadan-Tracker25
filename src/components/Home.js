@@ -28,6 +28,11 @@ const Home = () => {
   const formattedToday = formatDate(today);
   const [selectedDate, setSelectedDate] = useState(formattedToday);
   
+  // Add state for location and prayer times
+  const [location, setLocation] = useState(null);
+  const [prayerTimes, setPrayerTimes] = useState(null);
+  const [locationStatus, setLocationStatus] = useState('loading'); // 'loading', 'success', 'error'
+  
   const containerRef = useRef(null);
 
   // Helper function to ensure consistent date formatting
@@ -37,6 +42,49 @@ const Home = () => {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
+
+  // Format time to 12-hour format
+  const formatTime = (date) => {
+    if (!date) return '';
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit', 
+      hour12: true 
+    }).toLowerCase();
+  };
+
+  // Get user location and calculate prayer times
+  useEffect(() => {
+    const getLocationAndPrayerTimes = async () => {
+      setLocationStatus('loading');
+      
+      try {
+        // Get user's geolocation
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+        
+        const { latitude, longitude } = position.coords;
+        setLocation({ latitude, longitude });
+        
+        // Calculate prayer times using adhan
+        const coordinates = new Coordinates(latitude, longitude);
+        const date = new Date();
+        const params = CalculationMethod.MoonsightingCommittee();
+        const prayerTimes = new PrayerTimes(coordinates, date, params);
+        
+        setPrayerTimes(prayerTimes);
+        setLocationStatus('success');
+        
+        console.log('Prayer times calculated:', prayerTimes);
+      } catch (error) {
+        console.error('Error getting location:', error);
+        setLocationStatus('error');
+      }
+    };
+    
+    getLocationAndPrayerTimes();
+  }, []);
 
   useEffect(() => {
     // Add touch event listeners for pull-to-reveal
@@ -112,7 +160,7 @@ const Home = () => {
   };
 
   const handleDateSelect = (date) => {
-    console.log("Selected date:", date); // Add for debugging
+    console.log("Selected date:", date);
     setSelectedDate(date);
     // Load data for the selected date - using exact string passed from Calendar
     loadDateData(date);
@@ -125,7 +173,7 @@ const Home = () => {
   };
 
   const loadDateData = async (dateString) => {
-    console.log("Loading data for date:", dateString); // Add for debugging
+    console.log("Loading data for date:", dateString);
     
     // Check if there's history data for this date - EXACT string match
     if (userData && userData.history && userData.history[dateString]) {
@@ -174,6 +222,19 @@ const Home = () => {
     }
   };
 
+  const getPrayerTimesForDate = (dateString) => {
+    if (!location) return null;
+    
+    // Parse the date string
+    const [year, month, day] = dateString.split('-').map(num => parseInt(num));
+    const date = new Date(year, month - 1, day); // month is 0-indexed in JS Date
+    
+    // Calculate prayer times for the specific date
+    const coordinates = new Coordinates(location.latitude, location.longitude);
+    const params = CalculationMethod.MoonsightingCommittee();
+    return new PrayerTimes(coordinates, date, params);
+  };
+
   if (loading || !userData) {
     return (
       <div className="loading-container">
@@ -183,14 +244,16 @@ const Home = () => {
     );
   }
 
-  
-  // Calculate suhoor and iftar times (simplified example)
-  const suhoorTime = "6am"; // Match the format from screenshot
-  const iftarTime = "6pm";  // Match the format from screenshot
-  
   // Determine if we're viewing historical data or today's data
   const isHistoricalView = userData.isHistoricalView || false;
   const viewDate = isHistoricalView ? userData.historicalDate : formattedToday;
+  
+  // Get prayer times for the current view date
+  const currentDatePrayerTimes = getPrayerTimesForDate(viewDate);
+  
+  // Calculate suhoor (fajr) and iftar (maghrib) times
+  const suhoorTime = currentDatePrayerTimes ? formatTime(currentDatePrayerTimes.fajr) : "Loading...";
+  const iftarTime = currentDatePrayerTimes ? formatTime(currentDatePrayerTimes.maghrib) : "Loading...";
   
   // Parse the date string directly to avoid timezone issues
   const [year, month, day] = viewDate.split('-').map(num => parseInt(num));
@@ -222,7 +285,10 @@ const Home = () => {
           <div className="day-counter">Day {currentDay} of {totalDays}</div>
           
           <div className="time-container">
-            <div className="suhoor-time">Suhoor: {suhoorTime}</div>
+            <div className="suhoor-time">
+              Suhoor: {suhoorTime}
+              {locationStatus === 'error' && <span className="location-error"> (based on default)</span>}
+            </div>
             
             <div 
               className="date-selector"
@@ -232,10 +298,47 @@ const Home = () => {
               <span className={`chevron ${showCalendar ? 'up' : 'down'}`}>▼</span>
             </div>
             
-            <div className="iftar-time">Iftar: {iftarTime}</div>
+            <div className="iftar-time">
+              Iftar: {iftarTime}
+              {locationStatus === 'error' && <span className="location-error"> (based on default)</span>}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Location permission banner */}
+      {locationStatus === 'error' && (
+        <div className="location-banner">
+          <p>Enable location for accurate prayer times</p>
+          <button 
+            onClick={() => {
+              setLocationStatus('loading');
+              navigator.geolocation.getCurrentPosition(
+                (position) => {
+                  const { latitude, longitude } = position.coords;
+                  setLocation({ latitude, longitude });
+                  
+                  // Calculate prayer times
+                  const coordinates = new Coordinates(latitude, longitude);
+                  const date = new Date();
+                  const params = CalculationMethod.MoonsightingCommittee();
+                  const prayerTimes = new PrayerTimes(coordinates, date, params);
+                  
+                  setPrayerTimes(prayerTimes);
+                  setLocationStatus('success');
+                },
+                (error) => {
+                  console.error('Error getting location:', error);
+                  setLocationStatus('error');
+                }
+              );
+            }}
+            className="location-retry-button"
+          >
+            Allow Location
+          </button>
+        </div>
+      )}
 
       {/* Calendar (shown/hidden based on state) */}
       {showCalendar && (
