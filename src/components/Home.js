@@ -1,4 +1,4 @@
-// File: src/components/Home.js - UPDATED with MonthlySummary
+// File: src/components/Home.js - UPDATED with Dynamic Ramadan Day Counter
 // -------------------------------
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -18,7 +18,7 @@ import { PrayerTimes, CalculationMethod, Coordinates } from 'adhan';
 
 
 const Home = () => {
-  const { user, userData, ramadanDay, loading, updateUserData } = useUser();
+  const { user, userData, loading, updateUserData } = useUser();
   const [showCalendar, setShowCalendar] = useState(false);
   const [pulling, setPulling] = useState(false);
   const [pullStartY, setPullStartY] = useState(0);
@@ -33,6 +33,10 @@ const Home = () => {
   const [location, setLocation] = useState(null);
   const [prayerTimes, setPrayerTimes] = useState(null);
   const [locationStatus, setLocationStatus] = useState('loading'); // 'loading', 'success', 'error'
+  
+  // Add state for dynamic Ramadan day calculation
+  const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
+  const totalDays = 30;
   
   const containerRef = useRef(null);
 
@@ -53,6 +57,32 @@ const Home = () => {
       hour12: true 
     }).toLowerCase();
   };
+
+  // Calculate current Ramadan day on component mount
+  useEffect(() => {
+    // Define Ramadan start date - update this for the correct year
+    const ramadanStartDate = new Date(2025, 1, 27); // February 27, 2025
+    
+    // Calculate days since Ramadan started
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Remove time component
+    ramadanStartDate.setHours(0, 0, 0, 0); // Remove time component
+    
+    // Calculate difference in days
+    const timeDiff = today.getTime() - ramadanStartDate.getTime();
+    const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1; // +1 because first day is day 1
+    
+    // Set the current Ramadan day (between 1 and 30)
+    if (dayDiff >= 1 && dayDiff <= 30) {
+      setCurrentRamadanDay(dayDiff);
+    } else if (dayDiff < 1) {
+      // Before Ramadan started
+      setCurrentRamadanDay(1); // Default to day 1
+    } else {
+      // After Ramadan ended
+      setCurrentRamadanDay(30); // Cap at day 30
+    }
+  }, []);
 
   // Get user location and calculate prayer times
   useEffect(() => {
@@ -264,10 +294,6 @@ const Home = () => {
     dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 
     'Today';
 
-  // Calculate the current Ramadan day (simplified)
-  const currentDay = ramadanDay || 2;
-  const totalDays = 30;
-
   return (
     <div className="home-container" ref={containerRef}>
       {/* Pull-to-reveal indicator */}
@@ -283,7 +309,7 @@ const Home = () => {
         </div>
         
         <div className="timing-section">
-          <div className="day-counter">Day {currentDay} of {totalDays}</div>
+          <div className="day-counter">Day {currentRamadanDay} of {totalDays}</div>
           
           <div className="time-container">
             <div className="suhoor-time">

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { runDataMigrations } from '../services/DataMigration';
 import { migrateJuzData } from '../services/historyTracker';
+import { migrateDuasToSubcollection } from '../services/migrateArrayToDuasCollection';
 
 // This component doesn't render anything visible
 // It just runs initialization code when the app starts
@@ -23,6 +24,9 @@ const AppInitializer = () => {
         
         // Migrate Juz data specifically
         await migrateJuzData(user.uid);
+        
+        // Migrate duas from array to subcollection
+        await migrateDuasToSubcollection(user.uid);
         
         setMigrationRun(true);
         console.log('App initialization complete');
