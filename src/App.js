@@ -1,5 +1,5 @@
 // File: src/App.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { UserProvider, useUser } from './contexts/UserContext';
 
@@ -7,16 +7,31 @@ import { UserProvider, useUser } from './contexts/UserContext';
 import Login from './components/Login';
 import Home from './components/Home';
 import Tasbeeh from './components/Tasbeeh';
-import Dua from './components/Dua';  // New component
+import Dua from './components/Dua';
 import BottomNavigation from './components/BottomNavigation';
-import DayTransitionAlert from './components/DayTransitionAlert'; // Added component
-import AppInitializer from './components/AppInitializer'; // Added component for migrations
+import DayTransitionAlert from './components/DayTransitionAlert';
+import AppInitializer from './components/AppInitializer';
+import ProfileScreen from './components/ProfileScreen';
+import Onboarding from './components/Onboarding'; // Import the new component
 
 // Styles
 import './App.css';
 
 const AppContent = () => {
-  const { user, loading } = useUser();
+  const { user, userData, loading } = useUser();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // Check if we need to show onboarding when user data loads
+  useEffect(() => {
+    if (user && userData && !loading) {
+      // Show onboarding if the user hasn't completed it yet
+      setShowOnboarding(userData.onboardingCompleted !== true);
+    }
+  }, [user, userData, loading]);
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+  };
 
   if (loading) {
     return (
@@ -32,16 +47,22 @@ const AppContent = () => {
       {/* This component runs initialization code but doesn't render anything */}
       <AppInitializer />
       
+      {/* Show onboarding for logged-in users who haven't seen it */}
+      {user && showOnboarding && (
+        <Onboarding onComplete={handleOnboardingComplete} />
+      )}
+      
       {/* Day transition alert for when midnight passes */}
-      {user && <DayTransitionAlert />}
+      {user && !showOnboarding && <DayTransitionAlert />}
       
       <Routes>
         <Route path="/" element={user ? <Home /> : <Login />} />
         <Route path="/tasbeeh" element={user ? <Tasbeeh /> : <Login />} />
-        <Route path="/dua" element={user ? <Dua /> : <Login />} />  {/* New route */}
+        <Route path="/dua" element={user ? <Dua /> : <Login />} />
+        <Route path="/profile" element={user ? <ProfileScreen /> : <Login />} />
       </Routes>
       
-      {user && <BottomNavigation />}
+      {user && !showOnboarding && <BottomNavigation />}
     </div>
   );
 };

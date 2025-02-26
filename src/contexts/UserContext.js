@@ -135,11 +135,11 @@ export const UserProvider = ({ children }) => {
           prayedTaraweeh: false,
           history: {},
           lastActiveDate: today,
+          // Add onboarding flag (initially false to show onboarding)
+          onboardingCompleted: false,
           // Initialize with default duas
           duas: [
-            'Use this page to add your duas and track them - long press to edit and swipe to delete',
-            // 'O Most Merciful, bestow upon me the companionship of a righteous spouse whose heart is filled with faith, love, and kindness.',
-            // 'O Allah, Guardian of my soul, envelop me in Your divine protection and shield me from all forms of harm, negativity, and malignance that seek to disrupt my path.'
+            'Use this page to add your duas and track them - long press to edit and swipe to delete'
           ]
         };
         

@@ -2,6 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
 import './Tasbeeh.css';
+// import { testNotification } from '../services/notificationService';
+
 
 const Tasbeeh = () => {
   const [count, setCount] = useState(0);
@@ -9,6 +11,7 @@ const Tasbeeh = () => {
   const [ripplePosition, setRipplePosition] = useState({ x: 0, y: 0 });
   const counterRef = useRef(null);
   const { user, userData, updateUserData } = useUser();
+  
 
   // Load the tasbeeh count from Firebase when component mounts
   useEffect(() => {
@@ -75,14 +78,20 @@ const Tasbeeh = () => {
     }
   };
 
+  
+
   return (
     <div className="tasbeeh-container">
       <h1 className="tasbeeh-title">Tasbeeh</h1>
       
       <button className="reset-button" onClick={handleReset}>
+        
         Reset
       </button>
       
+     
+
+
       <div 
         className="counter-area" 
         ref={counterRef}
@@ -101,8 +110,12 @@ const Tasbeeh = () => {
           />
         )}
       </div>
+      
     </div>
   );
+  
 };
+
+
 
 export default Tasbeeh;

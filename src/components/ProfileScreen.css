@@ -1,0 +1,252 @@
+/* src/components/ProfileScreen.css */
+.profile-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 70px); /* Adjust for bottom nav */
+  padding: 20px;
+  background-color: white;
+font-family: 'Poppins', sans-serif;;
+}
+
+.profile-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Countdown section */
+.countdown-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+}
+
+.countdown-section h2 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: #000;
+  font-family: 'Poppins', sans-serif;
+}
+
+
+.days-count {
+  font-size: 36px;
+  font-weight: 700;
+  margin: 10px 0;
+  color: #000;
+  font-family: 'Poppins', sans-serif;
+}
+
+.data-availability {
+  font-size: 14px;
+  color: #666;
+  margin-top: 5px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Links section */
+.links-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.profile-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.profile-link:hover, .profile-link:active {
+  background-color: #f5f5f5;
+}
+
+.link-icon {
+  margin-right: 12px;
+  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signout {
+  margin-top: 8px;
+}
+
+/* Footer */
+.profile-footer {
+  text-align: center;
+  color: #888;
+  font-size: 12px;
+  margin-top: 40px;
+  padding: 20px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Dialog styling - Fix for centering */
+dialog {
+  margin: auto;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Donation dialogs */
+.donation-dialog {
+  border: none;
+  border-radius: 16px;
+  padding: 0;
+  width: 90%;
+  max-width: 350px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.dialog-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Poppins', sans-serif;
+}
+
+.dialog-content h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.qr-container {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #ccc;
+  font-family: 'Poppins', sans-serif;
+}
+
+.placeholder-qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.donation-info {
+  margin: 0 0 20px;
+  text-align: center;
+  color: #555;
+  font-size: 14px;
+}
+
+.close-dialog {
+  background-color: #000;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.close-dialog:hover {
+  background-color: #333;
+}
+
+/* Sign out confirmation dialog */
+.confirmation-dialog {
+  border: none;
+  border-radius: 16px;
+  padding: 0;
+  width: 90%;
+  max-width: 350px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.cancel-button, .confirm-button {
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  min-width: 100px;
+  transition: background-color 0.2s;
+}
+
+.cancel-button {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.confirm-button {
+  background-color: #000;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #e0e0e0;
+}
+
+.confirm-button:hover {
+  background-color: #333;
+}
+
+/* For browsers that don't support dialog element properly */
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 480px) {
+  .profile-screen {
+    padding: 16px;
+  }
+  
+  .days-count {
+    font-size: 32px;
+  }
+  
+  .dialog-buttons {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  
+  .cancel-button, .confirm-button {
+    width: 100%;
+  }
+}

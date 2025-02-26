@@ -17,6 +17,7 @@ import MonthlySummary from './MonthlySummary'; // New component
 import RandomSunnahSuggestion from './RandomSunnahSuggestion';
 import ShareButton from './ShareButton';
 import { PrayerTimes, CalculationMethod, Coordinates } from 'adhan';
+import { setupNotifications, scheduleNotification } from '../services/notificationService';
 
 
 
@@ -138,6 +139,48 @@ const Home = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const initializeNotifications = async () => {
+      if (!user || !prayerTimes) {
+        return; // Wait until we have both user and prayer times
+      }
+      
+      console.log('Initializing notifications');
+      
+      try {
+        // Check if we have valid prayer times
+        if (prayerTimes.maghrib && prayerTimes.isha) {
+          // Set up notifications (permission request + FCM setup)
+          const notificationsEnabled = await setupNotifications(user.uid);
+          
+          if (notificationsEnabled) {
+            console.log('Notifications enabled, scheduling daily reminder');
+            
+            // Format prayer times for the scheduler
+            const formattedPrayerTimes = {
+              maghrib: formatTime(prayerTimes.maghrib).replace(' ', ''),
+              isha: formatTime(prayerTimes.isha).replace(' ', '')
+            };
+            
+            // Schedule notification between Maghrib and Isha
+            await scheduleNotification(user.uid, formattedPrayerTimes);
+          } else {
+            console.log('Notifications not enabled by user');
+          }
+        } else {
+          console.log('Prayer times not available for notification scheduling');
+        }
+      } catch (error) {
+        console.error('Error setting up notifications:', error);
+      }
+    };
+    
+    // Only run when we have the necessary data
+    if (user && prayerTimes) {
+      initializeNotifications();
+    }
+  }, [user, prayerTimes]); // Dependencies: user and prayerTimes
 
   const handleTouchStart = (e) => {
     // Only enable pull-to-reveal when at the top of the page
@@ -300,10 +343,7 @@ const Home = () => {
   return (
     <div className="home-container" ref={containerRef}>
       {/* Pull-to-reveal indicator */}
-      <div className={`pull-indicator ${pulling ? 'pulling' : 'hidden'}`}>
-        <span className="pull-spinner">⟳</span>
-        <span id="pull-text">Pull down to show calendar</span>
-      </div>
+      
 
       <div className="app-header">
         <div className="welcome-section">
