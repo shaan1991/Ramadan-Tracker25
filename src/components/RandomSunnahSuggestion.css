@@ -1,0 +1,90 @@
+/* src/components/RandomSunnahSuggestion.css */
+
+.suggested-sunnah {
+    background-color: #f8f8f8;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .sunnah-header {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  
+  .sunnah-container {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    padding-right: 20px; /* Space for the expand icon */
+  }
+  
+  .sunnah-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+    line-height: 1.4;
+    transition: margin 0.3s ease;
+  }
+  
+  .sunnah-container.expanded .sunnah-title {
+    margin-bottom: 12px;
+  }
+  
+  .sunnah-description {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #555;
+    max-height: 300px;
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease;
+    padding-bottom: 4px;
+  }
+  
+  .expand-icon {
+    position: absolute;
+    right: 0;
+    top: 4px;
+    font-size: 12px;
+    color: #888;
+    transition: transform 0.3s ease;
+  }
+  
+  .expand-icon.expanded {
+    transform: rotate(180deg);
+  }
+  
+  /* Ripple effect when clicked */
+  .sunnah-container::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  
+  .sunnah-container:active::after {
+    opacity: 1;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }

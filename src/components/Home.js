@@ -14,7 +14,10 @@ import TaraweehCheck from './TaraweehCheck';
 import JuzTracker from './JuzTracker';
 import HadithOfTheDay from './HadithOfTheDay';
 import MonthlySummary from './MonthlySummary'; // New component
+import RandomSunnahSuggestion from './RandomSunnahSuggestion';
+import ShareButton from './ShareButton';
 import { PrayerTimes, CalculationMethod, Coordinates } from 'adhan';
+
 
 
 const Home = () => {
@@ -395,14 +398,12 @@ const Home = () => {
       )}
 
       <DailyOverview />
+      {/* <ShareButton />  Add this line */}
 
       {/* Add the Monthly Summary component for progress stats */}
       {!isHistoricalView && <MonthlySummary />}
 
-      <div className="suggested-sunnah">
-        <p className="sunnah-header">Suggested Sunnah of the day</p>
-        <p className="sunnah-action">🤲 Pray an Extra Sunnah Prayer</p>
-      </div>
+      <RandomSunnahSuggestion currentRamadanDay={currentRamadanDay} />
 
       <DailyNamazCheckIn />
       <FastingCheck />
