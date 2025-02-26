@@ -1,12 +1,13 @@
 /* File: src/components/Home.css */
 :root {
   --pull-height: 0px;
+  font-family: 'Poppins', sans-serif;
 }
 
 .home-container {
   padding: 16px;
   background-color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Poppins', sans-serif;;
 }
 
 /* App header styling to match the design */

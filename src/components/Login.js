@@ -42,12 +42,14 @@ const Login = () => {
           <span className="moon-icon">☾</span>
           <span className="stars-icon">✧✧</span>
         </div>
-        <h1>Asalamuwalekum</h1>
+        <h1>As-salāmu ʿalaykum</h1>
         <h1>Ramadan kareem!</h1>
       </div>
       
       <p className="login-description">
-        This app will go away after the month of Ramadan. Here for the month to track the good deeds.
+Track your prayers, fasts, and reflections during Ramadan. This app will disappear after the month, keeping your focus on what truly matters.
+
+<h4 className='hero-text'>Begin Your Spiritual Journey</h4>
       </p>
       
       {error && <p className="error-message">{error}</p>}
@@ -67,16 +69,7 @@ const Login = () => {
           {loading ? 'Signing in...' : 'Sign in with Google'}
         </button>
         
-        <button 
-          className="apple-button"
-          onClick={handleAppleSignIn}
-          disabled={loading}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
-            <path d="M16.125 0.1875C16.9805 0a2.2075 2.2075 0 0 1-0.5566 1.6113 3.3041 3.3041 0 0 1-1.3711 1.0195c-0.5566-0.5862-0.9309-1.2597-0.8321-1.9629 0.9309-0.0789 1.7813-0.5566 2.7598-0.668zm2.5125 7.7813c-1.3711 0.5862-2.2774 1.5625-2.2774 3.125 0 1.6816 1.4746 3.0274 3.6094 3.0274-0.4032 1.0688-0.75 2.1094-1.4746 3.0274-1.0293 1.4746-2.0586 3.0274-3.6094 3.0274-0.5566 0-1.0195-0.1484-1.4746-0.4375-0.4503-0.293-0.9007-0.4375-1.3711-0.4375-0.5566 0-1.0195 0.1484-1.5039 0.4375-0.4552 0.293-0.8566 0.4375-1.2676 0.4375-1.5625 0-2.7598-1.9629-3.7598-3.4375a12.33 12.33 0 0 1-1.6113-6.0059c0-3.5156 2.2774-5.3711 4.5547-5.3711 0.75 0 1.4746 0.1485 2.0586 0.4375 0.5862 0.2929 1.0186 0.4375 1.5126 0.4375 0.4551 0 0.9102-0.1484 1.4746-0.4375 0.5862-0.293 1.3125-0.4375 2.0625-0.4375 1.3672 0 2.4648 0.5566 3.1698 1.6114z"></path>
-          </svg>
-          {loading ? 'Signing in...' : 'Sign in with Apple'}
-        </button>
+        
       </div>
     </div>
   );
