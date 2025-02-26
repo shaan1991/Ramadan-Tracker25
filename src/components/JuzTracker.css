@@ -1,0 +1,205 @@
+/* src/components/JuzTracker.css */
+.juz-tracker {
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 16px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  .juz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  
+  .juz-tracker h3 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+  }
+  
+  .streak-badge {
+    display: flex;
+    align-items: center;
+    background-color: #FFF3E0;
+    border-radius: 20px;
+    padding: 4px 10px;
+  }
+  
+  .streak-icon {
+    font-size: 16px;
+    margin-right: 4px;
+  }
+  
+  .streak-count {
+    font-weight: bold;
+    color: #FF9800;
+  }
+  
+  .juz-description {
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  
+  .juz-counter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+  }
+  
+  .juz-counter-value {
+    font-size: 32px;
+    font-weight: bold;
+    margin: 0 30px;
+    color: #333;
+  }
+  
+  .juz-counter-button {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #555;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .juz-counter-button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .juz-counter-button:active {
+    background-color: #d5d5d5;
+  }
+  
+  .juz-counter-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .juz-selection {
+    margin-top: 20px;
+    display: none; /* Hidden by default, shown when needed */
+  }
+  
+  .juz-selection-title {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    color: #555;
+  }
+  
+  .juz-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .juz-item {
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    color: #333;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .juz-item:hover {
+    background-color: #e8e8e8;
+  }
+  
+  .juz-item.selected {
+    border: 2px solid #4CAF50;
+  }
+  
+  .juz-item.completed {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .progress-container {
+    margin-top: 20px;
+  }
+  
+  .progress-bar {
+    height: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background-color: #4CAF50;
+    border-radius: 5px;
+    transition: width 0.3s ease;
+  }
+  
+  .progress-text {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .juz-action {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .juz-action button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .juz-action button:hover {
+    background-color: #3e9142;
+  }
+  
+  /* Advanced mode toggle */
+  .juz-mode-toggle {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .juz-mode-toggle button {
+    background: none;
+    border: none;
+    color: #4CAF50;
+    font-size: 14px;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 5px 10px;
+  }
+  
+  /* Show grid in advanced mode */
+  .advanced-mode .juz-grid {
+    display: flex;
+  }
+  
+  .advanced-mode .juz-counter {
+    display: none;
+  }

@@ -1,0 +1,95 @@
+/* src/components/FastingCheck.css & TaraweehCheck.css (shared styles) */
+.fasting-container,
+.taraweeh-container {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.fasting-header,
+.taraweeh-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.fasting-container h3,
+.taraweeh-container h3 {
+  font-size: 20px;
+  margin: 0;
+  color: #333;
+}
+
+.streak-badge {
+  display: flex;
+  align-items: center;
+  background-color: #FFF3E0;
+  border-radius: 20px;
+  padding: 4px 10px;
+}
+
+.streak-icon {
+  font-size: 16px;
+  margin-right: 4px;
+}
+
+.streak-count {
+  font-weight: bold;
+  color: #FF9800;
+}
+
+.toggle-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.toggle-button {
+  flex: 1;
+  border: none;
+  background-color: #f5f5f5;
+  color: #555;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  max-width: 120px;
+}
+
+.toggle-button:hover {
+  background-color: #e8e8e8;
+}
+
+.toggle-button.active {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.progress-bar {
+  position: relative;
+  height: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #4CAF50;
+  border-radius: 5px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin-top: 8px;
+}

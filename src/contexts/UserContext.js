@@ -1,4 +1,4 @@
-// Modified src/contexts/UserContext.js - FIXED
+// src/contexts/UserContext.js
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -14,6 +14,7 @@ export const UserProvider = ({ children }) => {
   const [isHistoricalView, setIsHistoricalView] = useState(false);
   const [historicalDate, setHistoricalDate] = useState(null);
   const [currentViewData, setCurrentViewData] = useState(null);
+  const [lastActiveDate, setLastActiveDate] = useState(null);
 
   // Helper function for consistent date formatting
   const formatDate = (date) => {
@@ -26,13 +27,50 @@ export const UserProvider = ({ children }) => {
   // Calculate which day of Ramadan it is
   function calculateRamadanDay() {
     // You may need to adjust this based on the actual start date of Ramadan
-    // This is a simplified example
     const startDate = new Date('2025-02-23'); // Example: Ramadan start date
     const today = new Date();
     const diffTime = Math.abs(today - startDate);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays > 30 ? 30 : diffDays;
   }
+
+  // Check if the app needs to reset for a new day
+  const checkForDayChange = async () => {
+    if (!userData || !user) return;
+    
+    const today = formatDate(new Date());
+    
+    // Get the last active date from user data or use stored state
+    const storedLastActiveDate = userData.lastActiveDate || lastActiveDate;
+    
+    // If this is our first check or the date has changed
+    if (!storedLastActiveDate || storedLastActiveDate !== today) {
+      console.log("New day detected! Resetting daily trackers.");
+      
+      // Reset daily tracking data, but preserve cumulative data like completedJuzs
+      const resetData = {
+        namaz: {
+          fajr: false,
+          zuhr: false,
+          asr: false,
+          maghrib: false,
+          isha: false
+        },
+        fasting: false,
+        prayedTaraweeh: false,
+        lastActiveDate: today
+      };
+      
+      // Don't reset the completedJuzs as those accumulate through the month
+      
+      // Update the user data with a clean slate for today
+      await updateUserData(resetData);
+      
+      // Update local state
+      setLastActiveDate(today);
+      setRamadanDay(calculateRamadanDay());
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -49,13 +87,34 @@ export const UserProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
+  // Effect for checking day change - run on initial load and when userData changes
+  useEffect(() => {
+    checkForDayChange();
+  }, [userData?.lastActiveDate]); // Only run when the lastActiveDate changes
+
+  // Also check for day change periodically if the app is left open
+  useEffect(() => {
+    if (!user) return;
+    
+    // Check for day change every hour if the app remains open
+    const dayChangeInterval = setInterval(() => {
+      checkForDayChange();
+    }, 3600000); // 1 hour in milliseconds
+    
+    return () => clearInterval(dayChangeInterval);
+  }, [user, userData]);
+
   const fetchUserData = async (uid) => {
     try {
       const userDocRef = doc(db, 'users', uid);
       const userDoc = await getDoc(userDocRef);
       
+      const today = formatDate(new Date());
+      
       if (userDoc.exists()) {
-        setUserData(userDoc.data());
+        const data = userDoc.data();
+        setUserData(data);
+        setLastActiveDate(data.lastActiveDate || null);
       } else {
         // Initialize user data for first-time users
         const initialData = {
@@ -75,6 +134,7 @@ export const UserProvider = ({ children }) => {
           fasting: false,
           prayedTaraweeh: false,
           history: {},
+          lastActiveDate: today,
           // Initialize with default duas
           duas: [
             'O Allah, Guardian of my soul, envelop me in Your divine protection and shield me from all forms of harm, negativity, and malignance that seek to disrupt my path.',
@@ -85,6 +145,7 @@ export const UserProvider = ({ children }) => {
         
         await setDoc(userDocRef, initialData);
         setUserData(initialData);
+        setLastActiveDate(today);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -162,11 +223,17 @@ export const UserProvider = ({ children }) => {
           }
           historyUpdate[`history.${today}.day`] = ramadanDay;
           
+          // Add lastActiveDate to regular updates
+          if (!dataToUpdate.hasOwnProperty('lastActiveDate')) {
+            dataToUpdate.lastActiveDate = today;
+          }
+          
           // Combine regular updates with history updates
           const combinedUpdates = { ...dataToUpdate, ...historyUpdate };
           
           await updateDoc(userDocRef, combinedUpdates);
           setUserData(prevData => ({ ...prevData, ...dataToUpdate }));
+          setLastActiveDate(today);
         }
         
         return true;
@@ -248,7 +315,8 @@ export const UserProvider = ({ children }) => {
     isHistoricalView,
     historicalDate,
     updateUserData,
-    recordDailyAction
+    recordDailyAction,
+    checkForDayChange // Expose this method to allow manual refresh
   };
 
   return (

@@ -9,6 +9,8 @@ import Home from './components/Home';
 import Tasbeeh from './components/Tasbeeh';
 import Dua from './components/Dua';  // New component
 import BottomNavigation from './components/BottomNavigation';
+import DayTransitionAlert from './components/DayTransitionAlert'; // Added component
+import AppInitializer from './components/AppInitializer'; // Added component for migrations
 
 // Styles
 import './App.css';
@@ -27,11 +29,18 @@ const AppContent = () => {
 
   return (
     <div className="app-container">
+      {/* This component runs initialization code but doesn't render anything */}
+      <AppInitializer />
+      
+      {/* Day transition alert for when midnight passes */}
+      {user && <DayTransitionAlert />}
+      
       <Routes>
         <Route path="/" element={user ? <Home /> : <Login />} />
         <Route path="/tasbeeh" element={user ? <Tasbeeh /> : <Login />} />
         <Route path="/dua" element={user ? <Dua /> : <Login />} />  {/* New route */}
       </Routes>
+      
       {user && <BottomNavigation />}
     </div>
   );

@@ -1,4 +1,4 @@
-// File: src/components/Home.js - UPDATED
+// File: src/components/Home.js - UPDATED with MonthlySummary
 // -------------------------------
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -13,6 +13,7 @@ import FastingCheck from './FastingCheck';
 import TaraweehCheck from './TaraweehCheck';
 import JuzTracker from './JuzTracker';
 import HadithOfTheDay from './HadithOfTheDay';
+import MonthlySummary from './MonthlySummary'; // New component
 import { PrayerTimes, CalculationMethod, Coordinates } from 'adhan';
 
 
@@ -368,6 +369,9 @@ const Home = () => {
       )}
 
       <DailyOverview />
+
+      {/* Add the Monthly Summary component for progress stats */}
+      {!isHistoricalView && <MonthlySummary />}
 
       <div className="suggested-sunnah">
         <p className="sunnah-header">Suggested Sunnah of the day</p>

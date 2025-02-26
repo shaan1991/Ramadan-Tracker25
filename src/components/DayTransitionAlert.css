@@ -1,0 +1,50 @@
+/* src/components/DayTransitionAlert.css */
+.day-transition-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 20px;
+    height: 100%;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .alert-content {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .alert-content h3 {
+    margin-top: 0;
+    color: #4CAF50;
+  }
+  
+  .refresh-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    margin-top: 15px;
+    cursor: pointer;
+  }
+  
+  .refresh-button:hover {
+    background-color: #45a049;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
