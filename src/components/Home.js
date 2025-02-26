@@ -1,4 +1,6 @@
-// File: src/components/Home.js
+// File: src/components/Home.js - UPDATED
+// -------------------------------
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
 import './Home.css';
@@ -11,6 +13,8 @@ import FastingCheck from './FastingCheck';
 import TaraweehCheck from './TaraweehCheck';
 import JuzTracker from './JuzTracker';
 import HadithOfTheDay from './HadithOfTheDay';
+import { PrayerTimes, CalculationMethod, Coordinates } from 'adhan';
+
 
 const Home = () => {
   const { user, userData, ramadanDay, loading, updateUserData } = useUser();
@@ -18,8 +22,21 @@ const Home = () => {
   const [pulling, setPulling] = useState(false);
   const [pullStartY, setPullStartY] = useState(0);
   const [pullCurrentY, setPullCurrentY] = useState(0);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  
+  // Initialize with properly formatted today's date
+  const today = new Date();
+  const formattedToday = formatDate(today);
+  const [selectedDate, setSelectedDate] = useState(formattedToday);
+  
   const containerRef = useRef(null);
+
+  // Helper function to ensure consistent date formatting
+  function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 
   useEffect(() => {
     // Add touch event listeners for pull-to-reveal
@@ -95,9 +112,12 @@ const Home = () => {
   };
 
   const handleDateSelect = (date) => {
+    console.log("Selected date:", date); // Add for debugging
     setSelectedDate(date);
-    // Load data for the selected date
+    // Load data for the selected date - using exact string passed from Calendar
     loadDateData(date);
+    // Close calendar after selection
+    setShowCalendar(false);
   };
 
   const handleCloseCalendar = () => {
@@ -105,18 +125,15 @@ const Home = () => {
   };
 
   const loadDateData = async (dateString) => {
-    // Check if there's history data for this date
+    console.log("Loading data for date:", dateString); // Add for debugging
+    
+    // Check if there's history data for this date - EXACT string match
     if (userData && userData.history && userData.history[dateString]) {
-      // If data exists, you might want to update the UI to show this historical data
-      // This will depend on how you've structured your data
-      console.log(`Loading data for ${dateString}`);
+      console.log("Found history data for date:", dateString);
       
-      // You may need to update the global state or context to reflect this historical data
-      // This is a simplified example:
       const historyData = userData.history[dateString];
       
       // Update the UserContext with historical data
-      // Note: You'll need to adapt this to your actual data structure
       const historicalUpdate = {
         namaz: historyData.namaz || {
           fajr: false,
@@ -130,14 +147,14 @@ const Home = () => {
         // Add other fields as necessary
       };
       
-      // This assumes you have a method to temporarily override the display data
-      // without affecting today's actual data
       updateUserData({
         currentViewData: historicalUpdate,
         isHistoricalView: true,
         historicalDate: dateString
       });
     } else {
+      console.log("No history data for date:", dateString);
+      
       // If no historical data, show empty state for that day
       updateUserData({
         currentViewData: {
@@ -166,17 +183,26 @@ const Home = () => {
     );
   }
 
+  
   // Calculate suhoor and iftar times (simplified example)
-  const suhoorTime = "6:00 AM"; // You may want to fetch this from an API
-  const iftarTime = "6:00 PM";  // You may want to fetch this from an API
+  const suhoorTime = "6am"; // Match the format from screenshot
+  const iftarTime = "6pm";  // Match the format from screenshot
   
   // Determine if we're viewing historical data or today's data
   const isHistoricalView = userData.isHistoricalView || false;
-  const viewDate = isHistoricalView ? userData.historicalDate : new Date().toISOString().split('T')[0];
-  const dateObj = new Date(viewDate);
+  const viewDate = isHistoricalView ? userData.historicalDate : formattedToday;
+  
+  // Parse the date string directly to avoid timezone issues
+  const [year, month, day] = viewDate.split('-').map(num => parseInt(num));
+  const dateObj = new Date(year, month - 1, day); // month is 0-indexed in JS Date
+  
   const displayDate = isHistoricalView ? 
     dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 
     'Today';
+
+  // Calculate the current Ramadan day (simplified)
+  const currentDay = ramadanDay || 2;
+  const totalDays = 30;
 
   return (
     <div className="home-container" ref={containerRef}>
@@ -184,6 +210,31 @@ const Home = () => {
       <div className={`pull-indicator ${pulling ? 'pulling' : 'hidden'}`}>
         <span className="pull-spinner">⟳</span>
         <span id="pull-text">Pull down to show calendar</span>
+      </div>
+
+      <div className="app-header">
+        <div className="welcome-section">
+          <p className="welcome-text">Welcome back {user.displayName?.split(' ')[0] || 'Shaan'}!</p>
+          <h2 className="motivation-text">Mashallah! going strong <span className="strong-emoji">💪</span></h2>
+        </div>
+        
+        <div className="timing-section">
+          <div className="day-counter">Day {currentDay} of {totalDays}</div>
+          
+          <div className="time-container">
+            <div className="suhoor-time">Suhoor: {suhoorTime}</div>
+            
+            <div 
+              className="date-selector"
+              onClick={() => setShowCalendar(!showCalendar)}
+            >
+              {displayDate}
+              <span className={`chevron ${showCalendar ? 'up' : 'down'}`}>▼</span>
+            </div>
+            
+            <div className="iftar-time">Iftar: {iftarTime}</div>
+          </div>
+        </div>
       </div>
 
       {/* Calendar (shown/hidden based on state) */}
@@ -194,24 +245,6 @@ const Home = () => {
         />
       )}
       
-      <div className="welcome-header">
-        <div>
-          <p className="welcome-text">Welcome back {user.displayName?.split(' ')[0] || 'Shaan'}!</p>
-          <h2 className="motivation-text">Mashallah! going strong 💪</h2>
-        </div>
-        <div className="timing-info">
-          <p>Suhoor: {suhoorTime}</p>
-          <div 
-            className="date-selector"
-            onClick={() => setShowCalendar(!showCalendar)}
-          >
-            {displayDate}
-            <span className={`chevron ${showCalendar ? 'up' : 'down'}`}>▼</span>
-          </div>
-          <p>Iftar: {iftarTime}</p>
-        </div>
-      </div>
-
       {isHistoricalView && (
         <div className="historical-banner">
           Viewing data for {dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -222,7 +255,7 @@ const Home = () => {
                 currentViewData: null,
                 historicalDate: null
               });
-              setSelectedDate(new Date().toISOString().split('T')[0]);
+              setSelectedDate(formattedToday);
             }}
             className="return-to-today"
           >
@@ -234,8 +267,8 @@ const Home = () => {
       <DailyOverview />
 
       <div className="suggested-sunnah">
-        <p>Suggested Sunnah of the day</p>
-        <p>🤲 Pray an Extra Sunnah Prayer</p>
+        <p className="sunnah-header">Suggested Sunnah of the day</p>
+        <p className="sunnah-action">🤲 Pray an Extra Sunnah Prayer</p>
       </div>
 
       <DailyNamazCheckIn />
@@ -243,13 +276,8 @@ const Home = () => {
       <TaraweehCheck />
       <JuzTracker />
 
-      {/* <div className="quote-container">
-        <p className="quote-text">Design is a formal response to a strategic question.</p>
-        <p className="quote-author">Mariona Lopez</p>
-      </div> */}
-
-{/* Replace the quote container with Hadith of the Day */}
-<HadithOfTheDay />
+      {/* Replace the quote container with Hadith of the Day */}
+      <HadithOfTheDay />
 
       <div className="dua-request">
         <p>I request you to include me and family in your Dua's</p>

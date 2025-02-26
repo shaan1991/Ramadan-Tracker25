@@ -1,4 +1,4 @@
-// src/components/Calendar.js
+// src/components/Calendar.js - FIXED
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
 import './Calendar.css';
@@ -33,7 +33,7 @@ const Calendar = ({ onDateSelect, onClose }) => {
     // Add days of the month
     for (let i = 1; i <= daysInMonth; i++) {
       const date = new Date(year, month, i);
-      const dateString = formatDate(date);
+      const dateString = formatDateString(year, month, i);
       const isToday = isSameDay(date, today);
       const isFuture = date > today;
       const hasData = daysWithData.includes(i);
@@ -58,17 +58,34 @@ const Calendar = ({ onDateSelect, onClose }) => {
     const daysWithData = [];
     
     for (let key in userData.history) {
-      const entryDate = new Date(key);
-      if (entryDate.getMonth() === month && entryDate.getFullYear() === year) {
-        daysWithData.push(entryDate.getDate());
+      // Parse the date string directly to avoid timezone issues
+      const [yearStr, monthStr, dayStr] = key.split('-');
+      const entryMonth = parseInt(monthStr) - 1; // Convert to 0-indexed month
+      const entryYear = parseInt(yearStr);
+      const entryDay = parseInt(dayStr);
+      
+      if (entryMonth === month && entryYear === year) {
+        daysWithData.push(entryDay);
       }
     }
     
     return daysWithData;
   };
 
+  // Create a date string directly without Date object conversion
+  const formatDateString = (year, month, day) => {
+    const monthStr = String(month + 1).padStart(2, '0');
+    const dayStr = String(day).padStart(2, '0');
+    return `${year}-${monthStr}-${dayStr}`;
+  };
+
+  // This function was causing issues with date consistency
   const formatDate = (date) => {
-    return date.toISOString().split('T')[0]; // YYYY-MM-DD
+    // Use UTC methods to avoid timezone issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const isSameDay = (date1, date2) => {
@@ -80,9 +97,15 @@ const Calendar = ({ onDateSelect, onClose }) => {
   const handleDateClick = (day) => {
     if (day.disabled) return;
     
-    const newDate = new Date(currentYear, currentMonth, day.day);
-    setSelectedDate(newDate);
-    onDateSelect(day.date);
+    // Use the pre-formatted date string from the day object
+    const dateString = day.date;
+    
+    // Update selected date for visual feedback
+    const newSelectedDate = new Date(currentYear, currentMonth, day.day);
+    setSelectedDate(newSelectedDate);
+    
+    // Pass the exact string format to parent component
+    onDateSelect(dateString);
   };
 
   const handlePrevMonth = () => {
@@ -146,19 +169,24 @@ const Calendar = ({ onDateSelect, onClose }) => {
         ))}
         
         {/* Calendar days */}
-        {monthData.map((day, index) => (
-          <div 
-            key={`day-${index}`} 
-            className={`calendar-day ${day.isToday ? 'today' : ''} 
-                      ${day.isFuture ? 'future' : ''} 
-                      ${day.disabled ? 'disabled' : ''} 
-                      ${day.hasData ? 'has-data' : ''}
-                      ${day.date === formatDate(selectedDate) ? 'selected' : ''}`}
-            onClick={() => handleDateClick(day)}
-          >
-            {day.day}
-          </div>
-        ))}
+        {monthData.map((day, index) => {
+          // Ensure we're using the correct date format consistently for comparison
+          const isSelected = day.date === formatDate(selectedDate);
+          
+          return (
+            <div 
+              key={`day-${index}`} 
+              className={`calendar-day ${day.isToday ? 'today' : ''} 
+                        ${day.isFuture ? 'future' : ''} 
+                        ${day.disabled ? 'disabled' : ''} 
+                        ${day.hasData ? 'has-data' : ''}
+                        ${isSelected ? 'selected' : ''}`}
+              onClick={() => handleDateClick(day)}
+            >
+              {day.day}
+            </div>
+          );
+        })}
       </div>
       
       <div className="calendar-footer">

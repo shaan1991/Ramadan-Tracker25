@@ -1,4 +1,4 @@
-// Modified src/contexts/UserContext.js
+// Modified src/contexts/UserContext.js - FIXED
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -14,6 +14,14 @@ export const UserProvider = ({ children }) => {
   const [isHistoricalView, setIsHistoricalView] = useState(false);
   const [historicalDate, setHistoricalDate] = useState(null);
   const [currentViewData, setCurrentViewData] = useState(null);
+
+  // Helper function for consistent date formatting
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   // Calculate which day of Ramadan it is
   function calculateRamadanDay() {
@@ -144,7 +152,7 @@ export const UserProvider = ({ children }) => {
           });
         } else {
           // Normal update for today's data
-          const today = new Date().toISOString().split('T')[0];
+          const today = formatDate(new Date()); // Use consistent date formatting
           const userDocRef = doc(db, 'users', user.uid);
           
           // Also record in history for today
@@ -222,8 +230,8 @@ export const UserProvider = ({ children }) => {
       return await updateUserData(historyUpdate);
     }
     
-    // Otherwise update today's record
-    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    // Otherwise update today's record - using consistent date formatting
+    const today = formatDate(new Date());
     const historyUpdate = {
       [`history.${today}.${action}`]: value,
       [`history.${today}.day`]: ramadanDay
