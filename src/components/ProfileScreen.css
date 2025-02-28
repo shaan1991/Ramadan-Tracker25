@@ -249,4 +249,29 @@ dialog::backdrop {
   .cancel-button, .confirm-button {
     width: 100%;
   }
+
+  /* Add this to the end of src/components/ProfileScreen.css */
+
+/* Language selector section */
+.language-section {
+  flex-direction: column;
+  align-items: flex-start !important;
+  padding-bottom: 8px !important;
+}
+
+.language-section .link-icon {
+  margin-bottom: 8px;
+}
+
+/* RTL support for profile screen */
+[dir="rtl"] .profile-link .link-icon {
+  margin-right: 0;
+  margin-left: 12px;
+}
+
+[dir="rtl"] .cancel-button, [dir="rtl"] .confirm-button {
+  margin-left: 10px;
+  margin-right: 0;
+}
+
 }

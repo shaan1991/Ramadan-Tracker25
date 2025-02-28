@@ -183,7 +183,7 @@
   .day-activities {
     flex: 1;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
   }
   
   .day-juz {

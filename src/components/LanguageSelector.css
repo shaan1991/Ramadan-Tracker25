@@ -1,0 +1,95 @@
+/* src/components/LanguageSelector.css */
+.language-selector {
+    position: relative;
+    margin: 16px 0;
+    width: 100%;
+  }
+  
+  .language-button {
+    display: flex;
+    align-items: center;
+    background-color: #f5f5f5;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 16px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .language-button:hover {
+    background-color: #e8e8e8;
+  }
+  
+  .language-icon {
+    margin-right: 12px;
+    font-size: 20px;
+  }
+  
+  .current-language {
+    flex: 1;
+  }
+  
+  .dropdown-arrow {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+  }
+  
+  .dropdown-arrow.open {
+    transform: rotate(180deg);
+  }
+  
+  .language-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+    animation: fadeIn 0.2s ease;
+  }
+  
+  .language-option {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.1s;
+    font-family: inherit;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .language-option:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .language-option.active {
+    background-color: #f0f0f0;
+    font-weight: 500;
+  }
+  
+  /* Animation */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* RTL support */
+  [dir="rtl"] .language-icon {
+    margin-right: 0;
+    margin-left: 12px;
+  }

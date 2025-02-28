@@ -9,10 +9,8 @@ const DailyNamazCheckIn = () => {
   if (!userData) return null;
 
   const handlePrayerToggle = async (prayer) => {
-    const newStatus = !userData.namaz[prayer];
-    
-    // Update namaz status
-    const updatedNamaz = { ...userData.namaz, [prayer]: newStatus };
+    // Create a copy of the current namaz state
+    const updatedNamaz = { ...userData.namaz, [prayer]: !userData.namaz[prayer] };
     
     // Calculate completed prayers
     const completedPrayers = Object.values(updatedNamaz).filter(Boolean).length;
@@ -20,11 +18,14 @@ const DailyNamazCheckIn = () => {
     // Update both namaz and salah data
     await updateUserData({ 
       namaz: updatedNamaz,
-      salah: { completed: completedPrayers, total: 5 }
+      salah: { 
+        completed: completedPrayers, 
+        total: 5 
+      }
     });
     
     // Record this action in history
-    await recordDailyAction(`prayer_${prayer}`, newStatus);
+    await recordDailyAction(`prayer_${prayer}`, updatedNamaz[prayer]);
   };
 
   const prayers = [
@@ -35,15 +36,14 @@ const DailyNamazCheckIn = () => {
     { id: 'isha', label: 'Isha' }
   ];
 
+  // Calculate progress percentage
   const completedCount = Object.values(userData.namaz).filter(Boolean).length;
   const progressPercentage = (completedCount / 5) * 100;
 
   return (
     <div className="namaz-container">
       <h3>Daily Namaz Check-In</h3>
-      <p className="namaz-description">
-        You will get extra points for not missing any namaz throughout the week
-      </p>
+      
       
       <div className="prayer-buttons">
         {prayers.map((prayer) => (
@@ -62,6 +62,10 @@ const DailyNamazCheckIn = () => {
           className="progress-fill"
           style={{ width: `${progressPercentage}%` }}
         ></div>
+      </div>
+      
+      <div className="progress-text">
+        {completedCount} out of 5 prayers
       </div>
     </div>
   );

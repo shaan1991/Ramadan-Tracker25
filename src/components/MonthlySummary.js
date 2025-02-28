@@ -148,9 +148,9 @@ const MonthlySummary = () => {
                         {day.completed > 0 ? (
                           <>
                             <span className="completed-count">{day.completed} Juz</span>
-                            <span className="completed-list">
+                            {/* <span className="completed-list">
                               {day.juzList.sort((a, b) => a - b).join(', ')}
-                            </span>
+                            </span> */}
                           </>
                         ) : (
                           <span className="no-progress">-</span>

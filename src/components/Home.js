@@ -1,8 +1,7 @@
-// File: src/components/Home.js - UPDATED with Dynamic Ramadan Day Counter
-// -------------------------------
-
+// File: src/components/Home.js
 import React, { useState, useRef, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
+import { usePrayerTimes } from '../contexts/PrayerTimesContext';
 import './Home.css';
 
 // Components
@@ -15,28 +14,35 @@ import JuzTracker from './JuzTracker';
 import HadithOfTheDay from './HadithOfTheDay';
 import MonthlySummary from './MonthlySummary'; // New component
 import RandomSunnahSuggestion from './RandomSunnahSuggestion';
-import ShareButton from './ShareButton';
-import { PrayerTimes, CalculationMethod, Coordinates } from 'adhan';
-import { setupNotifications, scheduleNotification } from '../services/notificationService';
-
-
+// import ShareButton from './ShareButton';
+// import { 
+//   setupNotifications, 
+//   scheduleNotification, 
+//   sendInAppNotification, 
+//   addNotificationButton,
+//   testNotification,
+//   cleanupNotifications
+// } from '../services/notificationService';
 
 const Home = () => {
   const { user, userData, loading, updateUserData } = useUser();
+  const { prayerTimes, formattedTimes, locationStatus, retryLocation } = usePrayerTimes();
   const [showCalendar, setShowCalendar] = useState(false);
   const [pulling, setPulling] = useState(false);
   const [pullStartY, setPullStartY] = useState(0);
   const [pullCurrentY, setPullCurrentY] = useState(0);
   
+  // // Add test function to window for debugging notifications
+  // if (typeof window !== 'undefined') {
+  //   window.testRamadanNotification = () => {
+  //     return testNotification();
+  //   };
+  // }
+  
   // Initialize with properly formatted today's date
   const today = new Date();
   const formattedToday = formatDate(today);
   const [selectedDate, setSelectedDate] = useState(formattedToday);
-  
-  // Add state for location and prayer times
-  const [location, setLocation] = useState(null);
-  const [prayerTimes, setPrayerTimes] = useState(null);
-  const [locationStatus, setLocationStatus] = useState('loading'); // 'loading', 'success', 'error'
   
   // Add state for dynamic Ramadan day calculation
   const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
@@ -51,16 +57,6 @@ const Home = () => {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
-
-  // Format time to 12-hour format
-  const formatTime = (date) => {
-    if (!date) return '';
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit', 
-      hour12: true 
-    }).toLowerCase();
-  };
 
   // Calculate current Ramadan day on component mount
   useEffect(() => {
@@ -88,39 +84,6 @@ const Home = () => {
     }
   }, []);
 
-  // Get user location and calculate prayer times
-  useEffect(() => {
-    const getLocationAndPrayerTimes = async () => {
-      setLocationStatus('loading');
-      
-      try {
-        // Get user's geolocation
-        const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject);
-        });
-        
-        const { latitude, longitude } = position.coords;
-        setLocation({ latitude, longitude });
-        
-        // Calculate prayer times using adhan
-        const coordinates = new Coordinates(latitude, longitude);
-        const date = new Date();
-        const params = CalculationMethod.MoonsightingCommittee();
-        const prayerTimes = new PrayerTimes(coordinates, date, params);
-        
-        setPrayerTimes(prayerTimes);
-        setLocationStatus('success');
-        
-        console.log('Prayer times calculated:', prayerTimes);
-      } catch (error) {
-        console.error('Error getting location:', error);
-        setLocationStatus('error');
-      }
-    };
-    
-    getLocationAndPrayerTimes();
-  }, []);
-
   useEffect(() => {
     // Add touch event listeners for pull-to-reveal
     const container = containerRef.current;
@@ -137,50 +100,11 @@ const Home = () => {
         container.removeEventListener('touchmove', handleTouchMove);
         container.removeEventListener('touchend', handleTouchEnd);
       }
+      
+      // Clean up notification elements (but keep session flags)
+      // cleanupNotifications();
     };
   }, []);
-
-  useEffect(() => {
-    const initializeNotifications = async () => {
-      if (!user || !prayerTimes) {
-        return; // Wait until we have both user and prayer times
-      }
-      
-      console.log('Initializing notifications');
-      
-      try {
-        // Check if we have valid prayer times
-        if (prayerTimes.maghrib && prayerTimes.isha) {
-          // Set up notifications (permission request + FCM setup)
-          const notificationsEnabled = await setupNotifications(user.uid);
-          
-          if (notificationsEnabled) {
-            console.log('Notifications enabled, scheduling daily reminder');
-            
-            // Format prayer times for the scheduler
-            const formattedPrayerTimes = {
-              maghrib: formatTime(prayerTimes.maghrib).replace(' ', ''),
-              isha: formatTime(prayerTimes.isha).replace(' ', '')
-            };
-            
-            // Schedule notification between Maghrib and Isha
-            await scheduleNotification(user.uid, formattedPrayerTimes);
-          } else {
-            console.log('Notifications not enabled by user');
-          }
-        } else {
-          console.log('Prayer times not available for notification scheduling');
-        }
-      } catch (error) {
-        console.error('Error setting up notifications:', error);
-      }
-    };
-    
-    // Only run when we have the necessary data
-    if (user && prayerTimes) {
-      initializeNotifications();
-    }
-  }, [user, prayerTimes]); // Dependencies: user and prayerTimes
 
   const handleTouchStart = (e) => {
     // Only enable pull-to-reveal when at the top of the page
@@ -299,19 +223,6 @@ const Home = () => {
     }
   };
 
-  const getPrayerTimesForDate = (dateString) => {
-    if (!location) return null;
-    
-    // Parse the date string
-    const [year, month, day] = dateString.split('-').map(num => parseInt(num));
-    const date = new Date(year, month - 1, day); // month is 0-indexed in JS Date
-    
-    // Calculate prayer times for the specific date
-    const coordinates = new Coordinates(location.latitude, location.longitude);
-    const params = CalculationMethod.MoonsightingCommittee();
-    return new PrayerTimes(coordinates, date, params);
-  };
-
   if (loading || !userData) {
     return (
       <div className="loading-container">
@@ -325,13 +236,6 @@ const Home = () => {
   const isHistoricalView = userData.isHistoricalView || false;
   const viewDate = isHistoricalView ? userData.historicalDate : formattedToday;
   
-  // Get prayer times for the current view date
-  const currentDatePrayerTimes = getPrayerTimesForDate(viewDate);
-  
-  // Calculate suhoor (fajr) and iftar (maghrib) times
-  const suhoorTime = currentDatePrayerTimes ? formatTime(currentDatePrayerTimes.fajr) : "Loading...";
-  const iftarTime = currentDatePrayerTimes ? formatTime(currentDatePrayerTimes.maghrib) : "Loading...";
-  
   // Parse the date string directly to avoid timezone issues
   const [year, month, day] = viewDate.split('-').map(num => parseInt(num));
   const dateObj = new Date(year, month - 1, day); // month is 0-indexed in JS Date
@@ -343,7 +247,10 @@ const Home = () => {
   return (
     <div className="home-container" ref={containerRef}>
       {/* Pull-to-reveal indicator */}
-      
+      <div id="pull-indicator" className={`pull-indicator ${pulling ? 'pulling' : 'hidden'}`}>
+        <span className="pull-spinner">⟳</span>
+        <span id="pull-text">Pull down to show calendar</span>
+      </div>
 
       <div className="app-header">
         <div className="welcome-section">
@@ -356,7 +263,7 @@ const Home = () => {
           
           <div className="time-container">
             <div className="suhoor-time">
-              Suhoor: {suhoorTime}
+              Suhoor: {formattedTimes.fajr}
               {locationStatus === 'error' && <span className="location-error"> (based on default)</span>}
             </div>
             
@@ -369,7 +276,7 @@ const Home = () => {
             </div>
             
             <div className="iftar-time">
-              Iftar: {iftarTime}
+              Iftar: {formattedTimes.maghrib}
               {locationStatus === 'error' && <span className="location-error"> (based on default)</span>}
             </div>
           </div>
@@ -381,28 +288,7 @@ const Home = () => {
         <div className="location-banner">
           <p>Enable location for accurate prayer times</p>
           <button 
-            onClick={() => {
-              setLocationStatus('loading');
-              navigator.geolocation.getCurrentPosition(
-                (position) => {
-                  const { latitude, longitude } = position.coords;
-                  setLocation({ latitude, longitude });
-                  
-                  // Calculate prayer times
-                  const coordinates = new Coordinates(latitude, longitude);
-                  const date = new Date();
-                  const params = CalculationMethod.MoonsightingCommittee();
-                  const prayerTimes = new PrayerTimes(coordinates, date, params);
-                  
-                  setPrayerTimes(prayerTimes);
-                  setLocationStatus('success');
-                },
-                (error) => {
-                  console.error('Error getting location:', error);
-                  setLocationStatus('error');
-                }
-              );
-            }}
+            onClick={retryLocation}
             className="location-retry-button"
           >
             Allow Location
@@ -461,3 +347,11 @@ const Home = () => {
 };
 
 export default Home;
+
+export const setupNotifications = async () => {
+  return Promise.resolve(false);
+};
+
+export const scheduleNotification = async () => {
+  return Promise.resolve(false);
+};

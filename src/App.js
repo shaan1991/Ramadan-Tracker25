@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { UserProvider, useUser } from './contexts/UserContext';
+import { PrayerTimesProvider } from './contexts/PrayerTimesContext';
 
 // Components
 import Login from './components/Login';
@@ -70,9 +71,11 @@ const AppContent = () => {
 function App() {
   return (
     <UserProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <PrayerTimesProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </PrayerTimesProvider>
     </UserProvider>
   );
 }

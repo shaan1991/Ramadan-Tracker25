@@ -47,8 +47,9 @@ export const UserProvider = ({ children }) => {
     if (!storedLastActiveDate || storedLastActiveDate !== today) {
       console.log("New day detected! Resetting daily trackers.");
       
-      // Reset daily tracking data, but preserve cumulative data like completedJuzs
+      // Comprehensive reset of daily tracking data
       const resetData = {
+        // Reset namaz (prayer) status
         namaz: {
           fajr: false,
           zuhr: false,
@@ -56,12 +57,25 @@ export const UserProvider = ({ children }) => {
           maghrib: false,
           isha: false
         },
+        // EXPLICITLY reset salah tracking to 0 completed
+        salah: { 
+          completed: 0, 
+          total: 5 
+        },
+        // Reset fasting status
         fasting: false,
+        // Reset taraweeh status
         prayedTaraweeh: false,
-        lastActiveDate: today
+        // Reset Quran progress for the day
+        quran: { 
+          completed: 0, 
+          total: 30 
+        },
+        // Update last active date
+        lastActiveDate: today,
+        // Recalculate Ramadan day
+        day: calculateRamadanDay()
       };
-      
-      // Don't reset the completedJuzs as those accumulate through the month
       
       // Update the user data with a clean slate for today
       await updateUserData(resetData);
@@ -69,6 +83,11 @@ export const UserProvider = ({ children }) => {
       // Update local state
       setLastActiveDate(today);
       setRamadanDay(calculateRamadanDay());
+      
+      // Reset any historical view or current view data
+      setIsHistoricalView(false);
+      setHistoricalDate(null);
+      setCurrentViewData(null);
     }
   };
 

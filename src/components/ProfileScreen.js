@@ -20,7 +20,7 @@ const ProfileScreen = () => {
     // Calculate remaining days of Ramadan
     const calculateRamadanDays = () => {
       // Ramadan 2025 is expected to start on Feb 27 and end on March 28
-      const ramadanEndDate = new Date('2025-03-28');
+      const ramadanEndDate = new Date('2025-04-01');
       const today = new Date();
       
       // Calculate difference in days
@@ -68,9 +68,30 @@ const ProfileScreen = () => {
   };
 
   const handleFeedback = () => {
-    window.open('https://forms.gle/your-google-form-link', '_blank');
+    window.open('https://forms.gle/Pv4Fnd2vVFCyumpt6', '_blank');
     // Replace with your actual feedback form URL
   };
+
+  // New function to invite friends
+  const handleInviteFriends = () => {
+    const appUrl = 'https://ramadan-tracker.web.app';
+    const message = `Check out this amazing Ramadan Tracker app! Track your prayers, fasts, and spiritual journey. Download here: ${appUrl}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: 'Ramadan Tracker App',
+        text: message,
+        url: appUrl
+      }).catch(console.error);
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      // Copy to clipboard
+      navigator.clipboard.writeText(message).then(() => {
+        alert('Invite message copied to clipboard! You can now share on WhatsApp or other platforms.');
+      });
+    }
+  };
+  
 
   const handleIndiaDonation = () => {
     // Open donation dialog with India QR
@@ -117,6 +138,11 @@ const ProfileScreen = () => {
           <button className="profile-link" onClick={handleUSADonation}>
             <span className="link-icon">🇺🇸</span> Donations - USA
           </button> */}
+
+          {/* New Invite Friends button */}
+          <button className="profile-link" onClick={handleInviteFriends}>
+            <span className="link-icon">🤝</span> Invite Friends
+          </button>
           
           <button className="profile-link signout" onClick={handleSignOut}>
             <span className="link-icon">🚪</span> Sign out
