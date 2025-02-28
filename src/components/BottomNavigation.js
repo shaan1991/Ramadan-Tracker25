@@ -16,7 +16,11 @@ const BottomNavigation = () => {
     home: 'Home',
     dua: 'Dua',
     tasbeeh: 'Tasbeeh',
+<<<<<<< HEAD
     more: 'more'
+=======
+    profile: 'More'
+>>>>>>> pre-final
   };
   
   const handleLogout = async () => {
@@ -59,8 +63,13 @@ const BottomNavigation = () => {
         className={`nav-item ${isActive('/profile') ? 'active' : ''}`}
         onClick={() => navigate('/profile')}
       >
+<<<<<<< HEAD
         <div className="nav-icon">⚙️</div>
         <p>{labels.more}</p>
+=======
+        <div className="nav-icon">✨</div>
+        <p>{labels.profile}</p>
+>>>>>>> pre-final
       </div>
     </div>
   );

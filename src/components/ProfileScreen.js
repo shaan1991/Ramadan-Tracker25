@@ -66,7 +66,11 @@ const ProfileScreen = () => {
   const handleReadQuran = () => {
     window.open('https://quran.com/', '_blank');
   };
+<<<<<<< HEAD
   const handleModernEnglishQuran = () => {
+=======
+  const handleEnglishQuran = () => {
+>>>>>>> pre-final
     window.open('https://www.clearquran.com/', '_blank');
   };
 
@@ -129,8 +133,12 @@ const ProfileScreen = () => {
           <button className="profile-link" onClick={handleReadQuran}>
             <span className="link-icon">📖</span> Read Quran online
           </button>
+<<<<<<< HEAD
 
           <button className="profile-link" onClick={handleModernEnglishQuran}>
+=======
+          <button className="profile-link" onClick={handleEnglishQuran}>
+>>>>>>> pre-final
             <span className="link-icon">📒</span> Read Quran in modern english
           </button>
           

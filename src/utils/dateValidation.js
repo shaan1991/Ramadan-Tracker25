@@ -1,10 +1,17 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> pre-final
 // src/utils/dateValidation.js
 // Utilities for validating dates related to Ramadan
 
 // Define Ramadan dates - update these for the correct year
 export const RAMADAN_START_DATE = new Date('2025-02-28'); // February 27, 2025
+<<<<<<< HEAD
 export const RAMADAN_END_DATE = new Date('2025-03-30');   // March 28, 2025
+=======
+export const RAMADAN_END_DATE = new Date('2025-03-28');   // March 28, 2025
+>>>>>>> pre-final
 
 /**
  * Formats a date as YYYY-MM-DD - ensures consistent format across the app

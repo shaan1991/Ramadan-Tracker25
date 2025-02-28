@@ -28,7 +28,7 @@ const DailyOverview = () => {
           <div className="icon-background blue">
             <span className="icon">🍉</span>
           </div>
-          <p>Roza</p>
+          <p>Roza/Fast</p>
           <p className="status">{userData.fasting ? 'Yes' : 'No'}</p>
         </div>
         
