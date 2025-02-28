@@ -44,7 +44,7 @@ const DailyOverview = () => {
           <div className="icon-background gray">
             <span className="icon">📖</span>
           </div>
-          <p>Quaran</p>
+          <p>Quran</p>
           <p className="status">{userData.quran.completed}/{userData.quran.total}</p>
         </div>
       </div>
