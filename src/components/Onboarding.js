@@ -27,7 +27,7 @@ const Onboarding = ({ onComplete }) => {
         { icon: "📿", text: "Digital tasbeeh counter" },
         { icon: "🔥", text: "Build streaks with consistent worship" },
         { icon: "📝", text: "Record personal duas" },
-        { icon: "⏰", text: "Qibla Finder and More" }
+        { icon: "🕋", text: "Qibla Finder and More" }
       ]
     }
   ];

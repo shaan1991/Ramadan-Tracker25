@@ -1,8 +1,9 @@
 // src/contexts/UserContext.js
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../firebase';
+import { isBeforeRamadan, isWithinRamadan, calculateRamadanDay as calculateDayFromDate, RAMADAN_START_DATE } from '../utils/dateValidation';
 
 export const UserContext = createContext();
 
@@ -10,7 +11,7 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [ramadanDay, setRamadanDay] = useState(calculateRamadanDay());
+  const [ramadanDay, setRamadanDay] = useState(0); // Initialize with 0 instead of calculating right away
   const [isHistoricalView, setIsHistoricalView] = useState(false);
   const [historicalDate, setHistoricalDate] = useState(null);
   const [currentViewData, setCurrentViewData] = useState(null);
@@ -26,16 +27,11 @@ export const UserProvider = ({ children }) => {
 
   // Calculate which day of Ramadan it is
   function calculateRamadanDay() {
-    // You may need to adjust this based on the actual start date of Ramadan
-    const startDate = new Date('2025-02-23'); // Example: Ramadan start date
-    const today = new Date();
-    const diffTime = Math.abs(today - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 30 ? 30 : diffDays;
+    return calculateDayFromDate(new Date());
   }
 
-  // Check if the app needs to reset for a new day
-  const checkForDayChange = async () => {
+  // Check if the app needs to reset for a new day - using useCallback to avoid dependency issues
+  const checkForDayChange = useCallback(async () => {
     if (!userData || !user) return;
     
     const today = formatDate(new Date());
@@ -66,11 +62,6 @@ export const UserProvider = ({ children }) => {
         fasting: false,
         // Reset taraweeh status
         prayedTaraweeh: false,
-        // Reset Quran progress for the day
-        quran: { 
-          completed: 0, 
-          total: 30 
-        },
         // Update last active date
         lastActiveDate: today,
         // Recalculate Ramadan day
@@ -89,55 +80,26 @@ export const UserProvider = ({ children }) => {
       setHistoricalDate(null);
       setCurrentViewData(null);
     }
-  };
+  }, [userData, user, lastActiveDate]); // Add proper dependencies
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      
-      if (currentUser) {
-        await fetchUserData(currentUser.uid);
-      } else {
-        setUserData(null);
-        setLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Effect for checking day change - run on initial load and when userData changes
-  useEffect(() => {
-    checkForDayChange();
-  }, [userData?.lastActiveDate]); // Only run when the lastActiveDate changes
-
-  // Also check for day change periodically if the app is left open
-  useEffect(() => {
-    if (!user) return;
-    
-    // Check for day change every hour if the app remains open
-    const dayChangeInterval = setInterval(() => {
-      checkForDayChange();
-    }, 3600000); // 1 hour in milliseconds
-    
-    return () => clearInterval(dayChangeInterval);
-  }, [user, userData]);
-
-  const fetchUserData = async (uid) => {
+  // Fetch user data function with useCallback
+  const fetchUserData = useCallback(async (uid) => {
     try {
       const userDocRef = doc(db, 'users', uid);
       const userDoc = await getDoc(userDocRef);
       
       const today = formatDate(new Date());
+      const currentRamadanDay = calculateRamadanDay();
       
       if (userDoc.exists()) {
         const data = userDoc.data();
         setUserData(data);
         setLastActiveDate(data.lastActiveDate || null);
+        setRamadanDay(currentRamadanDay); // Set Ramadan day after data is loaded
       } else {
         // Initialize user data for first-time users
         const initialData = {
-          day: ramadanDay,
+          day: currentRamadanDay,
           totalDays: 30,
           salah: { completed: 0, total: 5 },
           roza: false,
@@ -165,16 +127,61 @@ export const UserProvider = ({ children }) => {
         await setDoc(userDocRef, initialData);
         setUserData(initialData);
         setLastActiveDate(today);
+        setRamadanDay(currentRamadanDay);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // No dependencies needed here
 
-  const updateUserData = async (newData) => {
+  // Auth state change listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      console.log("Auth state changed, user:", currentUser?.uid);
+      setUser(currentUser);
+      
+      if (currentUser) {
+        setLoading(true); // Set loading to true when user changes
+        await fetchUserData(currentUser.uid);
+      } else {
+        // Clear all user data when logged out
+        setUserData(null);
+        setLastActiveDate(null);
+        setRamadanDay(0);
+        setIsHistoricalView(false);
+        setHistoricalDate(null);
+        setCurrentViewData(null);
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [fetchUserData]);
+
+  // Effect for checking day change - run on initial load and when userData changes
+  useEffect(() => {
+    if (userData && user) {
+      checkForDayChange();
+    }
+  }, [userData?.lastActiveDate, checkForDayChange, user]); // Add proper dependencies
+
+  // Also check for day change periodically if the app is left open
+  useEffect(() => {
     if (!user) return;
+    
+    // Check for day change every hour if the app remains open
+    const dayChangeInterval = setInterval(() => {
+      checkForDayChange();
+    }, 3600000); // 1 hour in milliseconds
+    
+    return () => clearInterval(dayChangeInterval);
+  }, [user, checkForDayChange]); // Add proper dependencies
+
+  // Update user data function (memoized)
+  const updateUserData = useCallback(async (newData) => {
+    if (!user) return false;
 
     // Check if we're switching to or modifying historical view
     if (newData.hasOwnProperty('isHistoricalView')) {
@@ -202,6 +209,12 @@ export const UserProvider = ({ children }) => {
       try {
         // If we're in historical view and updating data, save to the history object
         if (isHistoricalView && historicalDate) {
+          // Check if this date is before Ramadan - don't allow updates
+          if (isBeforeRamadan(new Date(historicalDate))) {
+            console.warn("Cannot update data for date before Ramadan:", historicalDate);
+            return false;
+          }
+          
           // Update the history object for the specific date
           const historyUpdate = {};
           
@@ -211,13 +224,15 @@ export const UserProvider = ({ children }) => {
           }
           
           // Ensure we record what day of Ramadan this was
-          historyUpdate[`history.${historicalDate}.day`] = calculateRamadanDayForDate(new Date(historicalDate));
+          historyUpdate[`history.${historicalDate}.day`] = calculateDayFromDate(new Date(historicalDate));
           
           const userDocRef = doc(db, 'users', user.uid);
           await updateDoc(userDocRef, historyUpdate);
           
           // Update local state
           setUserData(prevData => {
+            if (!prevData) return prevData; // Safety check
+            
             const newData = { ...prevData };
             if (!newData.history) newData.history = {};
             if (!newData.history[historicalDate]) newData.history[historicalDate] = {};
@@ -226,7 +241,7 @@ export const UserProvider = ({ children }) => {
               newData.history[historicalDate][key] = dataToUpdate[key];
             }
             
-            newData.history[historicalDate].day = calculateRamadanDayForDate(new Date(historicalDate));
+            newData.history[historicalDate].day = calculateDayFromDate(new Date(historicalDate));
             
             return newData;
           });
@@ -235,6 +250,35 @@ export const UserProvider = ({ children }) => {
           const today = formatDate(new Date()); // Use consistent date formatting
           const userDocRef = doc(db, 'users', user.uid);
           
+          // For current data, check if today is before Ramadan starts
+          if (isBeforeRamadan(new Date())) {
+            // Filter out Ramadan tracking data if today is before Ramadan
+            const allowedKeys = ['lastActiveDate', 'onboardingCompleted', 'user', 'duas']; 
+            
+            // Filter dataToUpdate to only include allowed keys
+            const filteredUpdates = {};
+            for (const key of allowedKeys) {
+              if (key in dataToUpdate) {
+                filteredUpdates[key] = dataToUpdate[key];
+              }
+            }
+            
+            // If there's nothing left to update, return
+            if (Object.keys(filteredUpdates).length === 0) {
+              console.warn("Cannot update Ramadan data before Ramadan starts");
+              return false;
+            }
+            
+            // Update with only the allowed data
+            await updateDoc(userDocRef, filteredUpdates);
+            setUserData(prevData => {
+              if (!prevData) return prevData; // Safety check
+              return { ...prevData, ...filteredUpdates };
+            });
+            return true;
+          }
+          
+          // Continue with normal update during Ramadan
           // Also record in history for today
           const historyUpdate = {};
           for (const key in dataToUpdate) {
@@ -251,7 +295,10 @@ export const UserProvider = ({ children }) => {
           const combinedUpdates = { ...dataToUpdate, ...historyUpdate };
           
           await updateDoc(userDocRef, combinedUpdates);
-          setUserData(prevData => ({ ...prevData, ...dataToUpdate }));
+          setUserData(prevData => {
+            if (!prevData) return prevData; // Safety check
+            return { ...prevData, ...dataToUpdate };
+          });
           setLastActiveDate(today);
         }
         
@@ -263,79 +310,106 @@ export const UserProvider = ({ children }) => {
     }
     
     // If we're just updating view state, update the local context data
-    setUserData(prevData => ({
-      ...prevData,
-      isHistoricalView,
-      historicalDate,
-      currentViewData
-    }));
+    setUserData(prevData => {
+      if (!prevData) return prevData; // Safety check
+      return {
+        ...prevData,
+        isHistoricalView,
+        historicalDate,
+        currentViewData
+      };
+    });
     
     return true;
-  };
+  }, [user, isHistoricalView, historicalDate, ramadanDay]);
 
   // Calculate Ramadan day for a specific date
-  const calculateRamadanDayForDate = (date) => {
-    const startDate = new Date('2025-02-23'); // Same as above
-    const diffTime = Math.abs(date - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 30 ? 30 : diffDays;
-  };
+  const calculateRamadanDayForDate = useCallback((date) => {
+    return calculateDayFromDate(date);
+  }, []);
 
   // Get the effective data to display (either current or historical)
-  const getEffectiveData = () => {
+  const getEffectiveData = useCallback(() => {
+    if (!userData) return null; // Handle null userData case
+    
     if (isHistoricalView && historicalDate && userData) {
       // If viewing historical data, combine base data with historical overrides
       const historyData = userData.history && userData.history[historicalDate] 
         ? userData.history[historicalDate] 
         : {};
       
+      // Add flag for pre-Ramadan dates
+      const beforeRamadan = isBeforeRamadan(new Date(historicalDate));
+      
       return {
         ...userData,
         ...currentViewData,
         ...historyData,
         isHistoricalView,
-        historicalDate
+        historicalDate,
+        beforeRamadan // Add flag so components can check this
       };
     }
     
-    // Otherwise return current data
-    return userData;
-  };
+    // Otherwise return current data with beforeRamadan flag if needed
+    return {
+      ...userData,
+      beforeRamadan: isBeforeRamadan(new Date())
+    };
+  }, [userData, isHistoricalView, historicalDate, currentViewData]);
 
   // Track daily actions in history
-  const recordDailyAction = async (action, value) => {
-    if (!user || !userData) return;
+  const recordDailyAction = useCallback(async (action, value) => {
+    if (!user || !userData) return false;
 
     // If we're in historical view, update the historical record
     if (isHistoricalView && historicalDate) {
+      // Don't allow recording data for dates before Ramadan
+      if (isBeforeRamadan(new Date(historicalDate))) {
+        console.warn("Cannot record data for date before Ramadan:", historicalDate);
+        return false;
+      }
+      
       const historyUpdate = {
         [`history.${historicalDate}.${action}`]: value,
-        [`history.${historicalDate}.day`]: calculateRamadanDayForDate(new Date(historicalDate))
+        [`history.${historicalDate}.day`]: calculateDayFromDate(new Date(historicalDate))
       };
       
       return await updateUserData(historyUpdate);
     }
     
+    // For today, also ensure we're in Ramadan
+    const today = new Date();
+    if (isBeforeRamadan(today)) {
+      console.warn("Cannot record data - today is before Ramadan");
+      return false;
+    }
+    
     // Otherwise update today's record - using consistent date formatting
-    const today = formatDate(new Date());
+    const todayFormatted = formatDate(today);
     const historyUpdate = {
-      [`history.${today}.${action}`]: value,
-      [`history.${today}.day`]: ramadanDay
+      [`history.${todayFormatted}.${action}`]: value,
+      [`history.${todayFormatted}.day`]: ramadanDay
     };
 
     return await updateUserData(historyUpdate);
-  };
+  }, [user, userData, isHistoricalView, historicalDate, ramadanDay, updateUserData]);
+
+  // Use the memoized getEffectiveData to compute the context value
+  const effectiveData = userData ? getEffectiveData() : null;
 
   const value = {
     user,
-    userData: getEffectiveData(),
+    userData: effectiveData,
     loading,
     ramadanDay,
     isHistoricalView,
     historicalDate,
     updateUserData,
     recordDailyAction,
-    checkForDayChange // Expose this method to allow manual refresh
+    checkForDayChange, // Expose this method to allow manual refresh
+    isBeforeRamadan,   // Expose the date validation functions to components
+    isWithinRamadan
   };
 
   return (

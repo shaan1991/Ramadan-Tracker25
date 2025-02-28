@@ -16,7 +16,7 @@ const BottomNavigation = () => {
     home: 'Home',
     dua: 'Dua',
     tasbeeh: 'Tasbeeh',
-    profile: 'Profile'
+    profile: 'More'
   };
   
   const handleLogout = async () => {
@@ -45,21 +45,21 @@ const BottomNavigation = () => {
         className={`nav-item ${isActive('/dua') ? 'active' : ''}`}
         onClick={() => navigate('/dua')}
       >
-        <div className="nav-icon">📿</div>
+        <div className="nav-icon">🤲</div>
         <p>{labels.dua}</p>
       </div>
       <div 
         className={`nav-item ${isActive('/tasbeeh') ? 'active' : ''}`}
         onClick={() => navigate('/tasbeeh')}
       >
-        <div className="nav-icon">⏰</div>
+        <div className="nav-icon">📿</div>
         <p>{labels.tasbeeh}</p>
       </div>
       <div 
         className={`nav-item ${isActive('/profile') ? 'active' : ''}`}
         onClick={() => navigate('/profile')}
       >
-        <div className="nav-icon">👤</div>
+        <div className="nav-icon">✨</div>
         <p>{labels.profile}</p>
       </div>
     </div>
