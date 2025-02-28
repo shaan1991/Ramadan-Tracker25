@@ -3,17 +3,17 @@
   "name": "Ramadan Tracker - Prayer & Fast Tracker",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "https://i.pinimg.com/736x/f9/cd/e0/f9cde06de0dda77f9fb8bf2b74a8fb11.jpg",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "https://i.pinimg.com/736x/f9/cd/e0/f9cde06de0dda77f9fb8bf2b74a8fb11.jpg",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.png",
+      "src": "https://i.pinimg.com/736x/f9/cd/e0/f9cde06de0dda77f9fb8bf2b74a8fb11.jpg",
       "type": "image/png",
       "sizes": "512x512"
     }
