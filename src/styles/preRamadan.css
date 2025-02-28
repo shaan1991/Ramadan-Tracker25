@@ -1,0 +1,58 @@
+/* src/styles/preRamadan.css */
+/* CSS for handling pre-Ramadan states and notifications */
+
+/* Style for components when viewing pre-Ramadan dates */
+.disabled {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  
+  /* Notice displayed for pre-Ramadan dates */
+  .pre-ramadan-notice {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 14px;
+    text-align: center;
+  }
+  
+  /* For historical view banner when viewing pre-Ramadan dates */
+  .historical-banner .pre-ramadan-notice {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  /* Style for buttons that should be disabled before Ramadan */
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  /* Add a subtle indicator for dates before Ramadan in the calendar */
+  .calendar-day.before-ramadan {
+    background-color: #f8f8f8;
+    color: #bbb;
+    position: relative;
+  }
+  
+  .calendar-day.before-ramadan::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.03),
+      rgba(0, 0, 0, 0.03) 5px,
+      transparent 5px,
+      transparent 10px
+    );
+    border-radius: inherit;
+    pointer-events: none;
+  }

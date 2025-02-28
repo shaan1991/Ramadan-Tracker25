@@ -3,6 +3,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../firebase';
+import { isBeforeRamadan, isWithinRamadan, calculateRamadanDay as calculateDayFromDate, RAMADAN_START_DATE } from '../utils/dateValidation';
 
 export const UserContext = createContext();
 
@@ -26,12 +27,7 @@ export const UserProvider = ({ children }) => {
 
   // Calculate which day of Ramadan it is
   function calculateRamadanDay() {
-    // You may need to adjust this based on the actual start date of Ramadan
-    const startDate = new Date('2025-02-23'); // Example: Ramadan start date
-    const today = new Date();
-    const diffTime = Math.abs(today - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 30 ? 30 : diffDays;
+    return calculateDayFromDate(new Date());
   }
 
   // Check if the app needs to reset for a new day
@@ -202,6 +198,12 @@ export const UserProvider = ({ children }) => {
       try {
         // If we're in historical view and updating data, save to the history object
         if (isHistoricalView && historicalDate) {
+          // Check if this date is before Ramadan - don't allow updates
+          if (isBeforeRamadan(new Date(historicalDate))) {
+            console.warn("Cannot update data for date before Ramadan:", historicalDate);
+            return false;
+          }
+          
           // Update the history object for the specific date
           const historyUpdate = {};
           
@@ -235,6 +237,32 @@ export const UserProvider = ({ children }) => {
           const today = formatDate(new Date()); // Use consistent date formatting
           const userDocRef = doc(db, 'users', user.uid);
           
+          // For current data, check if today is before Ramadan starts
+          if (isBeforeRamadan(new Date())) {
+            // Filter out Ramadan tracking data if today is before Ramadan
+            const allowedKeys = ['lastActiveDate', 'onboardingCompleted', 'user', 'duas']; 
+            
+            // Filter dataToUpdate to only include allowed keys
+            const filteredUpdates = {};
+            for (const key of allowedKeys) {
+              if (key in dataToUpdate) {
+                filteredUpdates[key] = dataToUpdate[key];
+              }
+            }
+            
+            // If there's nothing left to update, return
+            if (Object.keys(filteredUpdates).length === 0) {
+              console.warn("Cannot update Ramadan data before Ramadan starts");
+              return false;
+            }
+            
+            // Update with only the allowed data
+            await updateDoc(userDocRef, filteredUpdates);
+            setUserData(prevData => ({ ...prevData, ...filteredUpdates }));
+            return true;
+          }
+          
+          // Continue with normal update during Ramadan
           // Also record in history for today
           const historyUpdate = {};
           for (const key in dataToUpdate) {
@@ -275,10 +303,7 @@ export const UserProvider = ({ children }) => {
 
   // Calculate Ramadan day for a specific date
   const calculateRamadanDayForDate = (date) => {
-    const startDate = new Date('2025-02-23'); // Same as above
-    const diffTime = Math.abs(date - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 30 ? 30 : diffDays;
+    return calculateDayFromDate(date);
   };
 
   // Get the effective data to display (either current or historical)
@@ -289,17 +314,24 @@ export const UserProvider = ({ children }) => {
         ? userData.history[historicalDate] 
         : {};
       
+      // Add flag for pre-Ramadan dates
+      const beforeRamadan = isBeforeRamadan(new Date(historicalDate));
+      
       return {
         ...userData,
         ...currentViewData,
         ...historyData,
         isHistoricalView,
-        historicalDate
+        historicalDate,
+        beforeRamadan // Add flag so components can check this
       };
     }
     
-    // Otherwise return current data
-    return userData;
+    // Otherwise return current data with beforeRamadan flag if needed
+    return {
+      ...userData,
+      beforeRamadan: isBeforeRamadan(new Date())
+    };
   };
 
   // Track daily actions in history
@@ -308,6 +340,12 @@ export const UserProvider = ({ children }) => {
 
     // If we're in historical view, update the historical record
     if (isHistoricalView && historicalDate) {
+      // Don't allow recording data for dates before Ramadan
+      if (isBeforeRamadan(new Date(historicalDate))) {
+        console.warn("Cannot record data for date before Ramadan:", historicalDate);
+        return false;
+      }
+      
       const historyUpdate = {
         [`history.${historicalDate}.${action}`]: value,
         [`history.${historicalDate}.day`]: calculateRamadanDayForDate(new Date(historicalDate))
@@ -316,11 +354,18 @@ export const UserProvider = ({ children }) => {
       return await updateUserData(historyUpdate);
     }
     
+    // For today, also ensure we're in Ramadan
+    const today = new Date();
+    if (isBeforeRamadan(today)) {
+      console.warn("Cannot record data - today is before Ramadan");
+      return false;
+    }
+    
     // Otherwise update today's record - using consistent date formatting
-    const today = formatDate(new Date());
+    const todayFormatted = formatDate(today);
     const historyUpdate = {
-      [`history.${today}.${action}`]: value,
-      [`history.${today}.day`]: ramadanDay
+      [`history.${todayFormatted}.${action}`]: value,
+      [`history.${todayFormatted}.day`]: ramadanDay
     };
 
     return await updateUserData(historyUpdate);
@@ -335,7 +380,9 @@ export const UserProvider = ({ children }) => {
     historicalDate,
     updateUserData,
     recordDailyAction,
-    checkForDayChange // Expose this method to allow manual refresh
+    checkForDayChange, // Expose this method to allow manual refresh
+    isBeforeRamadan,   // Expose the date validation functions to components
+    isWithinRamadan
   };
 
   return (

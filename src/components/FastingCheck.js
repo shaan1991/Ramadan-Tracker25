@@ -1,12 +1,17 @@
-// File: src/components/FastingCheck.js (Fixed)
+// File: src/components/FastingCheck.js
 import React, { useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { calculateStreak, updateStreakData } from '../services/streakService';
 import './FastingCheck.css';
+// Import the CSS for pre-Ramadan styling
+import '../styles/preRamadan.css';
 
 const FastingCheck = () => {
   const { user, userData, ramadanDay, updateUserData, recordDailyAction } = useUser();
   const [streak, setStreak] = useState(0);
+
+  // Check if we're viewing a date before Ramadan
+  const isBeforeRamadanDay = userData?.beforeRamadan;
 
   // Load streak data when component mounts or userData changes
   useEffect(() => {
@@ -22,8 +27,14 @@ const FastingCheck = () => {
 
   if (!userData) return null;
 
-  // Update fasting status with proper streak tracking
+  // Update fasting status with proper streak tracking and date validation
   const handleFastingToggle = async (status) => {
+    // Prevent recording data for dates before Ramadan
+    if (isBeforeRamadanDay) {
+      alert("You cannot record fasting for dates before Ramadan begins.");
+      return;
+    }
+    
     try {
       // Update user data in Firebase
       await updateUserData({ fasting: status });
@@ -45,7 +56,7 @@ const FastingCheck = () => {
   };
 
   return (
-    <div className="fasting-container">
+    <div className={`fasting-container ${isBeforeRamadanDay ? 'disabled' : ''}`}>
       <div className="fasting-header">
         <h3>Fasting today?</h3>
         {streak > 0 && (
@@ -56,16 +67,24 @@ const FastingCheck = () => {
         )}
       </div>
       
+      {isBeforeRamadanDay && (
+        <div className="pre-ramadan-notice">
+          Cannot record fasting for dates before Ramadan begins.
+        </div>
+      )}
+      
       <div className="toggle-buttons">
         <button 
           className={`toggle-button ${!userData.fasting ? 'active' : ''}`}
           onClick={() => handleFastingToggle(false)}
+          disabled={isBeforeRamadanDay}
         >
           No
         </button>
         <button 
           className={`toggle-button ${userData.fasting ? 'active' : ''}`}
           onClick={() => handleFastingToggle(true)}
+          disabled={isBeforeRamadanDay}
         >
           Yes
         </button>
@@ -76,9 +95,10 @@ const FastingCheck = () => {
           className="progress-fill"
           style={{ width: `${(ramadanDay / 30) * 100}%` }}
         ></div>
-        <div className="progress-text">
-          {ramadanDay} out of 30
-        </div>
+      </div>
+      
+      <div className="progress-text">
+        {ramadanDay} out of 30
       </div>
     </div>
   );
