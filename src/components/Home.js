@@ -61,7 +61,7 @@ const Home = () => {
   // Calculate current Ramadan day on component mount
   useEffect(() => {
     // Define Ramadan start date - update this for the correct year
-    const ramadanStartDate = new Date(2025, 1, 27); // February 27, 2025
+    const ramadanStartDate = new Date(2025, 1, 28); // February 27, 2025
     
     // Calculate days since Ramadan started
     const today = new Date();
