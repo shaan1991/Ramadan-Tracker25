@@ -58,7 +58,7 @@ const FastingCheck = () => {
   return (
     <div className={`fasting-container ${isBeforeRamadanDay ? 'disabled' : ''}`}>
       <div className="fasting-header">
-        <h3>Fasting today?</h3>
+        <h3>🧆 Fasting today?</h3>
         {streak > 0 && (
           <div className="streak-badge">
             <span className="streak-icon">🔥</span>

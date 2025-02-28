@@ -1,9 +1,8 @@
-// src/utils/dateValidation.js
 // Utilities for validating dates related to Ramadan
 
 // Define Ramadan dates - update these for the correct year
 export const RAMADAN_START_DATE = new Date('2025-02-28'); // February 27, 2025
-export const RAMADAN_END_DATE = new Date('2025-03-30');   // March 28, 2025
+export const RAMADAN_END_DATE = new Date('2025-04-1');   // March 28, 2025
 
 /**
  * Formats a date as YYYY-MM-DD - ensures consistent format across the app
@@ -62,7 +61,7 @@ export const isWithinRamadan = (date) => {
  * Calculates which day of Ramadan a date is (1-30)
  * Returns 0 for dates before Ramadan starts
  * @param {Date|string} date - Date to calculate
- * @returns {number} Day of Ramadan (1-30), 0 for before Ramadan
+ * @returns {number} Day of Ramadan (0-29), 0 for before Ramadan
  */
 export const calculateRamadanDay = (date) => {
   // Ensure date is a Date object
@@ -80,10 +79,10 @@ export const calculateRamadanDay = (date) => {
   const startDate = new Date(RAMADAN_START_DATE);
   startDate.setHours(12, 0, 0, 0);
   
-  // Calculate difference in days
+  // Calculate difference in days - use floor to start at 0
   const diffTime = normalizedDate - startDate;
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 because first day is day 1
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   
-  // Cap at 30 days
-  return Math.min(diffDays, 30);
+  // Cap at 29 (0-indexed 30 days)
+  return Math.min(diffDays, 29);
 };

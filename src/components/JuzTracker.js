@@ -194,7 +194,7 @@ const JuzTracker = () => {
   return (
     <div className={`juz-tracker ${advancedMode ? 'advanced-mode' : ''} ${isBeforeRamadanDay ? 'disabled' : ''}`}>
       <div className="juz-header">
-        <h3>Juz Tracker</h3>
+        <h3>📖 Juz Tracker</h3>
         {streak > 0 && (
           <div className="streak-badge">
             <span className="streak-icon">🔥</span>

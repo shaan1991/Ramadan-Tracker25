@@ -7,11 +7,18 @@ import './TaraweehCheck.css';
 import '../styles/preRamadan.css';
 
 const TaraweehCheck = () => {
-  const { user, userData, ramadanDay, updateUserData, recordDailyAction } = useUser();
+  const { user, userData, updateUserData, recordDailyAction } = useUser();
   const [streak, setStreak] = useState(0);
+  // Get the current Ramadan day directly from userData for consistency
+  const ramadanDay = userData?.day || 1;
 
   // Check if we're viewing a date before Ramadan
   const isBeforeRamadanDay = userData?.beforeRamadan;
+
+  // Log the day for debugging
+  useEffect(() => {
+    console.log(`TaraweehCheck - ramadanDay: ${ramadanDay}`);
+  }, [ramadanDay]);
 
   // Load streak data when component mounts or userData changes
   useEffect(() => {
@@ -58,7 +65,7 @@ const TaraweehCheck = () => {
   return (
     <div className={`taraweeh-container ${isBeforeRamadanDay ? 'disabled' : ''}`}>
       <div className="taraweeh-header">
-        <h3>Prayed Taraweeh Today?</h3>
+        <h3>🌙 Prayed Taraweeh Today?</h3>
         {streak > 0 && (
           <div className="streak-badge">
             <span className="streak-icon">🔥</span>
