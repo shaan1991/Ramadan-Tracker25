@@ -53,7 +53,7 @@ const DailyNamazCheckIn = () => {
 
   return (
     <div className={`namaz-container ${isBeforeRamadanDay ? 'disabled' : ''}`}>
-      <h3>Daily Namaz Check-In</h3>
+      <h3>🤲 Daily Namaz Check-In</h3>
       
       {isBeforeRamadanDay && (
         <div className="pre-ramadan-notice">

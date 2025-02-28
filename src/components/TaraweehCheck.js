@@ -109,7 +109,7 @@ const TaraweehCheck = () => {
   return (
     <div className={`taraweeh-container ${isBeforeRamadanDay ? 'disabled' : ''}`}>
       <div className="taraweeh-header">
-        <h3>Prayed Taraweeh Today?</h3>
+        <h3>🌙 Prayed Taraweeh Today?</h3>
         {streak > 0 && (
           <div className="streak-badge">
             <span className="streak-icon">🔥</span>
