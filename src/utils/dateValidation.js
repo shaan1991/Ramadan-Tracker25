@@ -1,9 +1,30 @@
 // src/utils/dateValidation.js
 // Utilities for validating dates related to Ramadan
 
-// Define Ramadan dates - update these for the correct year
-export const RAMADAN_START_DATE = new Date('2025-02-28'); // February 27, 2025
-export const RAMADAN_END_DATE = new Date('2025-03-30');   // March 28, 2025
+// We'll make these values dynamic so they can be updated based on user's location
+let RAMADAN_START_DATE = new Date('2025-02-28'); // February 27, 2025 - Default date
+let RAMADAN_END_DATE = new Date('2025-03-30');   // March 28, 2025 - 30 days after start
+
+// Function to update the Ramadan dates based on user's location
+// This will be called from the Home component when location is determined
+export const updateRamadanDates = (startDate) => {
+  if (!startDate) return;
+  
+  // Update start date
+  RAMADAN_START_DATE = new Date(startDate);
+  
+  // Calculate end date (30 days after start)
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + 29); // 30 days including start date
+  RAMADAN_END_DATE = endDate;
+  
+  console.log(`Ramadan dates updated - Start: ${RAMADAN_START_DATE.toDateString()}, End: ${RAMADAN_END_DATE.toDateString()}`);
+  
+  // Make the update function available globally so it can be called from any component
+  if (typeof window !== 'undefined') {
+    window.updateRamadanStartDate = updateRamadanDates;
+  }
+};
 
 /**
  * Formats a date as YYYY-MM-DD - ensures consistent format across the app
@@ -87,3 +108,16 @@ export const calculateRamadanDay = (date) => {
   // Cap at 30 days
   return Math.min(diffDays, 30);
 };
+
+// Initialize by trying to get the saved date from localStorage
+const initializeFromLocalStorage = () => {
+  if (typeof window !== 'undefined') {
+    const savedDate = localStorage.getItem('ramadanStartDate');
+    if (savedDate) {
+      updateRamadanDates(new Date(savedDate));
+    }
+  }
+};
+
+// Run initialization 
+initializeFromLocalStorage();

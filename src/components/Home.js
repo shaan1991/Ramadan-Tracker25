@@ -12,39 +12,55 @@ import FastingCheck from './FastingCheck';
 import TaraweehCheck from './TaraweehCheck';
 import JuzTracker from './JuzTracker';
 import HadithOfTheDay from './HadithOfTheDay';
-import MonthlySummary from './MonthlySummary'; // New component
+import MonthlySummary from './MonthlySummary';
 import RandomSunnahSuggestion from './RandomSunnahSuggestion';
-// import ShareButton from './ShareButton';
-// import { 
-//   setupNotifications, 
-//   scheduleNotification, 
-//   sendInAppNotification, 
-//   addNotificationButton,
-//   testNotification,
-//   cleanupNotifications
-// } from '../services/notificationService';
+
+// Ramadan start dates by major regions - you can expand this
+// These are approximate dates for 2025 Ramadan
+const RAMADAN_START_DATES = {
+  // Default date (used if can't determine location)
+  default: new Date(2025, 1, 28), // Feb 27, 2025
+  
+  // Different regions might observe different start dates
+  'north_america': new Date(2025, 1, 28), // Feb 27, 2025
+  'europe': new Date(2025, 1, 28), // Feb 27, 2025
+  'middle_east': new Date(2025, 1, 28), // Feb 27, 2025
+  'asia': new Date(2025, 1, 29), // Feb 28, 2025 (one day later in some regions)
+  'australia': new Date(2025, 1, 28), // Feb 28, 2025
+  'africa': new Date(2025, 1, 28), // Feb 27, 2025
+};
+
+// Store the user's Ramadan start date in localStorage once determined
+const saveRamadanStartDate = (date) => {
+  if (date) {
+    localStorage.setItem('ramadanStartDate', date.toISOString());
+  }
+};
+
+// Get the saved Ramadan start date from localStorage
+const getSavedRamadanStartDate = () => {
+  const savedDate = localStorage.getItem('ramadanStartDate');
+  return savedDate ? new Date(savedDate) : null;
+};
 
 const Home = () => {
   const { user, userData, loading, updateUserData } = useUser();
-  const { prayerTimes, formattedTimes, locationStatus, retryLocation } = usePrayerTimes();
+  const { prayerTimes, formattedTimes, locationStatus, retryLocation, location } = usePrayerTimes();
   const [showCalendar, setShowCalendar] = useState(false);
   const [pulling, setPulling] = useState(false);
   const [pullStartY, setPullStartY] = useState(0);
   const [pullCurrentY, setPullCurrentY] = useState(0);
-  
-  // // Add test function to window for debugging notifications
-  // if (typeof window !== 'undefined') {
-  //   window.testRamadanNotification = () => {
-  //     return testNotification();
-  //   };
-  // }
   
   // Initialize with properly formatted today's date
   const today = new Date();
   const formattedToday = formatDate(today);
   const [selectedDate, setSelectedDate] = useState(formattedToday);
   
-  // Add state for dynamic Ramadan day calculation
+  // Ramadan date state
+  const [ramadanStartDate, setRamadanStartDate] = useState(() => {
+    // Try to load a previously saved date first
+    return getSavedRamadanStartDate() || RAMADAN_START_DATES.default;
+  });
   const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
   const totalDays = 30;
   
@@ -57,19 +73,63 @@ const Home = () => {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
-
-  // Calculate current Ramadan day on component mount
+  
+  // Determine Ramadan start date based on location
   useEffect(() => {
-    // Define Ramadan start date - update this for the correct year
-    const ramadanStartDate = new Date(2025, 1, 28); // February 27, 2025
+    // Skip if location is not yet available
+    if (!location || !location.latitude || !location.longitude) {
+      return;
+    }
     
+    // Check if we already have a saved Ramadan start date
+    const savedDate = getSavedRamadanStartDate();
+    if (savedDate) {
+      setRamadanStartDate(savedDate);
+      return;
+    }
+    
+    // Simple function to determine which region the user is in based on coordinates
+    const determineRegion = (lat, lon) => {
+      // These are very rough bounds for major regions
+      // You might want to use a more sophisticated approach or a geocoding service
+      if (lat >= 24 && lat <= 50 && lon >= -125 && lon <= -66) {
+        return 'north_america'; // North America
+      } else if (lat >= 36 && lat <= 70 && lon >= -10 && lon <= 40) {
+        return 'europe'; // Europe
+      } else if (lat >= 12 && lat <= 42 && lon >= 35 && lon <= 60) {
+        return 'middle_east'; // Middle East
+      } else if (lat >= -10 && lat <= 55 && lon >= 60 && lon <= 145) {
+        return 'asia'; // Asia
+      } else if (lat >= -47 && lat <= -10 && lon >= 110 && lon <= 180) {
+        return 'australia'; // Australia
+      } else if (lat >= -35 && lat <= 37 && lon >= -20 && lon <= 55) {
+        return 'africa'; // Africa
+      }
+      return 'default';
+    };
+    
+    const region = determineRegion(location.latitude, location.longitude);
+    const startDate = RAMADAN_START_DATES[region] || RAMADAN_START_DATES.default;
+    
+    console.log(`Determined region: ${region}, Ramadan start date: ${startDate.toDateString()}`);
+    
+    // Set and save the start date
+    setRamadanStartDate(startDate);
+    saveRamadanStartDate(startDate);
+    
+  }, [location]);
+
+  // Calculate current Ramadan day whenever the start date changes
+  useEffect(() => {
     // Calculate days since Ramadan started
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Remove time component
-    ramadanStartDate.setHours(0, 0, 0, 0); // Remove time component
+    const currentDay = new Date();
+    currentDay.setHours(0, 0, 0, 0); // Remove time component
+    
+    const startDate = new Date(ramadanStartDate);
+    startDate.setHours(0, 0, 0, 0); // Remove time component
     
     // Calculate difference in days
-    const timeDiff = today.getTime() - ramadanStartDate.getTime();
+    const timeDiff = currentDay.getTime() - startDate.getTime();
     const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1; // +1 because first day is day 1
     
     // Set the current Ramadan day (between 1 and 30)
@@ -77,12 +137,17 @@ const Home = () => {
       setCurrentRamadanDay(dayDiff);
     } else if (dayDiff < 1) {
       // Before Ramadan started
-      setCurrentRamadanDay(1); // Default to day 1
+      setCurrentRamadanDay(0); // Not started yet
     } else {
       // After Ramadan ended
       setCurrentRamadanDay(30); // Cap at day 30
     }
-  }, []);
+    
+    // Also update the dateValidation utility's start date (if it exists globally)
+    if (window.updateRamadanStartDate) {
+      window.updateRamadanStartDate(ramadanStartDate);
+    }
+  }, [ramadanStartDate]);
 
   useEffect(() => {
     // Add touch event listeners for pull-to-reveal
@@ -100,9 +165,6 @@ const Home = () => {
         container.removeEventListener('touchmove', handleTouchMove);
         container.removeEventListener('touchend', handleTouchEnd);
       }
-      
-      // Clean up notification elements (but keep session flags)
-      // cleanupNotifications();
     };
   }, []);
 
@@ -176,6 +238,15 @@ const Home = () => {
   const loadDateData = async (dateString) => {
     console.log("Loading data for date:", dateString);
     
+    // Check if the selected date is before Ramadan
+    const selectedDate = new Date(dateString);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    const startDate = new Date(ramadanStartDate);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const isBeforeRamadan = selectedDate < startDate;
+    
     // Check if there's history data for this date - EXACT string match
     if (userData && userData.history && userData.history[dateString]) {
       console.log("Found history data for date:", dateString);
@@ -199,7 +270,8 @@ const Home = () => {
       updateUserData({
         currentViewData: historicalUpdate,
         isHistoricalView: true,
-        historicalDate: dateString
+        historicalDate: dateString,
+        beforeRamadan: isBeforeRamadan
       });
     } else {
       console.log("No history data for date:", dateString);
@@ -218,9 +290,21 @@ const Home = () => {
           prayedTaraweeh: false
         },
         isHistoricalView: true,
-        historicalDate: dateString
+        historicalDate: dateString,
+        beforeRamadan: isBeforeRamadan
       });
     }
+  };
+
+  // Function to check if a date is before Ramadan
+  const isBeforeRamadan = (date) => {
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    
+    const startDate = new Date(ramadanStartDate);
+    startDate.setHours(0, 0, 0, 0);
+    
+    return checkDate < startDate;
   };
 
   if (loading || !userData) {
@@ -243,6 +327,21 @@ const Home = () => {
   const displayDate = isHistoricalView ? 
     dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 
     'Today';
+    
+  // Check if current view date is before Ramadan
+  const isViewingBeforeRamadan = userData.beforeRamadan || isBeforeRamadan(dateObj);
+
+  // Calculate days until Ramadan if viewing before Ramadan starts
+  let daysUntilRamadan = 0;
+  if (currentRamadanDay <= 0) {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const start = new Date(ramadanStartDate);
+    start.setHours(0, 0, 0, 0);
+    
+    const diffTime = start - now;
+    daysUntilRamadan = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
 
   return (
     <div className="home-container" ref={containerRef}>
@@ -259,7 +358,13 @@ const Home = () => {
         </div>
         
         <div className="timing-section">
-          <div className="day-counter">Day {currentRamadanDay} of {totalDays}</div>
+          {currentRamadanDay > 0 ? (
+            <div className="day-counter">Day {currentRamadanDay} of {totalDays}</div>
+          ) : (
+            <div className="day-counter">
+              {daysUntilRamadan} {daysUntilRamadan === 1 ? 'day' : 'days'} until Ramadan
+            </div>
+          )}
           
           <div className="time-container">
             <div className="suhoor-time">
@@ -300,19 +405,29 @@ const Home = () => {
       {showCalendar && (
         <Calendar 
           onDateSelect={handleDateSelect} 
-          onClose={handleCloseCalendar} 
+          onClose={handleCloseCalendar}
+          ramadanStartDate={ramadanStartDate}
+          isBeforeRamadan={isBeforeRamadan}
         />
       )}
       
       {isHistoricalView && (
         <div className="historical-banner">
           Viewing data for {dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+          
+          {isViewingBeforeRamadan && (
+            <div className="pre-ramadan-notice">
+              This date is before Ramadan begins. No Ramadan activities can be recorded.
+            </div>
+          )}
+          
           <button 
             onClick={() => {
               updateUserData({
                 isHistoricalView: false,
                 currentViewData: null,
-                historicalDate: null
+                historicalDate: null,
+                beforeRamadan: currentRamadanDay <= 0
               });
               setSelectedDate(formattedToday);
             }}
@@ -324,7 +439,6 @@ const Home = () => {
       )}
 
       <DailyOverview />
-      {/* <ShareButton />  Add this line */}
 
       {/* Add the Monthly Summary component for progress stats */}
       {!isHistoricalView && <MonthlySummary />}

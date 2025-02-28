@@ -1,7 +1,7 @@
 // src/services/streakService.js - with Pre-Ramadan validation
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { isBeforeRamadan, RAMADAN_START_DATE } from '../utils/dateValidation';
+import { isBeforeRamadan } from '../utils/dateValidation';
 
 // Format date consistently
 export const formatDate = (date) => {
@@ -139,7 +139,6 @@ export const calculateStreak = async (userId, activityType) => {
     
     // Ensure streaks can't exceed the number of days in Ramadan so far
     // Calculate how many days of Ramadan have passed
-    const ramadanStartDate = new Date(RAMADAN_START_DATE);
     const currentDate = new Date();
     
     // If we're before Ramadan, no streaks are possible
@@ -147,7 +146,10 @@ export const calculateStreak = async (userId, activityType) => {
       return { current: 0, best: 0 };
     }
     
-    const daysSinceRamadanStart = Math.max(0, Math.floor((currentDate - ramadanStartDate) / (1000 * 60 * 60 * 24)) + 1);
+    // Get Ramadan start date without direct import by looking at the first valid date
+    const daysSinceRamadanStart = ramadanDates.length > 0 
+      ? Math.max(1, ramadanDates.length) 
+      : 1;
     
     // Cap streaks at the number of days passed in Ramadan
     // This ensures streaks can't exceed the natural maximum

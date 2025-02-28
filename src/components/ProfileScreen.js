@@ -20,7 +20,7 @@ const ProfileScreen = () => {
     // Calculate remaining days of Ramadan
     const calculateRamadanDays = () => {
       // Ramadan 2025 is expected to start on Feb 27 and end on March 28
-      const ramadanEndDate = new Date('2025-04-01');
+      const ramadanEndDate = new Date('2025-03-30');
       const today = new Date();
       
       // Calculate difference in days
@@ -114,10 +114,10 @@ const ProfileScreen = () => {
     <div className="profile-screen">
       <div className="profile-content">
         <div className="countdown-section">
-          <h2>This App will delete itself after</h2>
+          <h2>✨ Days until Eid-Ul-Fitr ✨</h2>
           <div className="days-count">{daysRemaining} days</div>
           <p className="data-availability">
-            Your data will be available only till {dataAvailableUntil}
+            This App will delete it self <p>and your data will be available only till {dataAvailableUntil}</p>
           </p>
         </div>
 
