@@ -279,10 +279,7 @@ const Home = () => {
   return (
     <div className="home-container" ref={containerRef}>
       {/* Pull-to-reveal indicator */}
-      <div id="pull-indicator" className={`pull-indicator ${pulling ? 'pulling' : 'hidden'}`}>
-        <span className="pull-spinner">⟳</span>
-        <span id="pull-text">Pull down to show calendar</span>
-      </div>
+      
 
       <div className="app-header">
         <div className="welcome-section">
