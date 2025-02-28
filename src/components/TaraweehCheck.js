@@ -1,17 +1,68 @@
 // File: src/components/TaraweehCheck.js
 import React, { useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
+import { usePrayerTimes } from '../contexts/PrayerTimesContext'; // Import Prayer Times context
 import { calculateStreak, updateStreakData } from '../services/streakService';
 import './TaraweehCheck.css';
-// Import the CSS for pre-Ramadan styling
 import '../styles/preRamadan.css';
 
 const TaraweehCheck = () => {
-  const { user, userData, ramadanDay, updateUserData, recordDailyAction } = useUser();
+  const { user, userData, updateUserData, recordDailyAction } = useUser();
+  const { prayerTimes } = usePrayerTimes(); // Get prayer times which contains Adhan data
   const [streak, setStreak] = useState(0);
+  const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
 
   // Check if we're viewing a date before Ramadan
   const isBeforeRamadanDay = userData?.beforeRamadan;
+  
+  // Calculate Ramadan day based on Adhan's date calculation when available
+  useEffect(() => {
+    const calculateRamadanDay = () => {
+      // Define Ramadan start date
+      const ramadanStartDate = new Date(2025, 1, 28); // February 28, 2025 (month is 0-indexed)
+      
+      let dateToUse;
+      
+      // If viewing historical data, use that date
+      if (userData?.isHistoricalView && userData?.historicalDate) {
+        const [year, month, day] = userData.historicalDate.split('-').map(num => parseInt(num));
+        dateToUse = new Date(year, month - 1, day);
+      } else {
+        // Otherwise use current date
+        dateToUse = new Date();
+      }
+      
+      // Try to use Adhan's date calculation if available
+      if (prayerTimes && prayerTimes.date && !userData?.isHistoricalView) {
+        // If we have Adhan prayer times with date info, we can get the Islamic date
+        console.log("Using Adhan date info for Ramadan day calculation");
+        
+        // If Adhan provides Hijri date directly, we could use it here
+        // For now, we'll fall back to our calculation
+      }
+      
+      // Set both dates to noon to avoid timezone issues
+      dateToUse.setHours(12, 0, 0, 0);
+      ramadanStartDate.setHours(12, 0, 0, 0);
+      
+      // Calculate difference in days
+      const timeDiff = dateToUse - ramadanStartDate;
+      const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1; // +1 because first day is day 1
+      
+      // Set the current Ramadan day (between 1 and 30)
+      if (dayDiff >= 1 && dayDiff <= 30) {
+        setCurrentRamadanDay(dayDiff);
+      } else if (dayDiff < 1) {
+        // Before Ramadan started
+        setCurrentRamadanDay(1); // Default to day 1
+      } else {
+        // After Ramadan ended
+        setCurrentRamadanDay(30); // Cap at day 30
+      }
+    };
+    
+    calculateRamadanDay();
+  }, [userData?.isHistoricalView, userData?.historicalDate, prayerTimes]);
 
   // Load streak data when component mounts or userData changes
   useEffect(() => {
@@ -93,12 +144,12 @@ const TaraweehCheck = () => {
       <div className="progress-bar">
         <div 
           className="progress-fill"
-          style={{ width: `${(ramadanDay / 30) * 100}%` }}
+          style={{ width: `${(currentRamadanDay / 30) * 100}%` }}
         ></div>
       </div>
       
       <div className="progress-text">
-        {ramadanDay} out of 30
+        {currentRamadanDay} out of 30
       </div>
     </div>
   );

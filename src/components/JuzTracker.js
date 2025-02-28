@@ -1,4 +1,4 @@
-// src/components/JuzTracker.js - With Pre-Ramadan Validation
+// File: src/components/JuzTracker.js - With Pre-Ramadan Validation
 import React, { useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { trackJuzProgress } from '../services/historyTracker';
@@ -32,8 +32,13 @@ const JuzTracker = () => {
         setCompletedJuzs([]);
       }
       
-      // Load streak data
-      loadStreakData();
+      // Load streak data only if juz have been read
+      if (userData.completedJuzs && userData.completedJuzs.length > 0) {
+        loadStreakData();
+      } else {
+        // Reset streak to 0 if no juz have been read
+        setStreak(0);
+      }
     }
   }, [userData]);
   
@@ -103,7 +108,13 @@ const JuzTracker = () => {
       // Update streak data
       if (user?.uid) {
         await updateStreakData(user.uid, 'quran', newCompletedJuzs.length > 0);
-        await loadStreakData(); // Reload streak data
+        
+        // Only load streak data if juz have been read
+        if (newCompletedJuzs.length > 0) {
+          await loadStreakData(); // Reload streak data
+        } else {
+          setStreak(0);
+        }
       }
     } catch (error) {
       console.error("Error updating Juz progress:", error);
@@ -175,7 +186,13 @@ const JuzTracker = () => {
       // Update streak data
       if (user?.uid) {
         await updateStreakData(user.uid, 'quran', newCompletedJuzs.length > 0);
-        await loadStreakData(); // Reload streak data
+        
+        // Only load streak data if juz have been read
+        if (newCompletedJuzs.length > 0) {
+          await loadStreakData(); // Reload streak data
+        } else {
+          setStreak(0);
+        }
       }
       
       // Clear selection

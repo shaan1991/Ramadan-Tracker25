@@ -78,7 +78,7 @@ const ProfileScreen = () => {
   // New function to invite friends
   const handleInviteFriends = () => {
     const appUrl = 'https://ramadan-tracker.web.app';
-    const message = `Check out this amazing Ramadan Tracker app! Track your prayers, fasts, and spiritual journey. Download here: ${appUrl}`;
+    const message = `Check out this amazing Ramadan Tracker app! Track your prayers, fasts, and spiritual journey. Visit here: ${appUrl}`;
 
     if (navigator.share) {
       navigator.share({
