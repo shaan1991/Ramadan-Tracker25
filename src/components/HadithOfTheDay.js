@@ -12,6 +12,7 @@ const HadithOfTheDay = () => {
   });
 
   // Collection of verified short hadiths with their narrators and sources
+  // Collection of verified short hadiths with their narrators and sources
   const hadithCollection = [
     {
       text: "None of you truly believes until he loves for his brother what he loves for himself.",
@@ -87,6 +88,81 @@ const HadithOfTheDay = () => {
       text: "Smiling in the face of your brother is charity.",
       narrator: "Reported by Tirmidhi",
       source: "Jami at-Tirmidhi 1956"
+    },
+    {
+      text: "The Muslim is the one from whose tongue and hand the people are safe.",
+      narrator: "Reported by Al-Bukhari and Muslim",
+      source: "40 Hadith Nawawi 8"
+    },
+    {
+      text: "Actions are judged by intentions, and everyone will get what they intended.",
+      narrator: "Reported by Al-Bukhari and Muslim",
+      source: "40 Hadith Nawawi 1"
+    },
+    {
+      text: "Part of someone's being a good Muslim is his leaving alone that which does not concern him.",
+      narrator: "Reported by Tirmidhi",
+      source: "40 Hadith Nawawi 12"
+    },
+    {
+      text: "Do not become angry, and Paradise is yours.",
+      narrator: "Reported by Al-Bukhari",
+      source: "Sahih Al-Bukhari 6116"
+    },
+    {
+      text: "Fear Allah wherever you may be, follow up a bad deed with a good deed which will wipe it out, and treat people with good character.",
+      narrator: "Reported by Tirmidhi",
+      source: "40 Hadith Nawawi 18"
+    },
+    {
+      text: "Charity does not decrease wealth, no one forgives another but that Allah increases his honor, and no one humbles himself for the sake of Allah but that Allah raises his status.",
+      narrator: "Reported by Muslim",
+      source: "Sahih Muslim 2588"
+    },
+    {
+      text: "A Muslim is a brother of another Muslim. He should not oppress him nor should he hand him over to an oppressor. Whoever fulfills the needs of his brother, Allah will fulfill his needs.",
+      narrator: "Reported by Al-Bukhari and Muslim",
+      source: "Sahih Al-Bukhari 2442"
+    },
+    {
+      text: "Whoever goes out seeking knowledge, then he is in Allah's cause until he returns.",
+      narrator: "Reported by Tirmidhi",
+      source: "Jami at-Tirmidhi 2647"
+    },
+    {
+      text: "The best of you are those who are best to their families, and I am the best of you to my family.",
+      narrator: "Reported by Tirmidhi",
+      source: "Jami at-Tirmidhi 3895"
+    },
+    {
+      text: "One who leads to something good is like the one who does it.",
+      narrator: "Reported by Muslim",
+      source: "Sahih Muslim 1893"
+    },
+    {
+      text: "Whoever relieves a believer's distress of the distressful aspects of this world, Allah will rescue him from a difficulty of the difficulties of the Hereafter.",
+      narrator: "Reported by Muslim",
+      source: "Sahih Muslim 2699"
+    },
+    {
+      text: "Do not be people without minds of your own, saying that if others treat you well you will treat them well, and that if they do wrong you will do wrong. Instead, accustom yourselves to do good if people do good and not to do wrong if they do evil.",
+      narrator: "Reported by Tirmidhi",
+      source: "Jami at-Tirmidhi 1325"
+    },
+    {
+      text: "Do not look down upon any good deed, even meeting your brother with a cheerful face.",
+      narrator: "Reported by Muslim",
+      source: "Sahih Muslim 2626"
+    },
+    {
+      text: "Remember Allah during times of ease and He will remember you during times of hardship.",
+      narrator: "Reported by Ahmad",
+      source: "Musnad Ahmad 2803"
+    },
+    {
+      text: "The world is the believer's prison and the disbeliever's paradise.",
+      narrator: "Reported by Muslim",
+      source: "Sahih Muslim 2956"
     }
   ];
 
