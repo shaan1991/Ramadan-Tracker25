@@ -2,7 +2,7 @@
 // Utilities for validating dates related to Ramadan
 
 // Define Ramadan dates - update these for the correct year
-export const RAMADAN_START_DATE = new Date('2025-02-28'); // February 27, 2025
+export const RAMADAN_START_DATE = new Date('2025-03-01'); // February 27, 2025
 export const RAMADAN_END_DATE = new Date('2025-04-01');   // March 28, 2025
 
 /**

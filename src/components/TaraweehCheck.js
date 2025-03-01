@@ -19,7 +19,7 @@ const TaraweehCheck = () => {
   useEffect(() => {
     const calculateRamadanDay = () => {
       // Define Ramadan start date
-      const ramadanStartDate = new Date(2025, 1, 28); // February 28, 2025 (month is 0-indexed)
+      const ramadanStartDate = new Date(2025, 2, 1); // February 28, 2025 (month is 0-indexed)
       
       let dateToUse;
       

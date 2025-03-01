@@ -65,11 +65,11 @@ const FastingCheck = () => {
       // Fallback to calculation if Adhan info not available
       if (!isUsingAdhan) {
         // Define Ramadan start date - keep this for now as fallback
-        ramadanStartDate = new Date(2025, 1, 28); // February 28, 2025 (month is 0-indexed)
+        ramadanStartDate = new Date(2025, 2, 1); // February 28, 2025 (month is 0-indexed)
         
         // Define the date when FastingCheck becomes interactive (1 day after Ramadan starts)
         const fastingCheckStartDate = new Date(ramadanStartDate);
-        fastingCheckStartDate.setDate(fastingCheckStartDate.getDate() + 1); // This is March 1st
+        fastingCheckStartDate.setDate(fastingCheckStartDate.getDate()); // This is March 1st
         
         // Set both dates to noon to avoid timezone issues
         dateToUse.setHours(12, 0, 0, 0);
@@ -78,7 +78,7 @@ const FastingCheck = () => {
         
         // Calculate difference in days
         const timeDiff = dateToUse - ramadanStartDate;
-        const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1; // +1 because first day is day 1
+        const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24)); // +1 because first day is day 1
         
         // Determine if fasting options should be available (not the pre-fast day)
         const isFastingAvailable = dateToUse >= fastingCheckStartDate;

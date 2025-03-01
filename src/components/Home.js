@@ -47,7 +47,7 @@ const Home = () => {
   useEffect(() => {
     const calculateDay = () => {
       // Define Ramadan start date
-      const ramadanStartDate = new Date(2025, 1, 28); // February 28, 2025 (month is 0-indexed)
+      const ramadanStartDate = new Date(2025, 2, 1); // February 28, 2025 (month is 0-indexed)
       
       // Set to noon to avoid timezone issues
       const todayNormalized = new Date();
