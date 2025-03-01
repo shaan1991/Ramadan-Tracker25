@@ -1,17 +1,40 @@
 // File: src/components/DailyNamazCheckIn.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
+import Celebration from './Celebration';
 import './DailyNamazCheckIn.css';
-// Import the CSS for pre-Ramadan styling
+// Import styles
 import '../styles/preRamadan.css';
+import './Celebration.css';
 
 const DailyNamazCheckIn = () => {
   const { userData, updateUserData, recordDailyAction } = useUser();
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [prevCompletedCount, setPrevCompletedCount] = useState(0);
+
+  // Effect to detect when all 5 prayers are completed
+  useEffect(() => {
+    if (!userData) return;
+    
+    // Calculate completed prayers
+    const completedCount = Object.values(userData.namaz).filter(Boolean).length;
+    
+    // Check if we just completed all prayers (and weren't already complete before)
+    if (completedCount === 5 && prevCompletedCount !== 5) {
+      setShowCelebration(true);
+    }
+    
+    // Update the previous count
+    setPrevCompletedCount(completedCount);
+  }, [userData, prevCompletedCount]);
 
   if (!userData) return null;
 
   // Check if we're viewing a date before Ramadan
   const isBeforeRamadanDay = userData.beforeRamadan;
+
+  // Calculate completed prayers
+  const completedCount = Object.values(userData.namaz).filter(Boolean).length;
 
   const handlePrayerToggle = async (prayer) => {
     // Prevent recording data for dates before Ramadan
@@ -48,8 +71,11 @@ const DailyNamazCheckIn = () => {
   ];
 
   // Calculate progress percentage
-  const completedCount = Object.values(userData.namaz).filter(Boolean).length;
   const progressPercentage = (completedCount / 5) * 100;
+
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+  };
 
   return (
     <div className={`namaz-container ${isBeforeRamadanDay ? 'disabled' : ''}`}>
@@ -83,7 +109,13 @@ const DailyNamazCheckIn = () => {
       
       <div className="progress-text">
         {completedCount} out of 5 prayers
+        {completedCount === 5 && <span className="all-complete-text"> - MashaAllah!</span>}
       </div>
+      
+      {/* Show celebration when all prayers are complete */}
+      {showCelebration && (
+        <Celebration onComplete={handleCelebrationComplete} />
+      )}
     </div>
   );
 };
