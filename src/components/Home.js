@@ -46,49 +46,51 @@ const Home = () => {
   // Calculate current Ramadan day, potentially using Adhan data when available
   useEffect(() => {
     const calculateDay = () => {
-      // Define Ramadan start date
-      const ramadanStartDate = new Date(2025, 2, 1); // February 28, 2025 (month is 0-indexed)
-      
-      // Set to noon to avoid timezone issues
+      // If Adhan provides Hijri date info, use it
+      if (prayerTimes && prayerTimes.date && prayerTimes.date.hijri) {
+        const hijri = prayerTimes.date.hijri;
+        // Assuming Ramadan is the 9th month
+        if (hijri.month.number === 9) {
+          console.log("Using Adhan hijri data:", hijri);
+          setCurrentRamadanDay(hijri.day);
+          return;
+        }
+      }
+  
+      // Fallback: Use region-specific Ramadan start date from userData
+      // If not available, default to '2025-03-01'
+      const ramadanStartString = userData?.ramadanStartDate || '2025-03-01';
+      // Manually parse the date string to avoid timezone issues
+      const [startYear, startMonth, startDay] = ramadanStartString.split('-').map(Number);
+      const ramadanStartDate = new Date(startYear, startMonth - 1, startDay);
+      // Set to local noon to avoid timezone issues
+      ramadanStartDate.setHours(12, 0, 0, 0);
+  
       const todayNormalized = new Date();
       todayNormalized.setHours(12, 0, 0, 0);
-      
-      const ramadanStartNormalized = new Date(ramadanStartDate);
-      ramadanStartNormalized.setHours(12, 0, 0, 0);
-      
-      // Check if we can use Adhan's Islamic date info
-      if (prayerTimes && prayerTimes.date) {
-        // Adhan may have Islamic date information we could use
-        console.log("Adhan prayer times available:", prayerTimes);
-        
-        // For now, continue with our calculation
-        // In the future, you could use Adhan's Hijri date here if available
-      }
-      
-      // Calculate difference in days
-      const timeDiff = todayNormalized - ramadanStartNormalized;
-      const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1; // +1 because first day is day 1
-      
-      console.log("Ramadan calculation:", {
+  
+      const timeDiff = todayNormalized - ramadanStartDate;
+      const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1; // +1 because day 1 is the start
+  
+      console.log("Ramadan fallback calculation:", {
         today: todayNormalized.toISOString(),
-        startDate: ramadanStartNormalized.toISOString(),
+        startDate: ramadanStartDate.toISOString(),
         diffDays: dayDiff
       });
-      
-      // Set the current Ramadan day (between 1 and 30)
-      if (dayDiff >= 1 && dayDiff <= 30) {
+  
+      if (dayDiff >= 1 && dayDiff <= totalDays) {
         setCurrentRamadanDay(dayDiff);
       } else if (dayDiff < 1) {
-        // Before Ramadan started
-        setCurrentRamadanDay(1); // Default to day 1
+        setCurrentRamadanDay(1);
       } else {
-        // After Ramadan ended
-        setCurrentRamadanDay(30); // Cap at day 30
+        setCurrentRamadanDay(totalDays);
       }
     };
-    
+  
     calculateDay();
-  }, [prayerTimes]);
+  }, [prayerTimes, userData]);
+  
+
   
   // Update Ramadan day when viewing historical dates
   useEffect(() => {
