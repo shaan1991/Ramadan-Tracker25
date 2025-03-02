@@ -148,9 +148,10 @@ const TaraweehCheck = () => {
         ></div>
       </div>
       
-      <div className="progress-text">
+      {/* hidden  */}
+      {/* <div className="progress-text">
         {currentRamadanDay} out of 30
-      </div>
+      </div> */}
     </div>
   );
 };

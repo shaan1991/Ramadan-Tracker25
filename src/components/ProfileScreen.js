@@ -3,15 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { logOut } from '../services/authService';
+import RegionSelector from './RegionSelector'; // Import the RegionSelector component
 import './ProfileScreen.css';
-import zelle from '../qr-code/zelle.jpeg'
-
-// QR code images would be imported here
-// import indiaQRCode from '../assets/india-qr.png';
-// import usaQRCode from '../assets/usa-qr.png';
+import zelle from '../qr-code/zelle.jpeg';
 
 const ProfileScreen = () => {
-  const { user } = useUser();
+  const { user, userData } = useUser(); // Get userData to display current region
   const navigate = useNavigate();
   const [daysRemaining, setDaysRemaining] = useState(29);
   const [dataAvailableUntil, setDataAvailableUntil] = useState('');
@@ -66,16 +63,15 @@ const ProfileScreen = () => {
   const handleReadQuran = () => {
     window.open('https://quran.com/', '_blank');
   };
+  
   const handleEnglishQuran = () => {
     window.open('https://www.clearquran.com/', '_blank');
   };
 
   const handleFeedback = () => {
     window.open('https://forms.gle/Pv4Fnd2vVFCyumpt6', '_blank');
-    // Replace with your actual feedback form URL
   };
 
-  // New function to invite friends
   const handleInviteFriends = () => {
     const appUrl = 'https://ramadan-tracker.web.app';
     const message = `Check out this amazing Ramadan Tracker app! Track your prayers, fasts, and spiritual journey. Visit here: ${appUrl}`;
@@ -88,14 +84,12 @@ const ProfileScreen = () => {
       }).catch(console.error);
     } else {
       // Fallback for browsers that don't support Web Share API
-      // Copy to clipboard
       navigator.clipboard.writeText(message).then(() => {
         alert('Invite message copied to clipboard! You can now share on WhatsApp or other platforms.');
       });
     }
   };
   
-
   const handleIndiaDonation = () => {
     // Open donation dialog with India QR
     document.getElementById('india-donation-dialog').showModal();
@@ -122,6 +116,9 @@ const ProfileScreen = () => {
         </div>
 
         <div className="links-section">
+          {/* Add the RegionSelector component at the top of the links section */}
+          <RegionSelector />
+          
           <button className="profile-link" onClick={handleQiblaFinder}>
             <span className="link-icon">🧭</span> Qibla Finder
           </button>
@@ -129,6 +126,7 @@ const ProfileScreen = () => {
           <button className="profile-link" onClick={handleReadQuran}>
             <span className="link-icon">📖</span> Read Quran online
           </button>
+          
           <button className="profile-link" onClick={handleEnglishQuran}>
             <span className="link-icon">📒</span> Read Quran in modern english
           </button>
@@ -145,7 +143,6 @@ const ProfileScreen = () => {
             <span className="link-icon">🇺🇸</span> Donations - USA
           </button> */}
 
-          {/* New Invite Friends button */}
           <button className="profile-link" onClick={handleInviteFriends}>
             <span className="link-icon">🤝</span> Invite Friends
           </button>
@@ -165,7 +162,6 @@ const ProfileScreen = () => {
         <div className="dialog-content">
           <h3>Donate (India)</h3>
           <div className="qr-container">
-            {/* Replace with actual QR code */}
             <div className="placeholder-qr">
               India Donation QR Code
             </div>
@@ -182,9 +178,8 @@ const ProfileScreen = () => {
         <div className="dialog-content">
           <h3>Donate (USA)</h3>
           <div className="qr-container">
-        
             <div className="placeholder-qr">
-            Zelle: +1-945-333-6322
+              Zelle: +1-945-333-6322
             </div>
           </div>
           <p className="donation-info">Scan this QR code to donate within USA</p>

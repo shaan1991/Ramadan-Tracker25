@@ -1,7 +1,7 @@
 // src/services/streakService.js - with Pre-Ramadan validation
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { isBeforeRamadan, RAMADAN_START_DATE } from '../utils/dateValidation';
+import { isBeforeRamadan, DEFAULT_RAMADAN_START_DATE, getRamadanStartDate } from '../utils/dateValidation';
 
 // Format date consistently
 export const formatDate = (date) => {
@@ -15,7 +15,7 @@ export const formatDate = (date) => {
 const getActivityValue = (userData, activityType, date) => {
   // If the date is before Ramadan, always return false
   // This prevents recording/counting activities before Ramadan
-  if (isBeforeRamadan(new Date(date))) {
+  if (isBeforeRamadan(new Date(date), userData)) {
     return false;
   }
   
@@ -81,7 +81,7 @@ export const calculateStreak = async (userId, activityType) => {
     
     // Filter out dates before Ramadan started - this is the key fix
     // Only count streaks for dates within Ramadan
-    const ramadanDates = allDates.filter(date => !isBeforeRamadan(new Date(date)));
+    const ramadanDates = allDates.filter(date => !isBeforeRamadan(new Date(date), userData));
     
     // Start calculating streak
     let currentStreak = 0;
@@ -139,11 +139,11 @@ export const calculateStreak = async (userId, activityType) => {
     
     // Ensure streaks can't exceed the number of days in Ramadan so far
     // Calculate how many days of Ramadan have passed
-    const ramadanStartDate = new Date(RAMADAN_START_DATE);
+    const ramadanStartDate = getRamadanStartDate(userData);
     const currentDate = new Date();
     
     // If we're before Ramadan, no streaks are possible
-    if (isBeforeRamadan(currentDate)) {
+    if (isBeforeRamadan(currentDate, userData)) {
       return { current: 0, best: 0 };
     }
     
@@ -166,9 +166,19 @@ export const updateStreakData = async (userId, activityType, isCompleted) => {
   if (!userId || !activityType) return false;
   
   try {
+    // Get user data to pass to isBeforeRamadan
+    const userDocRef = doc(db, 'users', userId);
+    const userSnapshot = await getDoc(userDocRef);
+    
+    if (!userSnapshot.exists()) {
+      return false;
+    }
+    
+    const userData = userSnapshot.data();
+    
     // Only allow updating streak data during Ramadan
     const today = new Date();
-    if (isBeforeRamadan(today)) {
+    if (isBeforeRamadan(today, userData)) {
       console.warn(`Cannot update ${activityType} streak before Ramadan starts`);
       return false;
     }
@@ -177,7 +187,6 @@ export const updateStreakData = async (userId, activityType, isCompleted) => {
     const { current, best } = await calculateStreak(userId, activityType);
     
     // Update streak data in Firestore
-    const userDocRef = doc(db, 'users', userId);
     const todayFormatted = formatDate(today);
     
     const streakData = {

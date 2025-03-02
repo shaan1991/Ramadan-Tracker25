@@ -1,0 +1,97 @@
+/* src/components/RegionSelector.css */
+.region-dialog {
+    border: none;
+    border-radius: 16px;
+    padding: 0;
+    width: 90%;
+    max-width: 350px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .region-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .dialog-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .dialog-content h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 20px;
+    text-align: center;
+  }
+  
+  .region-info {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 20px;
+    max-width: 280px;
+  }
+  
+  .region-options {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  
+  .region-option {
+    background-color: #f8f8f8;
+    border: 2px solid #f0f0f0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+  }
+  
+  .region-option:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .region-option.selected {
+    border-color: #000;
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  .check-icon {
+    color: #000;
+    font-weight: bold;
+  }
+  
+  .close-dialog {
+    background-color: #000;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .close-dialog:hover {
+    background-color: #333;
+  }
+  
+  /* RTL support */
+  [dir="rtl"] .region-option {
+    text-align: right;
+  }
+  
+  [dir="rtl"] .check-icon {
+    margin-right: auto;
+    margin-left: 0;
+  }

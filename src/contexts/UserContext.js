@@ -3,7 +3,13 @@ import React, { createContext, useState, useEffect, useContext, useCallback } fr
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../firebase';
-import { isBeforeRamadan, isWithinRamadan, calculateRamadanDay as calculateDayFromDate, RAMADAN_START_DATE } from '../utils/dateValidation';
+import { 
+  isBeforeRamadan, 
+  isWithinRamadan, 
+  calculateRamadanDay as calculateDayFromDate,
+  getRamadanStartDate,
+  RAMADAN_REGIONS
+} from '../utils/dateValidation';
 
 export const UserContext = createContext();
 
@@ -25,9 +31,9 @@ export const UserProvider = ({ children }) => {
     return `${year}-${month}-${day}`;
   };
 
-  // Calculate which day of Ramadan it is
+  // Calculate which day of Ramadan it is - updated to pass userData
   function calculateRamadanDay() {
-    return calculateDayFromDate(new Date());
+    return calculateDayFromDate(new Date(), userData);
   }
 
   // Check if the app needs to reset for a new day - using useCallback to avoid dependency issues
@@ -42,6 +48,9 @@ export const UserProvider = ({ children }) => {
     // If this is our first check or the date has changed
     if (!storedLastActiveDate || storedLastActiveDate !== today) {
       console.log("New day detected! Resetting daily trackers.");
+      
+      // Calculate Ramadan day using region-aware function
+      const currentRamadanDay = calculateDayFromDate(new Date(), userData);
       
       // Comprehensive reset of daily tracking data
       const resetData = {
@@ -64,8 +73,8 @@ export const UserProvider = ({ children }) => {
         prayedTaraweeh: false,
         // Update last active date
         lastActiveDate: today,
-        // Recalculate Ramadan day
-        day: calculateRamadanDay()
+        // Recalculate Ramadan day with region awareness
+        day: currentRamadanDay
       };
       
       // Update the user data with a clean slate for today
@@ -73,7 +82,7 @@ export const UserProvider = ({ children }) => {
       
       // Update local state
       setLastActiveDate(today);
-      setRamadanDay(calculateRamadanDay());
+      setRamadanDay(currentRamadanDay);
       
       // Reset any historical view or current view data
       setIsHistoricalView(false);
@@ -89,15 +98,104 @@ export const UserProvider = ({ children }) => {
       const userDoc = await getDoc(userDocRef);
       
       const today = formatDate(new Date());
-      const currentRamadanDay = calculateRamadanDay();
       
       if (userDoc.exists()) {
         const data = userDoc.data();
+        
+        // If user doesn't have a region set, try to detect it or set default
+        if (!data.ramadanRegion) {
+          try {
+            // Try to detect region based on timezone
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            // Simple mapping of some common timezones to regions
+            const regionMap = {
+              // North America, Saudi, etc. (March 1)
+              'America/': 'USA, Saudi Arabia & Others',
+              'Europe/': 'USA, Saudi Arabia & Others',
+              'Asia/Riyadh': 'USA, Saudi Arabia & Others',
+              
+              // India, Pakistan, Bangladesh (March 2)
+              'Asia/Kolkata': 'India, Pakistan, Bangladesh',
+              'Asia/Karachi': 'India, Pakistan, Bangladesh',
+              'Asia/Dhaka': 'India, Pakistan, Bangladesh'
+            };
+            
+            // Set region based on timezone prefix match
+            let detectedRegion = 'USA, Saudi Arabia & Others'; // Default
+            for (const [tzPrefix, region] of Object.entries(regionMap)) {
+              if (timezone.startsWith(tzPrefix)) {
+                detectedRegion = region;
+                break;
+              }
+            }
+            
+            // Add region info to user data
+            data.ramadanRegion = detectedRegion;
+            data.ramadanStartDate = RAMADAN_REGIONS[detectedRegion];
+            
+            // Update Firestore with the detected region
+            await updateDoc(userDocRef, {
+              ramadanRegion: detectedRegion,
+              ramadanStartDate: RAMADAN_REGIONS[detectedRegion]
+            });
+            
+            console.log("Auto-detected region:", detectedRegion);
+          } catch (error) {
+            console.warn("Error detecting region:", error);
+            // Set default if detection fails
+            data.ramadanRegion = 'USA, Saudi Arabia & Others';
+            data.ramadanStartDate = RAMADAN_REGIONS['USA, Saudi Arabia & Others'];
+          }
+        }
+        
         setUserData(data);
         setLastActiveDate(data.lastActiveDate || null);
-        setRamadanDay(currentRamadanDay); // Set Ramadan day after data is loaded
+        
+        // Calculate Ramadan day with region awareness
+        const currentRamadanDay = calculateDayFromDate(new Date(), data);
+        setRamadanDay(currentRamadanDay);
       } else {
         // Initialize user data for first-time users
+        
+        // Try to auto-detect region
+        let regionData = {
+          ramadanRegion: 'USA, Saudi Arabia & Others', // Default region
+          ramadanStartDate: RAMADAN_REGIONS['USA, Saudi Arabia & Others']
+        };
+        
+        try {
+          const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const regionMap = {
+            // North America, Saudi, etc. (March 1)
+            'America/': 'USA, Saudi Arabia & Others',
+            'Europe/': 'USA, Saudi Arabia & Others',
+            'Asia/Riyadh': 'USA, Saudi Arabia & Others',
+            
+            // India, Pakistan, Bangladesh (March 2)
+            'Asia/Kolkata': 'India, Pakistan, Bangladesh',
+            'Asia/Karachi': 'India, Pakistan, Bangladesh',
+            'Asia/Dhaka': 'India, Pakistan, Bangladesh'
+          };
+          
+          for (const [tzPrefix, region] of Object.entries(regionMap)) {
+            if (timezone.startsWith(tzPrefix)) {
+              regionData.ramadanRegion = region;
+              regionData.ramadanStartDate = RAMADAN_REGIONS[region];
+              break;
+            }
+          }
+          
+          console.log("Auto-detected region for new user:", regionData.ramadanRegion);
+        } catch (error) {
+          console.warn("Error auto-detecting region for new user:", error);
+          // Keep the default if detection fails
+        }
+        
+        // Calculate Ramadan day with region awareness
+        const currentRamadanDay = calculateDayFromDate(new Date(), regionData);
+        
+        // Create initial user data with region info
         const initialData = {
           day: currentRamadanDay,
           totalDays: 30,
@@ -116,12 +214,12 @@ export const UserProvider = ({ children }) => {
           prayedTaraweeh: false,
           history: {},
           lastActiveDate: today,
-          // Add onboarding flag (initially false to show onboarding)
           onboardingCompleted: false,
-          // Initialize with default duas
           duas: [
             'Use this page to add your duas and track them - long press to edit and swipe to delete'
-          ]
+          ],
+          // Add region information
+          ...regionData
         };
         
         await setDoc(userDocRef, initialData);
@@ -210,7 +308,8 @@ export const UserProvider = ({ children }) => {
         // If we're in historical view and updating data, save to the history object
         if (isHistoricalView && historicalDate) {
           // Check if this date is before Ramadan - don't allow updates
-          if (isBeforeRamadan(new Date(historicalDate))) {
+          // Use userData for region-aware validation
+          if (isBeforeRamadan(new Date(historicalDate), userData)) {
             console.warn("Cannot update data for date before Ramadan:", historicalDate);
             return false;
           }
@@ -224,7 +323,7 @@ export const UserProvider = ({ children }) => {
           }
           
           // Ensure we record what day of Ramadan this was
-          historyUpdate[`history.${historicalDate}.day`] = calculateDayFromDate(new Date(historicalDate));
+          historyUpdate[`history.${historicalDate}.day`] = calculateDayFromDate(new Date(historicalDate), userData);
           
           const userDocRef = doc(db, 'users', user.uid);
           await updateDoc(userDocRef, historyUpdate);
@@ -241,7 +340,7 @@ export const UserProvider = ({ children }) => {
               newData.history[historicalDate][key] = dataToUpdate[key];
             }
             
-            newData.history[historicalDate].day = calculateDayFromDate(new Date(historicalDate));
+            newData.history[historicalDate].day = calculateDayFromDate(new Date(historicalDate), userData);
             
             return newData;
           });
@@ -250,10 +349,29 @@ export const UserProvider = ({ children }) => {
           const today = formatDate(new Date()); // Use consistent date formatting
           const userDocRef = doc(db, 'users', user.uid);
           
-          // For current data, check if today is before Ramadan starts
-          if (isBeforeRamadan(new Date())) {
+          // For current data, check if today is before Ramadan starts (with region awareness)
+          if (isBeforeRamadan(new Date(), userData)) {
+            // Always allow region updates even before Ramadan
+            if (dataToUpdate.ramadanRegion || dataToUpdate.ramadanStartDate) {
+              await updateDoc(userDocRef, {
+                ramadanRegion: dataToUpdate.ramadanRegion,
+                ramadanStartDate: dataToUpdate.ramadanStartDate
+              });
+              
+              setUserData(prevData => {
+                if (!prevData) return prevData; // Safety check
+                return { 
+                  ...prevData, 
+                  ramadanRegion: dataToUpdate.ramadanRegion,
+                  ramadanStartDate: dataToUpdate.ramadanStartDate
+                };
+              });
+              
+              return true;
+            }
+            
             // Filter out Ramadan tracking data if today is before Ramadan
-            const allowedKeys = ['lastActiveDate', 'onboardingCompleted', 'user', 'duas']; 
+            const allowedKeys = ['lastActiveDate', 'onboardingCompleted', 'user', 'duas', 'ramadanRegion', 'ramadanStartDate'];
             
             // Filter dataToUpdate to only include allowed keys
             const filteredUpdates = {};
@@ -321,12 +439,12 @@ export const UserProvider = ({ children }) => {
     });
     
     return true;
-  }, [user, isHistoricalView, historicalDate, ramadanDay]);
+  }, [user, isHistoricalView, historicalDate, ramadanDay, userData]);
 
-  // Calculate Ramadan day for a specific date
+  // Calculate Ramadan day for a specific date (with region awareness)
   const calculateRamadanDayForDate = useCallback((date) => {
-    return calculateDayFromDate(date);
-  }, []);
+    return calculateDayFromDate(date, userData);
+  }, [userData]);
 
   // Get the effective data to display (either current or historical)
   const getEffectiveData = useCallback(() => {
@@ -338,8 +456,8 @@ export const UserProvider = ({ children }) => {
         ? userData.history[historicalDate] 
         : {};
       
-      // Add flag for pre-Ramadan dates
-      const beforeRamadan = isBeforeRamadan(new Date(historicalDate));
+      // Add flag for pre-Ramadan dates (with region awareness)
+      const beforeRamadan = isBeforeRamadan(new Date(historicalDate), userData);
       
       return {
         ...userData,
@@ -351,10 +469,10 @@ export const UserProvider = ({ children }) => {
       };
     }
     
-    // Otherwise return current data with beforeRamadan flag if needed
+    // Otherwise return current data with beforeRamadan flag if needed (with region awareness)
     return {
       ...userData,
-      beforeRamadan: isBeforeRamadan(new Date())
+      beforeRamadan: isBeforeRamadan(new Date(), userData)
     };
   }, [userData, isHistoricalView, historicalDate, currentViewData]);
 
@@ -364,23 +482,23 @@ export const UserProvider = ({ children }) => {
 
     // If we're in historical view, update the historical record
     if (isHistoricalView && historicalDate) {
-      // Don't allow recording data for dates before Ramadan
-      if (isBeforeRamadan(new Date(historicalDate))) {
+      // Don't allow recording data for dates before Ramadan (with region awareness)
+      if (isBeforeRamadan(new Date(historicalDate), userData)) {
         console.warn("Cannot record data for date before Ramadan:", historicalDate);
         return false;
       }
       
       const historyUpdate = {
         [`history.${historicalDate}.${action}`]: value,
-        [`history.${historicalDate}.day`]: calculateDayFromDate(new Date(historicalDate))
+        [`history.${historicalDate}.day`]: calculateDayFromDate(new Date(historicalDate), userData)
       };
       
       return await updateUserData(historyUpdate);
     }
     
-    // For today, also ensure we're in Ramadan
+    // For today, also ensure we're in Ramadan (with region awareness)
     const today = new Date();
-    if (isBeforeRamadan(today)) {
+    if (isBeforeRamadan(today, userData)) {
       console.warn("Cannot record data - today is before Ramadan");
       return false;
     }
@@ -408,8 +526,8 @@ export const UserProvider = ({ children }) => {
     updateUserData,
     recordDailyAction,
     checkForDayChange, // Expose this method to allow manual refresh
-    isBeforeRamadan,   // Expose the date validation functions to components
-    isWithinRamadan
+    isBeforeRamadan: (date) => isBeforeRamadan(date, userData), // Wrap to pass userData
+    isWithinRamadan: (date) => isWithinRamadan(date, userData)  // Wrap to pass userData
   };
 
   return (
