@@ -1,14 +1,14 @@
 // File: src/components/TaraweehCheck.js
 import React, { useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
-import { usePrayerTimes } from '../contexts/PrayerTimesContext'; // Import Prayer Times context
+import { usePrayerTimes } from '../contexts/PrayerTimesContext';
 import { calculateStreak, updateStreakData } from '../services/streakService';
 import './TaraweehCheck.css';
 import '../styles/preRamadan.css';
 
 const TaraweehCheck = () => {
   const { user, userData, updateUserData, recordDailyAction } = useUser();
-  const { prayerTimes } = usePrayerTimes(); // Get prayer times which contains Adhan data
+  const { prayerTimes } = usePrayerTimes();
   const [streak, setStreak] = useState(0);
   const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
 
@@ -34,11 +34,7 @@ const TaraweehCheck = () => {
       
       // Try to use Adhan's date calculation if available
       if (prayerTimes && prayerTimes.date && !userData?.isHistoricalView) {
-        // If we have Adhan prayer times with date info, we can get the Islamic date
         console.log("Using Adhan date info for Ramadan day calculation");
-        
-        // If Adhan provides Hijri date directly, we could use it here
-        // For now, we'll fall back to our calculation
       }
       
       // Set both dates to noon to avoid timezone issues
@@ -69,7 +65,9 @@ const TaraweehCheck = () => {
     const loadStreak = async () => {
       if (user?.uid) {
         const { current } = await calculateStreak(user.uid, 'taraweeh');
-        setStreak(current);
+        // Ensure streak shows 1 if taraweeh was prayed today
+        const currentTaraweehStatus = userData?.prayedTaraweeh || false;
+        setStreak(currentTaraweehStatus ? Math.max(current, 1) : current);
       }
     };
     
@@ -99,7 +97,8 @@ const TaraweehCheck = () => {
         
         // Refresh streak display
         const { current } = await calculateStreak(user.uid, 'taraweeh');
-        setStreak(current);
+        // Ensure streak shows 1 if taraweeh was prayed today
+        setStreak(status ? Math.max(current, 1) : current);
       }
     } catch (error) {
       console.error("Error updating taraweeh status:", error);
@@ -147,11 +146,6 @@ const TaraweehCheck = () => {
           style={{ width: `${(currentRamadanDay / 30) * 100}%` }}
         ></div>
       </div>
-      
-      {/* hidden  */}
-      {/* <div className="progress-text">
-        {currentRamadanDay} out of 30
-      </div> */}
     </div>
   );
 };

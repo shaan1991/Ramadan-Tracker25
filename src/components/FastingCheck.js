@@ -199,10 +199,10 @@ const FastingCheck = () => {
         ></div>
       </div>
       
-      <div className="progress-text">
+      {/* <div className="progress-text">
         {currentRamadanDay} out of 30
       </div>
-      
+       */}
       {locationStatus === 'error' && (
         <div className="location-warning">
           <small>Using estimated Ramadan dates. Enable location for more accuracy.</small>
