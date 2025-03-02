@@ -371,7 +371,7 @@ const Home = () => {
       <HadithOfTheDay />
 
       <div className="dua-request">
-        <p>I request you to include me and family in your Dua's</p>
+        <p>I request you to include me and my family in your Dua's</p>
       </div>
     </div>
   );
