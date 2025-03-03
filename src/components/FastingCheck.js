@@ -105,12 +105,18 @@ const FastingCheck = () => {
     const loadStreak = async () => {
       if (user?.uid) {
         const { current } = await calculateStreak(user.uid, 'fasting');
-        setStreak(current);
+        
+        // Only show streak if user is fasting (in current or historical view)
+        if (userData?.fasting === true) {
+          setStreak(current);
+        } else {
+          setStreak(0); // Hide streak if not fasting
+        }
       }
     };
     
     loadStreak();
-  }, [user, userData]);
+  }, [user, userData?.fasting]);
 
   if (!userData) return null;
 

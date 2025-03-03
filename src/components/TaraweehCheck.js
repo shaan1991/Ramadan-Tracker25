@@ -64,15 +64,19 @@ const TaraweehCheck = () => {
   useEffect(() => {
     const loadStreak = async () => {
       if (user?.uid) {
-        const { current } = await calculateStreak(user.uid, 'taraweeh');
-        // Ensure streak shows 1 if taraweeh was prayed today
-        const currentTaraweehStatus = userData?.prayedTaraweeh || false;
-        setStreak(currentTaraweehStatus ? Math.max(current, 1) : current);
+        const { current } = await calculateStreak(user.uid, 'fasting');
+        
+        // Only show streak if user is fasting (in current or historical view)
+        if (userData?.fasting === true) {
+          setStreak(current);
+        } else {
+          setStreak(0); // Hide streak if not fasting
+        }
       }
     };
     
     loadStreak();
-  }, [user, userData]);
+  }, [user, userData?.fasting]);
 
   if (!userData) return null;
 
