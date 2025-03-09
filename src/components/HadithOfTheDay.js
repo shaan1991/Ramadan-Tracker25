@@ -70,11 +70,6 @@ const HadithOfTheDay = () => {
       source: "40 Hadith Nawawi 15"
     },
     {
-      text: "He who does not thank the people has not thanked Allah.",
-      narrator: "Reported by Abu Dawud and Tirmidhi",
-      source: "Sunan Abu Dawud 4811"
-    },
-    {
       text: "The most perfect of believers in faith are those with the best character.",
       narrator: "Reported by Abu Dawud and Tirmidhi",
       source: "Jami at-Tirmidhi 1162"
@@ -163,8 +158,30 @@ const HadithOfTheDay = () => {
       text: "The world is the believer's prison and the disbeliever's paradise.",
       narrator: "Reported by Muslim",
       source: "Sahih Muslim 2956"
+    },
+    // Additional Hadiths:
+    {
+      text: "The best among you are those who learn the Qur'an and teach it.",
+      narrator: "Reported by At-Tirmidhi",
+      source: "Jami at-Tirmidhi"
+    },
+    {
+      text: "The strong believer is better and more beloved to Allah than the weak believer, while there is good in both.",
+      narrator: "Reported by Muslim",
+      source: "Sahih Muslim"
+    },
+    {
+      text: "No fatigue, nor disease, nor sorrow, nor sadness, nor hurt, nor distress befalls a Muslim, even if it were the prick he receives from a thorn, but that Allah expiates some of his sins for that.",
+      narrator: "Reported by Al-Bukhari and Muslim",
+      source: "Sahih al-Bukhari / Sahih Muslim"
+    },
+    {
+      text: "Make use of five before five: your youth before your old age, your health before your sickness, your wealth before your poverty, your free time before you are preoccupied, and your life before your death.",
+      narrator: "Attributed to Ibn Abbas",
+      source: "Various sources"
     }
   ];
+  
 
   useEffect(() => {
     // Function to get a random hadith
