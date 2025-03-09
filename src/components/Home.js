@@ -46,38 +46,45 @@ const Home = () => {
   // Calculate current Ramadan day, potentially using Adhan data when available
   useEffect(() => {
     const calculateDay = () => {
-      // If Adhan provides Hijri date info, use it
+      // If Adhan provides Hijri date info, use it (keep this part)
       if (prayerTimes && prayerTimes.date && prayerTimes.date.hijri) {
         const hijri = prayerTimes.date.hijri;
-        // Assuming Ramadan is the 9th month
         if (hijri.month.number === 9) {
           console.log("Using Adhan hijri data:", hijri);
           setCurrentRamadanDay(hijri.day);
           return;
         }
       }
-  
-      // Fallback: Use region-specific Ramadan start date from userData
-      // If not available, default to '2025-03-01'
+    
+      // Get region-specific Ramadan start date
       const ramadanStartString = userData?.ramadanStartDate || '2025-03-01';
-      // Manually parse the date string to avoid timezone issues
       const [startYear, startMonth, startDay] = ramadanStartString.split('-').map(Number);
-      const ramadanStartDate = new Date(startYear, startMonth - 1, startDay);
-      // Set to local noon to avoid timezone issues
-      ramadanStartDate.setHours(12, 0, 0, 0);
-  
-      const todayNormalized = new Date();
-      todayNormalized.setHours(12, 0, 0, 0);
-  
-      const timeDiff = todayNormalized - ramadanStartDate;
-      const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1; // +1 because day 1 is the start
-  
-      console.log("Ramadan fallback calculation:", {
-        today: todayNormalized.toISOString(),
-        startDate: ramadanStartDate.toISOString(),
-        diffDays: dayDiff
+      
+      // Create a date object for start date with time stripped away
+      const startDate = new Date(startYear, startMonth - 1, startDay);
+      
+      // Create a date object for today with time stripped away
+      const today = new Date();
+      
+      // DST-proof calculation: ignoring time components entirely
+      const calculateDaysBetween = (date1, date2) => {
+        // Convert to UTC dates using just year, month, day components
+        const utc1 = Date.UTC(date1.getFullYear(), date1.getMonth(), date1.getDate());
+        const utc2 = Date.UTC(date2.getFullYear(), date2.getMonth(), date2.getDate());
+        
+        // Calculate difference in days (milliseconds ÷ milliseconds per day)
+        const MS_PER_DAY = 86400000; // Exact number of milliseconds in a day
+        return Math.floor((utc2 - utc1) / MS_PER_DAY) + 1; // +1 because day 1 is the start
+      };
+      
+      const dayDiff = calculateDaysBetween(startDate, today);
+      
+      console.log("DST-proof calculation:", {
+        start: `${startYear}-${startMonth}-${startDay}`,
+        today: `${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}`,
+        dayDiff
       });
-  
+      
       if (dayDiff >= 1 && dayDiff <= totalDays) {
         setCurrentRamadanDay(dayDiff);
       } else if (dayDiff < 1) {
