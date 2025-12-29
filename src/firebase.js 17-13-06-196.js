@@ -101,7 +101,7 @@ export const getCurrentRamadanDay = () => {
   
   // For demonstration purposes, we'll calculate based on a fixed Ramadan start date
   // Replace with the actual Ramadan start date for your app
-  const ramadanStartDate = new Date('2025-03-01'); // Example date - update with correct one
+  const ramadanStartDate = new Date('2026-02-23'); // Example date - update with correct one
   const currentDate = new Date();
   
   // Calculate the difference in days

@@ -5,8 +5,8 @@ import './RegionSelector.css';
 
 // Define region groups with their Ramadan start dates
 export const RAMADAN_REGIONS = {
-  'USA, Saudi Arabia & Others': '2025-03-01',
-  'India, Pakistan, Bangladesh, Malaysia & Others': '2025-03-02'
+  'USA, Saudi Arabia & Others': '2026-02-23',
+  'India, Pakistan, Bangladesh, Malaysia & Others': '2026-02-24'
 };
 
 const RegionSelector = () => {

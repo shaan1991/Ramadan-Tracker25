@@ -14,6 +14,7 @@ import JuzTracker from './JuzTracker';
 import HadithOfTheDay from './HadithOfTheDay';
 import MonthlySummary from './MonthlySummary'; // New component
 import RandomSunnahSuggestion from './RandomSunnahSuggestion';
+import PreRamadanBanner from './PreRamadanBanner';
 // import ShareButton from './ShareButton';
 
 const Home = () => {
@@ -57,7 +58,7 @@ const Home = () => {
       }
     
       // Get region-specific Ramadan start date
-      const ramadanStartString = userData?.ramadanStartDate || '2025-03-01';
+      const ramadanStartString = userData?.ramadanStartDate || '2026-02-23';
       const [startYear, startMonth, startDay] = ramadanStartString.split('-').map(Number);
       
       // Create a date object for start date with time stripped away
@@ -103,7 +104,7 @@ const Home = () => {
   useEffect(() => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
       // Do the same calculation for historical dates
-      const ramadanStartDate = new Date(2025, 1, 28); // February 28, 2025
+      const ramadanStartDate = new Date(2026, 1, 23); // February 23, 2026
       
       // Parse the historical date
       const [year, month, day] = userData.historicalDate.split('-').map(num => parseInt(num));
@@ -287,6 +288,9 @@ const Home = () => {
 
   return (
     <div className="home-container" ref={containerRef}>
+      {/* Pre-Ramadan Information Banner */}
+      <PreRamadanBanner />
+      
       {/* Pull-to-reveal indicator */}
       
 

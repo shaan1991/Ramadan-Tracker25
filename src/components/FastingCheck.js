@@ -65,7 +65,7 @@ const FastingCheck = () => {
       // Fallback to calculation if Adhan info not available
       if (!isUsingAdhan) {
         // Define Ramadan start date - keep this for now as fallback
-        ramadanStartDate = new Date(2025, 2, 1); // February 28, 2025 (month is 0-indexed)
+        ramadanStartDate = new Date(2026, 1, 23); // February 23, 2026 (month is 0-indexed)
         
         // Define the date when FastingCheck becomes interactive (1 day after Ramadan starts)
         const fastingCheckStartDate = new Date(ramadanStartDate);

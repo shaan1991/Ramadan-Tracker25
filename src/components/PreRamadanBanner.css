@@ -1,0 +1,109 @@
+.pre-ramadan-banner {
+  display: block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  animation: slideDown 0.5s ease-out;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.banner-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.banner-icon {
+  font-size: 48px;
+  min-width: 60px;
+  text-align: center;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.banner-text {
+  flex: 1;
+}
+
+.banner-text h3 {
+  margin: 0 0 12px 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.banner-text p {
+  margin: 8px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.region-info {
+  font-size: 13px;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+.banner-description {
+  margin-top: 12px;
+  font-size: 13px;
+  opacity: 0.95;
+}
+
+.banner-decoration {
+  font-size: 32px;
+  min-width: 40px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .pre-ramadan-banner {
+    padding: 16px;
+    margin: 12px 0;
+  }
+
+  .banner-content {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .banner-icon {
+    font-size: 40px;
+  }
+
+  .banner-text h3 {
+    font-size: 18px;
+  }
+
+  .banner-text p {
+    font-size: 13px;
+  }
+
+  .banner-decoration {
+    display: none;
+  }
+}

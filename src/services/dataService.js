@@ -247,7 +247,7 @@ import {
     // or an API to determine the current day of Ramadan
     
     // For demo purposes, assuming Ramadan starts on a certain date
-    const ramadanStartDate = new Date('2025-02-01'); // Example date
+    const ramadanStartDate = new Date('2026-02-23'); // Example date
     const diffTime = Math.abs(date - ramadanStartDate);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     

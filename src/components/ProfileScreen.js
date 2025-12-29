@@ -16,8 +16,8 @@ const ProfileScreen = () => {
   useEffect(() => {
     // Calculate remaining days of Ramadan
     const calculateRamadanDays = () => {
-      // Ramadan 2025 is expected to start on Feb 27 and end on March 28
-      const ramadanEndDate = new Date('2025-04-01');
+      // Ramadan 2026 is expected to end on March 24
+      const ramadanEndDate = new Date('2026-03-24');
       const today = new Date();
       
       // Calculate difference in days
@@ -28,7 +28,7 @@ const ProfileScreen = () => {
       setDaysRemaining(Math.max(0, diffDays));
       
       // Calculate data availability (typically a few days after Ramadan)
-      const dataEndDate = new Date('2025-04-02');
+      const dataEndDate = new Date('2026-03-25');
       const dataMonth = dataEndDate.toLocaleString('en-US', { month: 'numeric' });
       const dataDay = dataEndDate.toLocaleString('en-US', { day: 'numeric' });
       

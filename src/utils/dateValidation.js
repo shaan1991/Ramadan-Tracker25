@@ -2,13 +2,13 @@
 // Utilities for validating dates related to Ramadan with region support
 
 // Default Ramadan dates 
-export const DEFAULT_RAMADAN_START_DATE = new Date('2025-03-01'); // March 1, 2025
-export const DEFAULT_RAMADAN_END_DATE = new Date('2025-04-01');   // March 31, 2025
+export const DEFAULT_RAMADAN_START_DATE = new Date('2026-02-23'); // February 23, 2026
+export const DEFAULT_RAMADAN_END_DATE = new Date('2026-03-24');   // March 24, 2026
 
 // Region-specific start dates (exported for use in RegionSelector)
 export const RAMADAN_REGIONS = {
-  'USA, Saudi Arabia & Others': '2025-03-01',
-  'India, Pakistan, Bangladesh': '2025-03-02'
+  'USA, Saudi Arabia & Others': '2026-02-23',
+  'India, Pakistan, Bangladesh': '2026-02-24'
 };
 
 /**
