@@ -16,6 +16,7 @@ const BottomNavigation = () => {
     home: 'Home',
     dua: 'Dua',
     tasbeeh: 'Tasbeeh',
+    features: 'Features',
     profile: 'More'
   };
   
@@ -54,6 +55,13 @@ const BottomNavigation = () => {
       >
         <div className="nav-icon">📿</div>
         <p>{labels.tasbeeh}</p>
+      </div>
+      <div 
+        className={`nav-item ${isActive('/features') ? 'active' : ''}`}
+        onClick={() => navigate('/features')}
+      >
+        <div className="nav-icon">🌟</div>
+        <p>{labels.features}</p>
       </div>
       <div 
         className={`nav-item ${isActive('/profile') ? 'active' : ''}`}

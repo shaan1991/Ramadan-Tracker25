@@ -1,0 +1,165 @@
+.enhanced-juz-container {
+  background: #f9f9f9;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.juz-header {
+  margin-bottom: 12px;
+}
+
+.juz-header h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.juz-stats {
+  margin: 0;
+  font-size: 12px;
+  color: #888;
+}
+
+.juz-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #333;
+  transition: width 0.3s ease;
+}
+
+.juz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.juz-item {
+  position: relative;
+  aspect-ratio: 1;
+  background: #f0f0f0;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #999;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.juz-item:hover {
+  border-color: #bdbdbd;
+  background: #fafafa;
+}
+
+.juz-item.completed {
+  background: #333;
+  border-color: #333;
+  color: white;
+}
+
+.juz-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.juz-checkmark {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 16px;
+  background: #fff;
+  color: #84fab0;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.juz-details {
+  background: #f9f9f9;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.juz-details h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.surah-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.surah-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background: white;
+  border-radius: 8px;
+  border-left: 3px solid #667eea;
+}
+
+.surah-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+.surah-verses {
+  font-size: 12px;
+  color: #999;
+}
+
+.enhanced-juz-loading {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  padding: 20px;
+}
+
+@media (max-width: 600px) {
+  .enhanced-juz-container {
+    padding: 12px;
+  }
+
+  .juz-grid {
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 6px;
+  }
+
+  .juz-item {
+    font-size: 12px;
+  }
+
+  .juz-checkmark {
+    width: 18px;
+    height: 18px;
+    font-size: 14px;
+  }
+}

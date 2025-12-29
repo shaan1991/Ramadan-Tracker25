@@ -14,6 +14,7 @@ import DayTransitionAlert from './components/DayTransitionAlert';
 import AppInitializer from './components/AppInitializer';
 import ProfileScreen from './components/ProfileScreen';
 import Onboarding from './components/Onboarding'; // Import the new component
+import FeaturesShowcase from './components/FeaturesShowcase'; // Import new features page
 
 // Styles
 import './App.css';
@@ -61,6 +62,7 @@ const AppContent = () => {
         <Route path="/tasbeeh" element={user ? <Tasbeeh /> : <Login />} />
         <Route path="/dua" element={user ? <Dua /> : <Login />} />
         <Route path="/profile" element={user ? <ProfileScreen /> : <Login />} />
+        <Route path="/features" element={user ? <FeaturesShowcase /> : <Login />} />
       </Routes>
       
       {user && !showOnboarding && <BottomNavigation />}

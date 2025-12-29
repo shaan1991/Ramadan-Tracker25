@@ -15,7 +15,11 @@ import HadithOfTheDay from './HadithOfTheDay';
 import MonthlySummary from './MonthlySummary'; // New component
 import RandomSunnahSuggestion from './RandomSunnahSuggestion';
 import PreRamadanBanner from './PreRamadanBanner';
-// import ShareButton from './ShareButton';
+// New Features - 2026 Enhancements
+import Achievements from './Achievements';
+import Leaderboard from './Leaderboard';
+import EnhancedJuzTracker from './EnhancedJuzTracker';
+import UnifiedPrayerTracker from './UnifiedPrayerTracker';
 
 const Home = () => {
   const { user, userData, loading, updateUserData } = useUser();
@@ -371,7 +375,17 @@ const Home = () => {
       {/* Add the Monthly Summary component for progress stats */}
       {!isHistoricalView && <MonthlySummary />}
 
+      {/* NEW FEATURES - 2026 Enhancements */}
+      {!isHistoricalView && <Achievements />}
+      {!isHistoricalView && user && <Leaderboard userId={user.uid} />}
+
       <RandomSunnahSuggestion currentRamadanDay={currentRamadanDay} />
+
+      {/* Enhanced Qur'an Tracking */}
+      {!isHistoricalView && <EnhancedJuzTracker />}
+
+      {/* Prayer Concentration Tracking */}
+      {!isHistoricalView && <KhushuTracker />}
 
       <DailyNamazCheckIn />
       <FastingCheck />
