@@ -1,6 +1,5 @@
 // File: src/App.js
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { UserProvider, useUser } from './contexts/UserContext';
 import { PrayerTimesProvider } from './contexts/PrayerTimesContext';
 
@@ -14,15 +13,24 @@ import DayTransitionAlert from './components/DayTransitionAlert';
 import AppInitializer from './components/AppInitializer';
 import ProfileScreen from './components/ProfileScreen';
 import Onboarding from './components/Onboarding'; // Import the new component
-import FeaturesShowcase from './components/FeaturesShowcase'; // Import new features page
 
 // Styles
 import './App.css';
 
+const normalizePath = (rawPath) => {
+  if (!rawPath) return '/';
+  const trimmed = rawPath.split('?')[0].split('#')[0];
+  if (trimmed.length > 1 && trimmed.endsWith('/')) {
+    return trimmed.slice(0, -1);
+  }
+  return trimmed || '/';
+};
+
 const AppContent = () => {
   const { user, userData, loading } = useUser();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  
+  const [path, setPath] = useState(() => normalizePath(window.location.pathname));
+
   // Check if we need to show onboarding when user data loads
   useEffect(() => {
     if (user && userData && !loading) {
@@ -34,6 +42,51 @@ const AppContent = () => {
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
   };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setPath(normalizePath(window.location.pathname));
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigate = useCallback((nextPath, options = {}) => {
+    const normalized = normalizePath(nextPath);
+    if (normalized === path) return;
+    if (options.replace) {
+      window.history.replaceState({}, '', normalized);
+    } else {
+      window.history.pushState({}, '', normalized);
+    }
+    setPath(normalized);
+  }, [path]);
+
+  useEffect(() => {
+    if (!user) return;
+    const knownPaths = new Set(['/', '/dua', '/tasbeeh', '/profile']);
+    if (!knownPaths.has(path)) {
+      navigate('/', { replace: true });
+    }
+  }, [user, path, navigate]);
+
+  const page = useMemo(() => {
+    if (!user) {
+      return <Login />;
+    }
+    switch (path) {
+      case '/':
+        return <Home />;
+      case '/dua':
+        return <Dua />;
+      case '/tasbeeh':
+        return <Tasbeeh />;
+      case '/profile':
+        return <ProfileScreen onNavigate={navigate} />;
+      default:
+        return <Home />;
+    }
+  }, [user, path, navigate]);
 
   if (loading) {
     return (
@@ -56,16 +109,12 @@ const AppContent = () => {
       
       {/* Day transition alert for when midnight passes */}
       {user && !showOnboarding && <DayTransitionAlert />}
+
+      {page}
       
-      <Routes>
-        <Route path="/" element={user ? <Home /> : <Login />} />
-        <Route path="/tasbeeh" element={user ? <Tasbeeh /> : <Login />} />
-        <Route path="/dua" element={user ? <Dua /> : <Login />} />
-        <Route path="/profile" element={user ? <ProfileScreen /> : <Login />} />
-        <Route path="/features" element={user ? <FeaturesShowcase /> : <Login />} />
-      </Routes>
-      
-      {user && !showOnboarding && <BottomNavigation />}
+      {user && !showOnboarding && (
+        <BottomNavigation currentPath={path} onNavigate={navigate} />
+      )}
     </div>
   );
 };
@@ -74,9 +123,7 @@ function App() {
   return (
     <UserProvider>
       <PrayerTimesProvider>
-        <Router>
-          <AppContent />
-        </Router>
+        <AppContent />
       </PrayerTimesProvider>
     </UserProvider>
   );

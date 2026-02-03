@@ -1,6 +1,5 @@
 /* File: src/components/Home.css */
 :root {
-  --pull-height: 0px;
   font-family: 'Poppins', sans-serif;
 }
 
@@ -208,36 +207,6 @@
   cursor: pointer;
 }
 
-/* Pull-to-refresh styles */
-.pull-indicator {
-  height: var(--pull-height);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #757575;
-  font-size: 14px;
-  overflow: hidden;
-  transition: height 0.3s ease;
-}
-
-.pull-indicator.pulling {
-  max-height: 60px;
-}
-
-.pull-indicator.hidden {
-  height: 0;
-}
-
-.pull-spinner {
-  margin-right: 8px;
-  animation: spin 1s infinite linear;
-  display: inline-block;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
 
 /* Loading state */
 .loading-container {

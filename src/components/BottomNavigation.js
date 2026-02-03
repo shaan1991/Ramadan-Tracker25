@@ -1,22 +1,18 @@
 // File: src/components/BottomNavigation.js
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { logOut } from '../services/authService';
 import './BottomNavigation.css';
 
 // Remove the language context for now to get the component working
 // We'll add it back in once we confirm the context is working
 
-const BottomNavigation = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+const BottomNavigation = ({ currentPath, onNavigate }) => {
   
   // Use simple strings instead of translations for now
   const labels = {
     home: 'Home',
     dua: 'Dua',
     tasbeeh: 'Tasbeeh',
-    features: 'Features',
     profile: 'More'
   };
   
@@ -31,41 +27,34 @@ const BottomNavigation = () => {
     }
   };
   
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => currentPath === path;
   
   return (
     <div className="bottom-nav">
       <div 
         className={`nav-item ${isActive('/') ? 'active' : ''}`}
-        onClick={() => navigate('/')}
+        onClick={() => onNavigate('/')}
       >
         <div className="nav-icon">🏠</div>
         <p>{labels.home}</p>
       </div>
       <div 
         className={`nav-item ${isActive('/dua') ? 'active' : ''}`}
-        onClick={() => navigate('/dua')}
+        onClick={() => onNavigate('/dua')}
       >
         <div className="nav-icon">🤲</div>
         <p>{labels.dua}</p>
       </div>
       <div 
         className={`nav-item ${isActive('/tasbeeh') ? 'active' : ''}`}
-        onClick={() => navigate('/tasbeeh')}
+        onClick={() => onNavigate('/tasbeeh')}
       >
         <div className="nav-icon">📿</div>
         <p>{labels.tasbeeh}</p>
       </div>
       <div 
-        className={`nav-item ${isActive('/features') ? 'active' : ''}`}
-        onClick={() => navigate('/features')}
-      >
-        <div className="nav-icon">🌟</div>
-        <p>{labels.features}</p>
-      </div>
-      <div 
         className={`nav-item ${isActive('/profile') ? 'active' : ''}`}
-        onClick={() => navigate('/profile')}
+        onClick={() => onNavigate('/profile')}
       >
         <div className="nav-icon">✨</div>
         <p>{labels.profile}</p>

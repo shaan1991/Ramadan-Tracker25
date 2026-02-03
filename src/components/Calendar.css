@@ -132,35 +132,3 @@
   transform: rotate(180deg);
   font-size: 1.2rem;
 }
-
-/* Pull-to-refresh animation and styles */
-.pull-indicator {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #888;
-  font-size: 0.9rem;
-  overflow: hidden;
-  transition: height 0.3s ease;
-  visibility: hidden !important;
-}
-
-.pull-indicator.pulling {
-  height: 60px;
-}
-
-.pull-indicator.hidden {
-  height: 0;
-}
-
-.pull-spinner {
-  margin-right: 8px;
-  animation: spin 1s infinite linear;
-  display: inline-block;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}

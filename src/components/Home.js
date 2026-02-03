@@ -1,5 +1,5 @@
 // File: src/components/Home.js
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { usePrayerTimes } from '../contexts/PrayerTimesContext';
 import { DEFAULT_RAMADAN_START_DATE } from '../utils/dateValidation';
@@ -25,9 +25,6 @@ const Home = () => {
   const { user, userData, loading, updateUserData, isWithinRamadan } = useUser();
   const { prayerTimes, formattedTimes, locationStatus, retryLocation } = usePrayerTimes();
   const [showCalendar, setShowCalendar] = useState(false);
-  const [pulling, setPulling] = useState(false);
-  const [pullStartY, setPullStartY] = useState(0);
-  const [pullCurrentY, setPullCurrentY] = useState(0);
   
   // Initialize with properly formatted today's date
   const today = new Date();
@@ -38,7 +35,7 @@ const Home = () => {
   const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
   const totalDays = userData?.ramadanLength || 30;
   
-  const containerRef = useRef(null);
+  // Pull-to-reveal removed to avoid blocking navigation taps.
 
   // Helper function to ensure consistent date formatting
   function formatDate(date) {
@@ -137,78 +134,6 @@ const Home = () => {
     }
   }, [userData?.historicalDate, userData?.isHistoricalView]);
 
-  useEffect(() => {
-    // Add touch event listeners for pull-to-reveal
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener('touchstart', handleTouchStart, { passive: false });
-      container.addEventListener('touchmove', handleTouchMove, { passive: false });
-      container.addEventListener('touchend', handleTouchEnd, { passive: false });
-    }
-
-    return () => {
-      // Clean up event listeners
-      if (container) {
-        container.removeEventListener('touchstart', handleTouchStart);
-        container.removeEventListener('touchmove', handleTouchMove);
-        container.removeEventListener('touchend', handleTouchEnd);
-      }
-    };
-  }, []);
-
-  const handleTouchStart = (e) => {
-    // Only enable pull-to-reveal when at the top of the page
-    if (window.scrollY === 0) {
-      setPullStartY(e.touches[0].clientY);
-      setPulling(true);
-    }
-  };
-
-  const handleTouchMove = (e) => {
-    if (!pulling) return;
-    
-    const currentY = e.touches[0].clientY;
-    setPullCurrentY(currentY);
-    
-    // Calculate pull distance
-    const pullDistance = currentY - pullStartY;
-    
-    // If pulling down and we're at the top of the page
-    if (pullDistance > 0 && window.scrollY === 0) {
-      // Prevent default scrolling behavior
-      e.preventDefault();
-      
-      // Restrict pull distance with diminishing returns
-      const maxPull = 120;
-      const pullPercentage = Math.min(pullDistance / maxPull, 1);
-      const adjustedPull = pullPercentage * 60; // max height of pull indicator
-      
-      // Update UI based on pull distance
-      document.documentElement.style.setProperty('--pull-height', `${adjustedPull}px`);
-      
-      // If pulled enough, show "Release to show calendar" message
-      if (pullDistance > 80) {
-        document.getElementById('pull-text').innerText = 'Release to show calendar';
-      } else {
-        document.getElementById('pull-text').innerText = 'Pull down to show calendar';
-      }
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (!pulling) return;
-    
-    const pullDistance = pullCurrentY - pullStartY;
-    
-    // If pulled far enough, show calendar
-    if (pullDistance > 80) {
-      setShowCalendar(true);
-    }
-    
-    // Reset pull state
-    setPulling(false);
-    document.documentElement.style.setProperty('--pull-height', '0px');
-  };
 
   const handleDateSelect = (date) => {
     console.log("Selected date:", date);
@@ -338,7 +263,7 @@ const Home = () => {
   const isRamadan = isWithinRamadan ? isWithinRamadan(dateObj) : false;
 
   return (
-    <div className="home-container" ref={containerRef}>
+    <div className="home-container">
       <RamadanCountdownBanner />
       <RamadanLengthPrompt />
       {/* Pull-to-reveal indicator */}

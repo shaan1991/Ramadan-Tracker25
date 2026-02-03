@@ -1,6 +1,5 @@
 // File: src/services/duaService.js
 import { 
-  getFirestore, 
   collection, 
   doc, 
   addDoc, 
@@ -8,6 +7,7 @@ import {
   deleteDoc, 
   getDocs, 
   getDoc,
+  setDoc,
   query, 
   orderBy, 
   serverTimestamp 
@@ -21,44 +21,41 @@ export const getDuas = async (userId) => {
     throw new Error("User ID is required");
   }
 
+  // Prefer subcollection first
   try {
-    // Check if user has the migration flag
-    const userDocRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
-    
-    if (!userDoc.exists()) {
-      throw new Error("User document not found");
-    }
-    
-    const userData = userDoc.data();
-    
-    // If the migration has been completed, use the subcollection
-    if (userData.duasMigrated === true) {
-      const duasRef = collection(db, 'users', userId, 'duas');
-      const duasQuery = query(duasRef, orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(duasQuery);
-      
+    const duasRef = collection(db, 'users', userId, 'duas');
+    const duasQuery = query(duasRef, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(duasQuery);
+
+    if (!snapshot.empty) {
       return snapshot.docs.map(doc => ({
         id: doc.id,
         text: doc.data().text,
         createdAt: doc.data().createdAt?.toDate() || new Date(),
         updatedAt: doc.data().updatedAt?.toDate() || new Date()
       }));
-    } 
-    // Fall back to the array approach if migration hasn't happened yet
-    // This ensures the app works during the transition period
-    else {
-      // Convert the duas array to the format expected by the Dua component
-      return (userData.duas || []).map((text, index) => ({
-        id: `dua-${index}`, // Generate an ID for each dua
-        text,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }));
     }
   } catch (error) {
+    console.warn("Subcollection dua fetch failed, falling back:", error);
+  }
+
+  // Fall back to legacy array on the user document
+  try {
+    const userDocRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userDocRef);
+    if (!userDoc.exists()) {
+      return [];
+    }
+    const userData = userDoc.data();
+    return (userData.duas || []).map((text, index) => ({
+      id: `dua-${index}`,
+      text,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }));
+  } catch (error) {
     console.error("Error getting duas:", error);
-    throw new Error(`Failed to fetch duas: ${error.message}`);
+    return [];
   }
 };
 
@@ -80,47 +77,46 @@ export const addDua = async (userId, text) => {
   }
 
   try {
-    // Check which storage method to use
+    // Primary path: always add to subcollection
+    const duasRef = collection(db, 'users', userId, 'duas');
+    const newDua = {
+      text,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+
+    const docRef = await addDoc(duasRef, newDua);
+
+    // Mark migrated (best-effort)
     const userDocRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
-    
-    if (!userDoc.exists()) {
-      throw new Error("User document not found");
-    }
-    
-    const userData = userDoc.data();
-    
-    // If migration has been completed, use the subcollection
-    if (userData.duasMigrated === true) {
-      const duasRef = collection(db, 'users', userId, 'duas');
-      const newDua = {
-        text,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
-      
-      const docRef = await addDoc(duasRef, newDua);
-      console.log("Dua added successfully with ID:", docRef.id);
-      return docRef.id;
-    } 
-    // Otherwise use the array method
-    else {
-      // Get current duas array
+    await setDoc(userDocRef, {
+      duasMigrated: true,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    console.log("Dua added successfully with ID:", docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding dua to subcollection, falling back:", error);
+    try {
+      const userDocRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userDocRef);
+      const userData = userDoc.exists() ? userDoc.data() : {};
       const duas = userData.duas || [];
       duas.push(text);
-      
-      // Update the document
-      await updateDoc(userDocRef, {
+
+      await setDoc(userDocRef, {
+        ...userData,
         duas,
+        duasMigrated: false,
         updatedAt: serverTimestamp()
-      });
-      
-      // Return a generated ID
+      }, { merge: true });
+
       return `dua-${duas.length - 1}`;
+    } catch (fallbackError) {
+      console.error("Error adding dua via fallback:", fallbackError);
+      throw new Error(`Failed to add dua: ${fallbackError.message || error.message}`);
     }
-  } catch (error) {
-    console.error("Error adding dua:", error);
-    throw new Error(`Failed to add dua: ${error.message}`);
   }
 };
 
@@ -142,51 +138,33 @@ export const updateDua = async (userId, duaId, text) => {
   }
 
   try {
-    // Check which storage method to use
-    const userDocRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
-    
-    if (!userDoc.exists()) {
-      throw new Error("User document not found");
-    }
-    
-    const userData = userDoc.data();
-    
-    // If migration has been completed, use the subcollection
-    if (userData.duasMigrated === true) {
-      // If the ID is in the old format (dua-X), this might be a race condition 
-      // where the UI still has old IDs but the backend has migrated
-      if (duaId.startsWith('dua-')) {
-        console.warn("Received legacy dua ID format after migration. This is expected during transition.");
-        
-        // We can't do much here except warn the user
-        throw new Error("This dua can't be updated because it's in the old format. Please refresh the page.");
+    // Legacy array path
+    if (duaId.startsWith('dua-')) {
+      const userDocRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists()) {
+        throw new Error("User document not found");
       }
-      
-      const duaRef = doc(db, 'users', userId, 'duas', duaId);
-      await updateDoc(duaRef, {
-        text,
-        updatedAt: serverTimestamp()
-      });
-    } 
-    // Otherwise use the array method
-    else {
-      // Extract index from ID (format is dua-X)
+      const userData = userDoc.data();
       const index = parseInt(duaId.replace('dua-', ''), 10);
-      
       if (isNaN(index) || index < 0 || !userData.duas || index >= userData.duas.length) {
         throw new Error("Invalid dua ID or dua not found");
       }
-      
-      // Update the specific dua in the array
       userData.duas[index] = text;
-      
-      // Update the document
       await updateDoc(userDocRef, {
         duas: userData.duas,
         updatedAt: serverTimestamp()
       });
+      console.log("Dua updated successfully:", duaId);
+      return true;
     }
+
+    // Subcollection path
+    const duaRef = doc(db, 'users', userId, 'duas', duaId);
+    await updateDoc(duaRef, {
+      text,
+      updatedAt: serverTimestamp()
+    });
     
     console.log("Dua updated successfully:", duaId);
     return true;
@@ -204,47 +182,30 @@ export const deleteDua = async (userId, duaId) => {
   }
 
   try {
-    // Check which storage method to use
-    const userDocRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
-    
-    if (!userDoc.exists()) {
-      throw new Error("User document not found");
-    }
-    
-    const userData = userDoc.data();
-    
-    // If migration has been completed, use the subcollection
-    if (userData.duasMigrated === true) {
-      // If the ID is in the old format (dua-X), this might be a race condition
-      if (duaId.startsWith('dua-')) {
-        console.warn("Received legacy dua ID format after migration. This is expected during transition.");
-        
-        // We can't do much here except warn the user
-        throw new Error("This dua can't be deleted because it's in the old format. Please refresh the page.");
+    // Legacy array path
+    if (duaId.startsWith('dua-')) {
+      const userDocRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists()) {
+        throw new Error("User document not found");
       }
-      
-      const duaRef = doc(db, 'users', userId, 'duas', duaId);
-      await deleteDoc(duaRef);
-    } 
-    // Otherwise use the array method
-    else {
-      // Extract index from ID (format is dua-X)
+      const userData = userDoc.data();
       const index = parseInt(duaId.replace('dua-', ''), 10);
-      
       if (isNaN(index) || index < 0 || !userData.duas || index >= userData.duas.length) {
         throw new Error("Invalid dua ID or dua not found");
       }
-      
-      // Remove the dua from the array
       userData.duas.splice(index, 1);
-      
-      // Update the document
       await updateDoc(userDocRef, {
         duas: userData.duas,
         updatedAt: serverTimestamp()
       });
+      console.log("Dua deleted successfully:", duaId);
+      return true;
     }
+
+    // Subcollection path
+    const duaRef = doc(db, 'users', userId, 'duas', duaId);
+    await deleteDoc(duaRef);
     
     console.log("Dua deleted successfully:", duaId);
     return true;

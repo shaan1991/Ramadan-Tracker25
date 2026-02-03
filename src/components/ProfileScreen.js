@@ -1,6 +1,5 @@
 // src/components/ProfileScreen.js
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { logOut } from '../services/authService';
 import { getAllStreaks, calculatePrayerStreakFromData } from '../services/streakService';
@@ -8,9 +7,8 @@ import { DEFAULT_RAMADAN_START_DATE, DEFAULT_RAMADAN_REGION, RAMADAN_REGIONS } f
 import RegionSelector from './RegionSelector'; // Import the RegionSelector component
 import './ProfileScreen.css';
 
-const ProfileScreen = () => {
+const ProfileScreen = ({ onNavigate }) => {
   const { user, userData, isWithinRamadan, updateUserData } = useUser();
-  const navigate = useNavigate();
   const isRamadanMode = isWithinRamadan ? isWithinRamadan(new Date()) : false;
   const [streakMode, setStreakMode] = useState(isRamadanMode ? 'ramadan' : 'general');
   const [customStart, setCustomStart] = useState('');
@@ -90,7 +88,9 @@ const ProfileScreen = () => {
       
       // Then sign out
       await logOut();
-      navigate('/');
+      if (onNavigate) {
+        onNavigate('/');
+      }
     } catch (error) {
       console.error('Error signing out:', error);
     }
