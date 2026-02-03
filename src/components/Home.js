@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { usePrayerTimes } from '../contexts/PrayerTimesContext';
+import { DEFAULT_RAMADAN_START_DATE } from '../utils/dateValidation';
 import './Home.css';
 
 // Components
@@ -14,15 +15,14 @@ import JuzTracker from './JuzTracker';
 import HadithOfTheDay from './HadithOfTheDay';
 import MonthlySummary from './MonthlySummary'; // New component
 import RandomSunnahSuggestion from './RandomSunnahSuggestion';
-import PreRamadanBanner from './PreRamadanBanner';
+import RamadanCountdownBanner from './RamadanCountdownBanner';
+import RamadanLengthPrompt from './RamadanLengthPrompt';
 // New Features - 2026 Enhancements
 import Achievements from './Achievements';
-import Leaderboard from './Leaderboard';
-import EnhancedJuzTracker from './EnhancedJuzTracker';
 import UnifiedPrayerTracker from './UnifiedPrayerTracker';
 
 const Home = () => {
-  const { user, userData, loading, updateUserData } = useUser();
+  const { user, userData, loading, updateUserData, isWithinRamadan } = useUser();
   const { prayerTimes, formattedTimes, locationStatus, retryLocation } = usePrayerTimes();
   const [showCalendar, setShowCalendar] = useState(false);
   const [pulling, setPulling] = useState(false);
@@ -36,7 +36,7 @@ const Home = () => {
   
   // Add state for dynamic Ramadan day calculation
   const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
-  const totalDays = 30;
+  const totalDays = userData?.ramadanLength || 30;
   
   const containerRef = useRef(null);
 
@@ -62,7 +62,8 @@ const Home = () => {
       }
     
       // Get region-specific Ramadan start date
-      const ramadanStartString = userData?.ramadanStartDate || '2026-02-23';
+      const fallbackStart = `${DEFAULT_RAMADAN_START_DATE.getFullYear()}-${String(DEFAULT_RAMADAN_START_DATE.getMonth() + 1).padStart(2, '0')}-${String(DEFAULT_RAMADAN_START_DATE.getDate()).padStart(2, '0')}`;
+      const ramadanStartString = userData?.ramadanStartDate || fallbackStart;
       const [startYear, startMonth, startDay] = ramadanStartString.split('-').map(Number);
       
       // Create a date object for start date with time stripped away
@@ -93,7 +94,7 @@ const Home = () => {
       if (dayDiff >= 1 && dayDiff <= totalDays) {
         setCurrentRamadanDay(dayDiff);
       } else if (dayDiff < 1) {
-        setCurrentRamadanDay(1);
+        setCurrentRamadanDay(0);
       } else {
         setCurrentRamadanDay(totalDays);
       }
@@ -108,7 +109,10 @@ const Home = () => {
   useEffect(() => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
       // Do the same calculation for historical dates
-      const ramadanStartDate = new Date(2026, 1, 23); // February 23, 2026
+      const fallbackStart = `${DEFAULT_RAMADAN_START_DATE.getFullYear()}-${String(DEFAULT_RAMADAN_START_DATE.getMonth() + 1).padStart(2, '0')}-${String(DEFAULT_RAMADAN_START_DATE.getDate()).padStart(2, '0')}`;
+      const ramadanStartString = userData?.ramadanStartDate || fallbackStart;
+      const [startYear, startMonth, startDay] = ramadanStartString.split('-').map(Number);
+      const ramadanStartDate = new Date(startYear, startMonth - 1, startDay);
       
       // Parse the historical date
       const [year, month, day] = userData.historicalDate.split('-').map(num => parseInt(num));
@@ -126,7 +130,7 @@ const Home = () => {
       if (dayDiff >= 1 && dayDiff <= 30) {
         setCurrentRamadanDay(dayDiff);
       } else if (dayDiff < 1) {
-        setCurrentRamadanDay(1);
+        setCurrentRamadanDay(0);
       } else {
         setCurrentRamadanDay(30);
       }
@@ -227,19 +231,43 @@ const Home = () => {
       console.log("Found history data for date:", dateString);
       
       const historyData = userData.history[dateString];
-      
+
+      const buildNamaz = (data) => ({
+        fajr: data.namaz?.fajr ?? data.prayer_fajr ?? false,
+        zuhr: data.namaz?.zuhr ?? data.prayer_zuhr ?? false,
+        asr: data.namaz?.asr ?? data.prayer_asr ?? false,
+        maghrib: data.namaz?.maghrib ?? data.prayer_maghrib ?? false,
+        isha: data.namaz?.isha ?? data.prayer_isha ?? false
+      });
+
+      const computeQuranProgressForDate = (targetDate) => {
+        const target = new Date(targetDate);
+        const completed = new Set();
+        const juzHistory = userData.juzHistory || {};
+        Object.entries(juzHistory).forEach(([dateKey, juzList]) => {
+          const dateObj = new Date(dateKey);
+          if (dateObj <= target) {
+            (juzList || []).forEach(juz => completed.add(juz));
+          }
+        });
+        return Array.from(completed);
+      };
+
+      const namaz = buildNamaz(historyData);
+      const completedPrayers = Object.values(namaz).filter(Boolean).length;
+      const completedJuzsForDate = computeQuranProgressForDate(dateString);
+
       // Update the UserContext with historical data
       const historicalUpdate = {
-        namaz: historyData.namaz || {
-          fajr: false,
-          zuhr: false,
-          asr: false,
-          maghrib: false,
-          isha: false
-        },
-        fasting: historyData.fasting || false,
-        prayedTaraweeh: historyData.prayedTaraweeh || false,
-        // Add other fields as necessary
+        namaz,
+        salah: historyData.salah || { completed: completedPrayers, total: 5 },
+        fasting: historyData.fasting ?? false,
+        prayedTaraweeh: historyData.prayedTaraweeh ?? historyData.taraweeh ?? false,
+        completedJuzs: completedJuzsForDate,
+        quran: {
+          completed: completedJuzsForDate.length,
+          total: 30
+        }
       };
       
       updateUserData({
@@ -251,6 +279,20 @@ const Home = () => {
       console.log("No history data for date:", dateString);
       
       // If no historical data, show empty state for that day
+      const computeQuranProgressForDate = (targetDate) => {
+        const target = new Date(targetDate);
+        const completed = new Set();
+        const juzHistory = userData?.juzHistory || {};
+        Object.entries(juzHistory).forEach(([dateKey, juzList]) => {
+          const dateObj = new Date(dateKey);
+          if (dateObj <= target) {
+            (juzList || []).forEach(juz => completed.add(juz));
+          }
+        });
+        return Array.from(completed);
+      };
+
+      const completedJuzsForDate = computeQuranProgressForDate(dateString);
       updateUserData({
         currentViewData: {
           namaz: {
@@ -261,7 +303,10 @@ const Home = () => {
             isha: false
           },
           fasting: false,
-          prayedTaraweeh: false
+          prayedTaraweeh: false,
+          salah: { completed: 0, total: 5 },
+          completedJuzs: completedJuzsForDate,
+          quran: { completed: completedJuzsForDate.length, total: 30 }
         },
         isHistoricalView: true,
         historicalDate: dateString
@@ -289,12 +334,13 @@ const Home = () => {
   const displayDate = isHistoricalView ? 
     dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 
     'Today';
+  
+  const isRamadan = isWithinRamadan ? isWithinRamadan(dateObj) : false;
 
   return (
     <div className="home-container" ref={containerRef}>
-      {/* Pre-Ramadan Information Banner */}
-      <PreRamadanBanner />
-      
+      <RamadanCountdownBanner />
+      <RamadanLengthPrompt />
       {/* Pull-to-reveal indicator */}
       
 
@@ -305,7 +351,10 @@ const Home = () => {
         </div>
         
         <div className="timing-section">
-          <div className="day-counter">Day {currentRamadanDay} of {totalDays}</div>
+          <div className="day-counter">
+            {isRamadan ? `Day ${Math.max(1, currentRamadanDay)} of ${totalDays}` : 'Daily Tracker'}
+            {isRamadan && <span className="ramadan-badge">Ramadan</span>}
+          </div>
           
           <div className="time-container">
             <div className="suhoor-time">
@@ -377,20 +426,15 @@ const Home = () => {
 
       {/* NEW FEATURES - 2026 Enhancements */}
       {!isHistoricalView && <Achievements />}
-      {!isHistoricalView && user && <Leaderboard userId={user.uid} />}
 
-      <RandomSunnahSuggestion currentRamadanDay={currentRamadanDay} />
-
-      {/* Enhanced Qur'an Tracking */}
-      {!isHistoricalView && <EnhancedJuzTracker />}
-
-      {/* Prayer Concentration Tracking */}
-      {!isHistoricalView && <KhushuTracker />}
-
-      <DailyNamazCheckIn />
+      {/* Unified Prayer Tracker - combines both completion and focus (Khushu) */}
+      <UnifiedPrayerTracker />
       <FastingCheck />
       <TaraweehCheck />
       <JuzTracker />
+
+      {/* Sunnah of the Day */}
+      <RandomSunnahSuggestion currentRamadanDay={currentRamadanDay} />
 
       {/* Replace the quote container with Hadith of the Day */}
       <HadithOfTheDay />

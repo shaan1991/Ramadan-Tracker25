@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { db } from '../firebase';
 import { doc, setDoc, getDoc, collection, query, getDocs, orderBy, limit } from 'firebase/firestore';
+import { calculatePrayerStreakFromData } from '../services/streakService';
 import Celebration from './Celebration';
 import './UnifiedPrayerTracker.css';
-import '../styles/preRamadan.css';
 import './Celebration.css';
 
 const UnifiedPrayerTracker = () => {
-  const { user, userData, updateUserData, recordDailyAction } = useUser();
+  const { user, userData, updateUserData, recordDailyAction, isWithinRamadan } = useUser();
   const [todayKhushu, setTodayKhushu] = useState({});
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedPrayer, setSelectedPrayer] = useState(null);
@@ -21,17 +21,26 @@ const UnifiedPrayerTracker = () => {
   const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   const prayersLower = ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'];
 
-  // Load khushu data on component mount
+  const getKhushuDateKey = () => {
+    if (userData?.isHistoricalView && userData?.historicalDate) {
+      return userData.historicalDate;
+    }
+    return new Date().toISOString().split('T')[0];
+  };
+
+  // Load khushu data on component mount or date change
   useEffect(() => {
     const loadKhushuData = async () => {
       if (!user) return;
       try {
         // Load today's khushu ratings
-        const today = new Date().toISOString().split('T')[0];
-        const docRef = doc(db, 'users', user.uid, 'khushuProgress', today);
+        const dateKey = getKhushuDateKey();
+        const docRef = doc(db, 'users', user.uid, 'khushuProgress', dateKey);
         const snapshot = await getDoc(docRef);
         if (snapshot.exists()) {
           setTodayKhushu(snapshot.data());
+        } else {
+          setTodayKhushu({});
         }
 
         // Calculate average khushu
@@ -41,9 +50,6 @@ const UnifiedPrayerTracker = () => {
         
         let totalRatings = 0;
         let count = 0;
-        let consecutiveDays = 0;
-        let lastDate = null;
-
         khushuSnapshots.forEach((doc) => {
           const data = doc.data();
           const ratings = Object.values(data).filter(v => typeof v === 'number');
@@ -51,18 +57,12 @@ const UnifiedPrayerTracker = () => {
             totalRatings += rating;
             count++;
           });
-
-          if (!lastDate) lastDate = new Date(data.date);
-          const currentDate = new Date(data.date);
-          const dayDiff = (lastDate - currentDate) / (1000 * 60 * 60 * 24);
-          if (dayDiff <= 1) consecutiveDays++;
-          lastDate = currentDate;
         });
 
         if (count > 0) {
           setAverageKhushu(Math.round((totalRatings / count) * 10) / 10);
         }
-        setStreak(consecutiveDays);
+        // Streak is calculated separately from prayer completion data
       } catch (error) {
         console.error('Error loading Khushu data:', error);
       } finally {
@@ -71,7 +71,21 @@ const UnifiedPrayerTracker = () => {
     };
 
     loadKhushuData();
-  }, [user]);
+  }, [user, userData?.isHistoricalView, userData?.historicalDate]);
+
+  // Calculate prayer streak from recorded completion data
+  useEffect(() => {
+    if (!userData) return;
+    const effectiveDate = userData?.isHistoricalView && userData?.historicalDate
+      ? new Date(userData.historicalDate)
+      : new Date();
+    const ramadanMode = isWithinRamadan ? isWithinRamadan(effectiveDate) : false;
+    const prayerStreak = calculatePrayerStreakFromData(userData, { 
+      ramadanOnly: ramadanMode,
+      baseDate: effectiveDate
+    });
+    setStreak(prayerStreak.current);
+  }, [userData, isWithinRamadan]);
 
   // Detect when all 5 prayers are completed
   useEffect(() => {
@@ -89,12 +103,6 @@ const UnifiedPrayerTracker = () => {
   // Handle prayer completion toggle
   const handlePrayerToggle = async (prayerLower) => {
     if (!userData) return;
-
-    const isBeforeRamadanDay = userData.beforeRamadan;
-    if (isBeforeRamadanDay) {
-      alert("You cannot record prayers for dates before Ramadan begins.");
-      return;
-    }
     
     const updatedNamaz = { ...userData.namaz, [prayerLower]: !userData.namaz[prayerLower] };
     const completedPrayers = Object.values(updatedNamaz).filter(Boolean).length;
@@ -116,7 +124,7 @@ const UnifiedPrayerTracker = () => {
   const handleRatePrayer = async (prayer, rating) => {
     if (!user) return;
 
-    const today = new Date().toISOString().split('T')[0];
+    const dateKey = getKhushuDateKey();
     const newKhushu = { ...todayKhushu, [prayer]: rating };
     setTodayKhushu(newKhushu);
 
@@ -126,12 +134,12 @@ const UnifiedPrayerTracker = () => {
 
     try {
       // Save to today's tracking (khushuProgress)
-      const docRef = doc(db, 'users', user.uid, 'khushuProgress', today);
-      await setDoc(docRef, { ...newKhushu, date: today }, { merge: true });
+    const docRef = doc(db, 'users', user.uid, 'khushuProgress', dateKey);
+      await setDoc(docRef, { ...newKhushu, date: dateKey }, { merge: true });
 
       // Save to history (khushuHistory)
-      const historyRef = doc(db, 'users', user.uid, 'khushuHistory', today);
-      await setDoc(historyRef, { ...newKhushu, date: today }, { merge: true });
+      const historyRef = doc(db, 'users', user.uid, 'khushuHistory', dateKey);
+      await setDoc(historyRef, { ...newKhushu, date: dateKey }, { merge: true });
     } catch (error) {
       console.error('Error saving Khushu rating:', error);
     }
@@ -216,26 +224,30 @@ const UnifiedPrayerTracker = () => {
           const isUnrated = !khushuRating;
 
           return (
-            <div key={prayer} className={`prayer-card ${isCompleted ? 'completed' : 'incomplete'}`}>
+            <div 
+              key={prayer} 
+              className={`prayer-card ${isCompleted ? 'completed' : 'incomplete'}`}
+              onClick={() => handlePrayerToggle(prayerLower)}
+            >
               <div className="prayer-header">
                 <span className="prayer-symbol">{getPrayerSymbol(prayer)}</span>
                 <span className="prayer-text">{prayer}</span>
               </div>
 
               {/* Prayer Completion Toggle */}
-              <button 
+              <div 
                 className={`prayer-toggle ${isCompleted ? 'checked' : ''}`}
-                onClick={() => handlePrayerToggle(prayerLower)}
                 title={isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
               >
                 {isCompleted ? '✓' : '○'}
-              </button>
+              </div>
 
               {/* Khushu Rating (only show if prayer is completed) */}
               {isCompleted && (
                 <div 
                   className={`khushu-rating ${isUnrated ? 'unrated' : ''}`}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setSelectedPrayer(prayer);
                     setShowRatingModal(true);
                   }}

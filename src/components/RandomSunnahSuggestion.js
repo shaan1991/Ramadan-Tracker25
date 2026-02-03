@@ -1,157 +1,308 @@
 // src/components/RandomSunnahSuggestion.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useUser } from '../contexts/UserContext';
 import './RandomSunnahSuggestion.css';
 
-const RandomSunnahSuggestion = (props) => {
-  const [expanded, setExpanded] = useState(false);
+const RandomSunnahSuggestion = () => {
+  const { user, userData, recordDailyAction } = useUser();
   const [currentSunnah, setCurrentSunnah] = useState(null);
+  const [completed, setCompleted] = useState(false);
 
-  // Collection of 30 Sunnah suggestions with short titles and descriptions (one for each day of Ramadan)
+  // Expanded collection of Sunnah suggestions
   const sunnahSuggestions = [
     {
       title: "🤲 Pray an Extra Sunnah Prayer",
-      description: "Praying voluntary prayers in addition to the obligatory ones increases your rewards. The Prophet (PBUH) regularly observed Sunnah prayers before and after the obligatory prayers. Try adding 2 rakats before Fajr, 4 before Zuhr and 2 after, 2 after Maghrib, and 2 after Isha."
+      description: "Praying voluntary prayers in addition to the obligatory ones increases your rewards. Try adding 2 rakats before Fajr, 4 before Zuhr and 2 after, 2 after Maghrib, and 2 after Isha."
     },
     {
       title: "💧 Perfect Your Wudu",
-      description: "The Prophet (PBUH) said: 'Whoever performs wudu perfectly, their sins will come out from their body, even from under their nails.' Take extra care with your wudu today, ensuring water reaches between fingers and toes, and making dua afterward."
+      description: "Take extra care with your wudu today, ensuring water reaches between fingers and toes, and make dua afterward."
     },
     {
       title: "🌙 Wake Up for Tahajjud",
-      description: "The Prophet (PBUH) said: 'The best prayer after the obligatory prayers is the night prayer.' Try to wake up before Fajr to pray even just 2 rakats of Tahajjud. This time is especially blessed for supplications and seeking forgiveness."
+      description: "Try to wake up before Fajr to pray even just 2 rakats of Tahajjud. This time is especially blessed for supplications."
     },
     {
       title: "📿 Increase Your Dhikr",
-      description: "The Prophet (PBUH) said: 'The comparison between one who remembers Allah and one who does not is like the living and the dead.' Try to recite Subhanallah, Alhamdulillah, and Allahu Akbar 33 times each after every prayer today."
+      description: "Recite Subhanallah, Alhamdulillah, and Allahu Akbar 33 times each after every prayer today."
     },
     {
       title: "🤝 Reconcile with Someone",
-      description: "The Prophet (PBUH) said: 'It is not permissible for a Muslim to forsake his brother for more than three days.' If you have a strained relationship with someone, take the initiative today to reach out and make peace."
+      description: "If you have a strained relationship, take the initiative today to reach out and make peace."
     },
     {
       title: "🥄 Eat with Your Right Hand",
-      description: "The Prophet (PBUH) said: 'Eat with your right hand and drink with your right hand.' Practice this Sunnah consciously today, and remember to recite Bismillah before eating and Alhamdulillah afterward."
+      description: "Practice eating and drinking with your right hand, and remember Bismillah before and Alhamdulillah after."
     },
     {
       title: "👨‍👩‍👧‍👦 Visit a Relative",
-      description: "The Prophet (PBUH) said: 'Whoever would like his provision to be increased and his lifespan to be extended, let him maintain the ties of kinship.' Call or visit a relative you haven't spoken to in a while."
+      description: "Call or visit a relative you haven't spoken to in a while to maintain ties of kinship."
     },
     {
       title: "😊 Smile at Others",
-      description: "The Prophet (PBUH) said: 'Your smile to your brother is charity.' Make a conscious effort to smile at people you interact with today, recognizing it as an act of worship and kindness."
+      description: "Make a conscious effort to smile at people you interact with today."
     },
     {
       title: "🍽️ Share Your Food",
-      description: "The Prophet (PBUH) encouraged sharing food, saying: 'The food of two people is sufficient for three, and the food of three is sufficient for four.' Invite someone to share a meal with you or give food to someone in need."
+      description: "Invite someone to share a meal with you or give food to someone in need."
     },
     {
       title: "📖 Read Quran with Reflection",
-      description: "Set aside time today to read a portion of the Quran with contemplation (tadabbur), focusing on understanding the meaning rather than just recitation. The Prophet (PBUH) encouraged deep reflection on Allah's words."
+      description: "Read a portion of the Quran with contemplation (tadabbur), focusing on meaning."
     },
     {
       title: "🧠 Seek Knowledge",
-      description: "The Prophet (PBUH) said: 'Seeking knowledge is an obligation upon every Muslim.' Take time today to learn something new about Islam, whether through reading, listening to a lecture, or attending a class."
+      description: "Learn something new about Islam today through reading or a short lecture."
     },
     {
       title: "🤲 Make Dua for Others",
-      description: "The Prophet (PBUH) said: 'The fastest prayer to be answered is a person's supplication for someone else.' Take time today to make sincere dua for your family, friends, and the ummah."
+      description: "Make sincere dua for your family, friends, and the ummah."
     },
     {
       title: "🌿 Visit the Sick",
-      description: "The Prophet (PBUH) said: 'Whoever visits a sick person remains in the fruits of Paradise until he returns.' Take time today to visit, call, or message someone who is ill, bringing them comfort and making dua for their recovery."
+      description: "Call, message, or visit someone who is ill and make dua for their recovery."
     },
     {
       title: "🥛 Break Your Fast with Dates",
-      description: "The Prophet (PBUH) used to break his fast with fresh dates before offering Maghrib prayer. If dates are not available, he would break it with water. Follow this Sunnah today and experience the immediate energy boost from natural sugars."
+      description: "If fasting, try to break your fast with dates or water as the Prophet (PBUH) did."
     },
     {
       title: "🧠 Memorize a New Dua",
-      description: "The Prophet (PBUH) had specific supplications for different situations. Learn a new dua today, such as the one for entering or leaving the home, traveling, or seeking protection from hardship."
+      description: "Learn a new dua today, such as for entering/leaving the home or traveling."
     },
     {
       title: "🧵 Dress Well and Modestly",
-      description: "The Prophet (PBUH) encouraged dressing well, especially for prayer and public gatherings. He said: 'Allah is beautiful and loves beauty.' Pay special attention to your appearance today while maintaining modesty."
+      description: "Pay special attention to modesty and cleanliness in your clothing today."
     },
     {
       title: "🛌 Sleep on Your Right Side",
-      description: "The Prophet (PBUH) recommended sleeping on your right side, saying: 'When you go to bed, perform ablution as you do for prayer, then lie down on your right side.' Try implementing this Sunnah tonight."
+      description: "Try sleeping on your right side tonight as the Prophet (PBUH) recommended."
     },
     {
       title: "🙏 Pray in Congregation",
-      description: "The Prophet (PBUH) said: 'Prayer in congregation is 27 times better than prayer offered individually.' Make an extra effort today to pray at least one of your prayers in congregation at the masjid."
+      description: "Make extra effort to pray at least one prayer in congregation today."
     },
     {
       title: "💰 Give Extra Charity",
-      description: "The Prophet (PBUH) was most generous during Ramadan. Increase your charity today, even if it's something small. Remember, 'The most beloved deeds to Allah are those done regularly, even if they are small.'"
+      description: "Give a small amount in charity today, even if it is just a little."
     },
     {
       title: "🤫 Guard Your Tongue",
-      description: "The Prophet (PBUH) said: 'Whoever believes in Allah and the Last Day should speak good or remain silent.' Be extra mindful today about what you say, avoiding backbiting, lying, and useless talk."
+      description: "Avoid backbiting, lying, and useless talk today."
     },
     {
       title: "🧘 Practice Patience",
-      description: "The Prophet (PBUH) said: 'Patience is illumination.' When faced with challenges today, take a deep breath, say 'Alhamdulillah,' and respond with patience rather than anger or frustration."
+      description: "Respond with patience when faced with challenges today."
     },
     {
       title: "📱 Limit Digital Distractions",
-      description: "While not directly a Sunnah, reducing distractions helps focus on worship. The Prophet (PBUH) valued focus and presence. Set aside your phone during worship and family time today."
+      description: "Set aside your phone during worship and family time today."
     },
     {
       title: "🔄 Say Istighfar 100 Times",
-      description: "The Prophet (PBUH) said: 'I seek forgiveness from Allah 100 times a day.' Try to incorporate regular istighfar (seeking forgiveness) throughout your day, aiming for at least 100 times."
+      description: "Try to incorporate regular istighfar throughout your day, aiming for at least 100 times."
     },
     {
-      title: "🕌 Perform I'tikaf",
-      description: "The Prophet (PBUH) used to perform I'tikaf (spiritual retreat in the mosque) during the last ten days of Ramadan. Even if you can't stay overnight, spend extra time in the mosque today in remembrance of Allah."
+      title: "🕌 Perform I'tikaf (Short)",
+      description: "Spend extra time in the mosque today in remembrance of Allah."
     },
     {
-      title: "🌛 Look for Laylatul Qadr",
-      description: "The Prophet (PBUH) said to look for Laylatul Qadr (the Night of Power) in the odd nights of the last ten days of Ramadan. Increase your worship tonight, especially if it's an odd-numbered night."
+      title: "🌛 Seek Laylatul Qadr",
+      description: "Increase worship on odd nights during the last ten days of Ramadan."
     },
     {
       title: "🤔 Reflect on Creation",
-      description: "The Quran encourages pondering over Allah's creation. Spend some time today observing nature, the sky, or anything around you, reflecting on the greatness of the Creator and expressing gratitude."
+      description: "Spend time observing nature and reflect on the greatness of the Creator."
     },
     {
       title: "📿 Recite Ayatul Kursi",
-      description: "The Prophet (PBUH) said that Ayatul Kursi (2:255) is the greatest verse in the Quran. Recite it after each prayer today and before sleeping for protection and blessings."
+      description: "Recite Ayatul Kursi after each prayer and before sleeping."
     },
     {
       title: "🫴 Feed a Fasting Person",
-      description: "The Prophet (PBUH) said: 'Whoever feeds a fasting person will receive the same reward as the one who fasted, without decreasing the faster's reward.' Invite someone for iftar or contribute to a community iftar today."
+      description: "Invite someone for iftar or contribute to a community iftar today."
     },
     {
       title: "🥣 Delay Suhoor",
-      description: "The Prophet (PBUH) recommended delaying the pre-dawn meal (suhoor) as close as possible to the time of Fajr. He said: 'There is blessing in suhoor, so do not leave it.' Eat suhoor as late as possible tomorrow."
+      description: "If fasting tomorrow, try to delay suhoor closer to Fajr."
     },
     {
       title: "🤚 Send Salawat on the Prophet",
-      description: "The Prophet (PBUH) said: 'Whoever sends blessings upon me once, Allah will send blessings upon him tenfold.' Make a conscious effort to increase your salawat (prayers upon the Prophet) today."
+      description: "Increase your salawat today and throughout the day."
     },
     {
       title: "⚖️ Be Just in Your Dealings",
-      description: "The Prophet (PBUH) emphasized fairness and justice. He said: 'Beware of injustice, for injustice will turn into darkness on the Day of Resurrection.' Ensure all your transactions and interactions today are honest and fair."
+      description: "Ensure all your transactions and interactions are honest and fair."
+    },
+    {
+      title: "🌿 Visit a Graveyard",
+      description: "If appropriate, visit a graveyard to remember the Hereafter and make dua."
+    },
+    {
+      title: "📖 Recite Surah Al-Kahf",
+      description: "Recite Surah Al-Kahf today, especially if it is Friday."
+    },
+    {
+      title: "🤲 Increase Salawat",
+      description: "Send blessings upon the Prophet (PBUH) throughout the day."
+    },
+    {
+      title: "🧼 Keep Good Hygiene",
+      description: "Be mindful of cleanliness, good scent, and neat appearance today."
+    },
+    {
+      title: "📿 Morning & Evening Adhkar",
+      description: "Recite your morning and evening adhkar for protection and barakah."
+    },
+    {
+      title: "🧡 Check on Parents",
+      description: "Call, visit, or help your parents today with kindness."
+    },
+    {
+      title: "📚 Teach Someone a Dua",
+      description: "Share a dua with someone you love and explain its meaning."
+    },
+    {
+      title: "🕌 Arrive Early to the Masjid",
+      description: "Arrive early for prayer to spend time in dhikr and reflection."
+    },
+    {
+      title: "🤐 Avoid Backbiting",
+      description: "Guard your tongue today and avoid gossip."
+    },
+    {
+      title: "🧾 Make Tawbah",
+      description: "Take a moment for sincere repentance and renewal of intention."
+    },
+    {
+      title: "🫶 Give a Small Gift",
+      description: "Give a small gift to increase love and goodwill."
+    },
+    {
+      title: "🕋 Face the Qibla in Dua",
+      description: "When making a longer dua, face the Qibla as the Prophet (PBUH) often did."
+    },
+    {
+      title: "🍵 Share a Drink",
+      description: "Offer water or a drink to someone today."
+    },
+    {
+      title: "📞 Reach Out to Someone Lonely",
+      description: "Check in on someone who might feel lonely or overlooked."
+    },
+    {
+      title: "🧎 Pray Sunnah Rawatib",
+      description: "Try to complete the daily Sunnah prayers around the obligatory ones."
+    },
+    {
+      title: "🧭 Verify Qibla Direction",
+      description: "Confirm your prayer direction and help someone else check theirs."
+    },
+    {
+      title: "🌧️ Make Dua During Rain",
+      description: "If it rains, make dua during this blessed time."
+    },
+    {
+      title: "🧊 Give Water to Someone",
+      description: "Providing water is a simple but deeply rewarded act of charity."
+    },
+    {
+      title: "📖 Read with Tajweed",
+      description: "Focus on proper recitation and Tajweed rules for even a short portion."
+    },
+    {
+      title: "💡 Turn Off Distractions",
+      description: "Create a quiet worship window by turning off notifications."
+    },
+    {
+      title: "🧠 Reflect on a Verse",
+      description: "Pick one verse you recite today and reflect on its meaning."
+    },
+    {
+      title: "🤝 Help a Neighbor",
+      description: "Offer small help to a neighbor or check on their well-being."
+    },
+    {
+      title: "🧺 Serve at Home",
+      description: "Help with chores at home to follow the Prophet's example."
+    },
+    {
+      title: "🧂 Eat Moderately",
+      description: "Eat with balance and gratitude, following prophetic guidance on moderation."
+    },
+    {
+      title: "📿 Say Subhanallah 100x",
+      description: "Try to complete 100 Subhanallah today for extra remembrance."
+    },
+    {
+      title: "🌙 Pray Witr",
+      description: "Complete Witr prayer before sleeping if you haven’t already."
+    },
+    {
+      title: "🧾 Write a Gratitude List",
+      description: "Write down three blessings and thank Allah for them."
+    },
+    {
+      title: "📖 Memorize a Short Surah",
+      description: "Memorize a short surah or a few ayat today."
     }
   ];
 
-  // Get the current Ramadan day from props or use a default value
-  const { currentRamadanDay = 1 } = props;
-  
-  // Select a Sunnah based on the Ramadan day (ensuring one per day)
-  useEffect(() => {
-    // Use modulo to handle if we have fewer suggestions than days
-    const index = (currentRamadanDay - 1) % sunnahSuggestions.length;
-    
-    // Get today's Sunnah based on the day of Ramadan
-    setCurrentSunnah(sunnahSuggestions[index]);
-    
-    // Reset expanded state when suggestion changes
-    setExpanded(false);
-  }, [currentRamadanDay]);
+  const getDateKey = () => {
+    if (userData?.isHistoricalView && userData?.historicalDate) {
+      return userData.historicalDate;
+    }
+    return new Date().toISOString().split('T')[0];
+  };
 
-  // Handle the click to expand/collapse
-  const toggleExpanded = () => {
-    setExpanded(!expanded);
+  const seed = useMemo(() => {
+    const dateKey = getDateKey();
+    const userKey = user?.uid || 'anonymous';
+    return `${userKey}-${dateKey}`;
+  }, [user?.uid, userData?.isHistoricalView, userData?.historicalDate]);
+
+  const shuffledSuggestions = useMemo(() => {
+    const items = [...sunnahSuggestions];
+    const hash = (str) => {
+      let h = 2166136261;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+      }
+      return h >>> 0;
+    };
+    let rnd = hash(seed) || 1;
+    const rand = () => {
+      rnd ^= rnd << 13;
+      rnd ^= rnd >>> 17;
+      rnd ^= rnd << 5;
+      return (rnd >>> 0) / 0xffffffff;
+    };
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    return items;
+  }, [seed, sunnahSuggestions]);
+
+  useEffect(() => {
+    if (shuffledSuggestions.length === 0) return;
+    setCurrentSunnah(shuffledSuggestions[0]);
+  }, [shuffledSuggestions]);
+
+  const dateKey = useMemo(() => getDateKey(), [userData?.isHistoricalView, userData?.historicalDate]);
+
+  useEffect(() => {
+    if (!userData) return;
+    const historyEntry = userData.history?.[dateKey];
+    setCompleted(!!historyEntry?.sunnahCompleted);
+  }, [dateKey]);
+
+  const toggleCompleted = async (e) => {
+    e.stopPropagation();
+    const next = !completed;
+    setCompleted(next);
+    await recordDailyAction('sunnahCompleted', next);
   };
 
   if (!currentSunnah) return null;
@@ -159,21 +310,26 @@ const RandomSunnahSuggestion = (props) => {
   return (
     <div className="suggested-sunnah">
       <p className="sunnah-header">Suggested Sunnah of the day</p>
-      <div 
-        className={`sunnah-container ${expanded ? 'expanded' : ''}`}
-        onClick={toggleExpanded}
+      <div
+        className={`sunnah-container ${completed ? 'completed' : ''}`}
+        onClick={toggleCompleted}
+        role="button"
       >
-        <p className="sunnah-title">{currentSunnah.title}</p>
-        
-        {expanded && (
-          <div className="sunnah-description">
-            {currentSunnah.description}
-          </div>
-        )}
-        
-        <span className={`expand-icon ${expanded ? 'expanded' : ''}`}>
-          {expanded ? '▲' : '▼'}
-        </span>
+        <div className="sunnah-header-row">
+          <p className="sunnah-title">{currentSunnah.title}</p>
+        </div>
+        <div className="sunnah-description show">{currentSunnah.description}</div>
+        <div className="sunnah-actions">
+          <button
+            className={`sunnah-complete ${completed ? 'done' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleCompleted(e);
+            }}
+          >
+            {completed ? 'Completed' : 'Mark completed'}
+          </button>
+        </div>
       </div>
     </div>
   );

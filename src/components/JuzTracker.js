@@ -4,18 +4,21 @@ import { useUser } from '../contexts/UserContext';
 import { trackJuzProgress } from '../services/historyTracker';
 import { calculateStreak, updateStreakData } from '../services/streakService';
 import './JuzTracker.css';
-// Import the CSS for pre-Ramadan styling
-import '../styles/preRamadan.css';
 
 const JuzTracker = () => {
-  const { user, userData, updateUserData, recordDailyAction } = useUser();
+  const { user, userData, updateUserData, recordDailyAction, isWithinRamadan } = useUser();
   const [completedJuzs, setCompletedJuzs] = useState([]);
   const [advancedMode, setAdvancedMode] = useState(false);
   const [selectedJuz, setSelectedJuz] = useState(null);
   const [streak, setStreak] = useState(0);
   
-  // Check if we're viewing a date before Ramadan
-  const isBeforeRamadanDay = userData?.beforeRamadan;
+  const getEffectiveDate = () => {
+    if (userData?.isHistoricalView && userData?.historicalDate) {
+      const [year, month, day] = userData.historicalDate.split('-').map(num => parseInt(num));
+      return new Date(year, month - 1, day);
+    }
+    return new Date();
+  };
   
   // Total juz in Quran
   const totalJuzs = 30;
@@ -45,19 +48,17 @@ const JuzTracker = () => {
   // Load streak data
   const loadStreakData = async () => {
     if (user?.uid) {
-      const { current } = await calculateStreak(user.uid, 'quran');
+      const ramadanMode = isWithinRamadan(getEffectiveDate());
+      const { current } = await calculateStreak(user.uid, 'quran', { 
+        ramadanOnly: ramadanMode,
+        baseDate: getEffectiveDate()
+      });
       setStreak(current);
     }
   };
 
   // Handle increment/decrement for counter mode
   const handleCounterChange = async (change) => {
-    // Prevent recording data for dates before Ramadan
-    if (isBeforeRamadanDay) {
-      alert("You cannot record Quran reading for dates before Ramadan begins.");
-      return;
-    }
-    
     const currentCount = completedJuzs.length;
     const newCount = Math.max(0, Math.min(totalJuzs, currentCount + change));
     
@@ -107,7 +108,11 @@ const JuzTracker = () => {
       
       // Update streak data
       if (user?.uid) {
-        await updateStreakData(user.uid, 'quran', newCompletedJuzs.length > 0);
+        const ramadanMode = isWithinRamadan(getEffectiveDate());
+        await updateStreakData(user.uid, 'quran', newCompletedJuzs.length > 0, { 
+          ramadanOnly: ramadanMode,
+          baseDate: getEffectiveDate()
+        });
         
         // Only load streak data if juz have been read
         if (newCompletedJuzs.length > 0) {
@@ -122,22 +127,10 @@ const JuzTracker = () => {
   };
 
   const handleJuzClick = (juz) => {
-    // If we're in a pre-Ramadan date, don't allow selection
-    if (isBeforeRamadanDay) {
-      alert("You cannot record Quran reading for dates before Ramadan begins.");
-      return;
-    }
-    
     setSelectedJuz(juz);
   };
 
   const handleMarkAsRead = async () => {
-    // Prevent recording data for dates before Ramadan
-    if (isBeforeRamadanDay) {
-      alert("You cannot record Quran reading for dates before Ramadan begins.");
-      return;
-    }
-    
     if (!selectedJuz) return;
     
     // Determine if we're marking as read or unread
@@ -185,7 +178,11 @@ const JuzTracker = () => {
       
       // Update streak data
       if (user?.uid) {
-        await updateStreakData(user.uid, 'quran', newCompletedJuzs.length > 0);
+        const ramadanMode = isWithinRamadan(getEffectiveDate());
+        await updateStreakData(user.uid, 'quran', newCompletedJuzs.length > 0, { 
+          ramadanOnly: ramadanMode,
+          baseDate: getEffectiveDate()
+        });
         
         // Only load streak data if juz have been read
         if (newCompletedJuzs.length > 0) {
@@ -209,7 +206,7 @@ const JuzTracker = () => {
   const progressPercentage = (completedJuzs.length / totalJuzs) * 100;
 
   return (
-    <div className={`juz-tracker ${advancedMode ? 'advanced-mode' : ''} ${isBeforeRamadanDay ? 'disabled' : ''}`}>
+    <div className={`juz-tracker ${advancedMode ? 'advanced-mode' : ''}`}>
       <div className="juz-header">
         <h3>📖 Juz Tracker</h3>
         {streak > 0 && (
@@ -220,19 +217,12 @@ const JuzTracker = () => {
         )}
       </div>
       <p className="juz-description">Track your Quran reading during Ramadan</p>
-      
-      {isBeforeRamadanDay && (
-        <div className="pre-ramadan-notice">
-          Cannot record Quran reading progress before Ramadan begins.
-        </div>
-      )}
-      
       {/* Simple counter UI */}
       <div className="juz-counter">
         <button 
           className="juz-counter-button"
           onClick={() => handleCounterChange(-1)}
-          disabled={completedJuzs.length === 0 || isBeforeRamadanDay}
+          disabled={completedJuzs.length === 0}
         >
           -
         </button>
@@ -244,7 +234,7 @@ const JuzTracker = () => {
         <button 
           className="juz-counter-button"
           onClick={() => handleCounterChange(1)}
-          disabled={completedJuzs.length === totalJuzs || isBeforeRamadanDay}
+          disabled={completedJuzs.length === totalJuzs}
         >
           +
         </button>
@@ -270,7 +260,6 @@ const JuzTracker = () => {
           <div className="juz-action">
             <button 
               onClick={handleMarkAsRead}
-              disabled={isBeforeRamadanDay}
             >
               {completedJuzs.includes(selectedJuz) ? 'Mark as Unread' : 'Mark as Read'} 
             </button>

@@ -1,7 +1,7 @@
 // src/services/streakService.js - with Pre-Ramadan validation
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { isBeforeRamadan, DEFAULT_RAMADAN_START_DATE, getRamadanStartDate } from '../utils/dateValidation';
+import { isBeforeRamadan, getRamadanStartDate } from '../utils/dateValidation';
 
 // Format date consistently
 export const formatDate = (date) => {
@@ -11,11 +11,91 @@ export const formatDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+// Calculate prayer streaks from userData (based on completing all 5 prayers in a day)
+export const calculatePrayerStreakFromData = (userData, options = {}) => {
+  if (!userData) return { current: 0, best: 0 };
+  const { ramadanOnly = false, baseDate = new Date() } = options;
+  const history = userData.history || {};
+  const todayKey = formatDate(baseDate);
+
+  const completedToday = userData.namaz
+    ? ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'].every(prayer => userData.namaz[prayer])
+    : false;
+
+  const allDates = [todayKey, ...Object.keys(history)]
+    .filter((date, index, self) => self.indexOf(date) === index)
+    .sort((a, b) => new Date(b) - new Date(a));
+
+  const baseDateKey = formatDate(baseDate);
+  const relevantDates = (ramadanOnly
+    ? allDates.filter(date => !isBeforeRamadan(new Date(date), userData))
+    : allDates
+  ).filter(date => new Date(date) <= new Date(baseDateKey));
+
+  const isComplete = (date) => {
+    const entry = history[date] || {};
+    if (date === todayKey && Object.keys(entry).length === 0) {
+      return completedToday;
+    }
+    const byPrayerFlags = ['fajr', 'zuhr', 'asr', 'maghrib', 'isha']
+      .every(prayer => entry[`prayer_${prayer}`] === true);
+    if (byPrayerFlags) return true;
+    if (entry.namaz) {
+      return ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'].every(prayer => entry.namaz?.[prayer] === true);
+    }
+    return false;
+  };
+
+  const isConsecutiveDay = (currentDate, nextDate) => {
+    const currentObj = new Date(currentDate);
+    const nextObj = new Date(nextDate);
+    currentObj.setHours(12, 0, 0, 0);
+    nextObj.setHours(12, 0, 0, 0);
+    const diffTime = currentObj.getTime() - nextObj.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays === 1;
+  };
+
+  let current = 0;
+  let best = 0;
+
+  for (let i = 0; i < relevantDates.length; i++) {
+    const date = relevantDates[i];
+    if (isComplete(date)) {
+      if (current === 0) {
+        current = 1;
+      } else if (i > 0 && isConsecutiveDay(relevantDates[i - 1], date)) {
+        current++;
+      } else {
+        break;
+      }
+    } else {
+      break;
+    }
+  }
+
+  let temp = 0;
+  for (let i = 0; i < relevantDates.length; i++) {
+    const date = relevantDates[i];
+    if (isComplete(date)) {
+      if (temp === 0) {
+        temp = 1;
+      } else if (i > 0 && isConsecutiveDay(relevantDates[i - 1], date)) {
+        temp++;
+      } else {
+        temp = 1;
+      }
+      best = Math.max(best, temp);
+    }
+  }
+
+  return { current, best };
+};
+
 // Helper function to get activity value from history or current state
-const getActivityValue = (userData, activityType, date) => {
-  // If the date is before Ramadan, always return false
-  // This prevents recording/counting activities before Ramadan
-  if (isBeforeRamadan(new Date(date), userData)) {
+const getActivityValue = (userData, activityType, date, ramadanOnly = false, baseDate = new Date()) => {
+  // If we're calculating Ramadan-only streaks, ignore dates before Ramadan
+  if (ramadanOnly && isBeforeRamadan(new Date(date), userData)) {
     return false;
   }
   
@@ -23,20 +103,33 @@ const getActivityValue = (userData, activityType, date) => {
   if (userData.history && userData.history[date]) {
     if (activityType === 'quran') {
       // For Quran, check if any juz was read that day
-      return userData.history[date].juzReadToday !== undefined;
+      if (userData.history[date].juzReadToday !== undefined) return true;
+      if (Array.isArray(userData.history[date].completedJuzs)) {
+        return userData.history[date].completedJuzs.length > 0;
+      }
+      if (userData.history[date].quran?.completed !== undefined) {
+        return userData.history[date].quran.completed > 0;
+      }
+      // Fall back to juzHistory if available
+      if (userData.juzHistory && userData.juzHistory[date]) {
+        return userData.juzHistory[date].length > 0;
+      }
+      return false;
     } else if (activityType === 'fasting') {
       return !!userData.history[date].fasting;
     } else if (activityType === 'taraweeh') {
-      return !!userData.history[date].prayedTaraweeh;
+      return !!(userData.history[date].prayedTaraweeh ?? userData.history[date].taraweeh);
     }
   }
   
   // If not in history and asking about today, check current state
-  const today = formatDate(new Date());
+  const today = formatDate(baseDate);
   if (date === today) {
     if (activityType === 'quran') {
       // For today's Quran, check if there are any completed juz
-      return userData.completedJuzs && userData.completedJuzs.length > 0;
+      if (userData.completedJuzs && userData.completedJuzs.length > 0) return true;
+      if (userData.quran?.completed !== undefined) return userData.quran.completed > 0;
+      return false;
     } else if (activityType === 'fasting') {
       return !!userData.fasting;
     } else if (activityType === 'taraweeh') {
@@ -48,8 +141,9 @@ const getActivityValue = (userData, activityType, date) => {
 };
 
 // Calculate streak for any activity type - with pre-Ramadan validation
-export const calculateStreak = async (userId, activityType) => {
+export const calculateStreak = async (userId, activityType, options = {}) => {
   if (!userId || !activityType) return { current: 0, best: 0 };
+  const { ramadanOnly = false, baseDate = new Date() } = options;
   
   try {
     const userDocRef = doc(db, 'users', userId);
@@ -62,12 +156,12 @@ export const calculateStreak = async (userId, activityType) => {
     const userData = userSnapshot.data();
     
     // Get today's date
-    const today = formatDate(new Date());
+    const today = formatDate(baseDate);
     
     // Check if user has history
     if (!userData.history) {
       // If no history but activity is completed today, return 1
-      const todayCompleted = getActivityValue(userData, activityType, today);
+      const todayCompleted = getActivityValue(userData, activityType, today, ramadanOnly, baseDate);
       return { 
         current: todayCompleted ? 1 : 0, 
         best: todayCompleted ? 1 : 0 
@@ -79,9 +173,13 @@ export const calculateStreak = async (userId, activityType) => {
       .filter((date, index, self) => self.indexOf(date) === index) // Remove duplicates
       .sort((a, b) => new Date(b) - new Date(a)); // Sort newest first
     
-    // Filter out dates before Ramadan started - this is the key fix
-    // Only count streaks for dates within Ramadan
-    const ramadanDates = allDates.filter(date => !isBeforeRamadan(new Date(date), userData));
+    // If Ramadan-only, filter to Ramadan dates; otherwise keep all dates
+    const relevantDates = ramadanOnly
+      ? allDates.filter(date => !isBeforeRamadan(new Date(date), userData))
+      : allDates;
+    
+    const baseDateKey = formatDate(baseDate);
+    const cappedDates = relevantDates.filter(date => new Date(date) <= new Date(baseDateKey));
     
     // Start calculating streak
     let currentStreak = 0;
@@ -108,21 +206,21 @@ export const calculateStreak = async (userId, activityType) => {
     
     // Iterate through dates in order (newest to oldest)
     // But only use dates within Ramadan period
-    for (let i = 0; i < ramadanDates.length; i++) {
-      const date = ramadanDates[i];
+    for (let i = 0; i < cappedDates.length; i++) {
+      const date = cappedDates[i];
       
       // Skip if we've already seen this date
       if (seenDates.has(date)) continue;
       seenDates.add(date);
       
       // Check if activity was completed on this date
-      const activityCompleted = getActivityValue(userData, activityType, date);
+      const activityCompleted = getActivityValue(userData, activityType, date, ramadanOnly, baseDate);
       
       if (activityCompleted) {
         // If this is the first completed date or consecutive with previous, increment streak
         if (currentStreak === 0) {
           currentStreak = 1;
-        } else if (i > 0 && isConsecutiveDay(ramadanDates[i-1], date)) {
+        } else if (i > 0 && isConsecutiveDay(cappedDates[i-1], date)) {
           currentStreak++;
         } else {
           // Break in the streak
@@ -137,24 +235,24 @@ export const calculateStreak = async (userId, activityType) => {
     // Update best streak if needed
     bestStreak = Math.max(bestStreak, currentStreak);
     
-    // Ensure streaks can't exceed the number of days in Ramadan so far
-    // Calculate how many days of Ramadan have passed
-    const ramadanStartDate = getRamadanStartDate(userData);
-    const currentDate = new Date();
-    
-    // If we're before Ramadan, no streaks are possible
-    if (isBeforeRamadan(currentDate, userData)) {
-      return { current: 0, best: 0 };
+    if (ramadanOnly) {
+      // Ensure Ramadan streaks can't exceed the number of days in Ramadan so far
+      const ramadanStartDate = getRamadanStartDate(userData);
+      const currentDate = new Date(baseDate);
+      
+      // If we're before Ramadan, no streaks are possible
+      if (isBeforeRamadan(currentDate, userData)) {
+        return { current: 0, best: 0 };
+      }
+      
+      const daysSinceRamadanStart = Math.max(0, Math.floor((currentDate - ramadanStartDate) / (1000 * 60 * 60 * 24)) + 1);
+      
+      // Cap streaks at the number of days passed in Ramadan
+      currentStreak = Math.min(currentStreak, daysSinceRamadanStart);
+      bestStreak = Math.min(bestStreak, 30); // Maximum 30 days for Ramadan
     }
     
-    const daysSinceRamadanStart = Math.max(0, Math.floor((currentDate - ramadanStartDate) / (1000 * 60 * 60 * 24)) + 1);
-    
-    // Cap streaks at the number of days passed in Ramadan
-    // This ensures streaks can't exceed the natural maximum
-    currentStreak = Math.min(currentStreak, daysSinceRamadanStart);
-    bestStreak = Math.min(bestStreak, 30); // Maximum 30 days for Ramadan
-    
-    return { current: currentStreak, best: bestStreak };
+  return { current: currentStreak, best: bestStreak };
   } catch (error) {
     console.error(`Error calculating ${activityType} streak:`, error);
     return { current: 0, best: 0 };
@@ -162,8 +260,9 @@ export const calculateStreak = async (userId, activityType) => {
 };
 
 // Update streak data for user
-export const updateStreakData = async (userId, activityType, isCompleted) => {
+export const updateStreakData = async (userId, activityType, isCompleted, options = {}) => {
   if (!userId || !activityType) return false;
+  const { ramadanOnly = false, baseDate = new Date() } = options;
   
   try {
     // Get user data to pass to isBeforeRamadan
@@ -176,21 +275,14 @@ export const updateStreakData = async (userId, activityType, isCompleted) => {
     
     const userData = userSnapshot.data();
     
-    // Only allow updating streak data during Ramadan
-    const today = new Date();
-    if (isBeforeRamadan(today, userData)) {
-      console.warn(`Cannot update ${activityType} streak before Ramadan starts`);
-      return false;
-    }
-    
     // Calculate current streak
-    const { current, best } = await calculateStreak(userId, activityType);
+    const { current, best } = await calculateStreak(userId, activityType, { ramadanOnly, baseDate });
     
     // Update streak data in Firestore
-    const todayFormatted = formatDate(today);
+    const todayFormatted = formatDate(baseDate);
     
     const streakData = {
-      [`streaks.${activityType}`]: {
+      [`streaks.${ramadanOnly ? 'ramadan' : 'general'}.${activityType}`]: {
         current: isCompleted ? current : 0,
         best: best,
         lastDate: isCompleted ? todayFormatted : null
@@ -220,12 +312,19 @@ export const initializeStreakTracking = async (userId) => {
     const userData = userSnapshot.data();
     
     // Only initialize if streaks object doesn't exist
-    if (!userData.streaks) {
+    if (!userData.streaks || !userData.streaks.general || !userData.streaks.ramadan) {
       const initialStreaks = {
         streaks: {
-          fasting: { current: 0, best: 0, lastDate: null },
-          taraweeh: { current: 0, best: 0, lastDate: null },
-          quran: { current: 0, best: 0, lastDate: null }
+          general: {
+            fasting: { current: 0, best: 0, lastDate: null },
+            taraweeh: { current: 0, best: 0, lastDate: null },
+            quran: { current: 0, best: 0, lastDate: null }
+          },
+          ramadan: {
+            fasting: { current: 0, best: 0, lastDate: null },
+            taraweeh: { current: 0, best: 0, lastDate: null },
+            quran: { current: 0, best: 0, lastDate: null }
+          }
         }
       };
       
@@ -240,7 +339,8 @@ export const initializeStreakTracking = async (userId) => {
 };
 
 // Get all streaks in a single call
-export const getAllStreaks = async (userId) => {
+export const getAllStreaks = async (userId, options = {}) => {
+  const { ramadanOnly = false, baseDate = new Date() } = options;
   if (!userId) return {
     quran: { current: 0, best: 0 },
     fasting: { current: 0, best: 0 },
@@ -248,9 +348,9 @@ export const getAllStreaks = async (userId) => {
   };
   
   try {
-    const quranStreak = await calculateStreak(userId, 'quran');
-    const fastingStreak = await calculateStreak(userId, 'fasting');
-    const taraweehStreak = await calculateStreak(userId, 'taraweeh');
+    const quranStreak = await calculateStreak(userId, 'quran', { ramadanOnly, baseDate });
+    const fastingStreak = await calculateStreak(userId, 'fasting', { ramadanOnly, baseDate });
+    const taraweehStreak = await calculateStreak(userId, 'taraweeh', { ramadanOnly, baseDate });
     
     return {
       quran: quranStreak,
@@ -268,11 +368,11 @@ export const getAllStreaks = async (userId) => {
 };
 
 // Get combined streak score across all activities
-export const getCombinedStreakScore = async (userId) => {
+export const getCombinedStreakScore = async (userId, options = {}) => {
   if (!userId) return 0;
   
   try {
-    const allStreaks = await getAllStreaks(userId);
+    const allStreaks = await getAllStreaks(userId, options);
     
     // Weigh each activity (can be adjusted)
     const fastingWeight = 0.4;  // 40%
@@ -291,11 +391,11 @@ export const getCombinedStreakScore = async (userId) => {
 };
 
 // Get the best streak across all activities
-export const getBestStreak = async (userId) => {
+export const getBestStreak = async (userId, options = {}) => {
   if (!userId) return 0;
   
   try {
-    const allStreaks = await getAllStreaks(userId);
+    const allStreaks = await getAllStreaks(userId, options);
     
     return Math.max(
       allStreaks.quran.best,

@@ -3,18 +3,23 @@ import React, { useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { usePrayerTimes } from '../contexts/PrayerTimesContext';
 import { calculateStreak, updateStreakData } from '../services/streakService';
+import { DEFAULT_RAMADAN_START_DATE } from '../utils/dateValidation';
 import './FastingCheck.css';
-import '../styles/preRamadan.css';
 
 const FastingCheck = () => {
-  const { user, userData, updateUserData, recordDailyAction } = useUser();
-  const { prayerTimes, locationStatus } = usePrayerTimes();
+  const { user, userData, updateUserData, recordDailyAction, isWithinRamadan } = useUser();
+  const { prayerTimes } = usePrayerTimes();
   const [streak, setStreak] = useState(0);
   const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
-  const [isFastingDayAvailable, setIsFastingDayAvailable] = useState(true);
-
-  // Check if we're viewing a date before Ramadan
-  const isBeforeRamadanDay = userData?.beforeRamadan;
+  const [animate, setAnimate] = useState(false);
+  
+  const getEffectiveDate = () => {
+    if (userData?.isHistoricalView && userData?.historicalDate) {
+      const [year, month, day] = userData.historicalDate.split('-').map(num => parseInt(num));
+      return new Date(year, month - 1, day);
+    }
+    return new Date();
+  };
   
   // Calculate Ramadan day using Adhan when possible
   useEffect(() => {
@@ -64,35 +69,30 @@ const FastingCheck = () => {
       
       // Fallback to calculation if Adhan info not available
       if (!isUsingAdhan) {
-        // Define Ramadan start date - keep this for now as fallback
-        ramadanStartDate = new Date(2026, 1, 23); // February 23, 2026 (month is 0-indexed)
-        
-        // Define the date when FastingCheck becomes interactive (1 day after Ramadan starts)
-        const fastingCheckStartDate = new Date(ramadanStartDate);
-        fastingCheckStartDate.setDate(fastingCheckStartDate.getDate()); // This is March 1st
+        // Define Ramadan start date - use user region when available
+        const fallbackStart = `${DEFAULT_RAMADAN_START_DATE.getFullYear()}-${String(DEFAULT_RAMADAN_START_DATE.getMonth() + 1).padStart(2, '0')}-${String(DEFAULT_RAMADAN_START_DATE.getDate()).padStart(2, '0')}`;
+        const startString = userData?.ramadanStartDate || fallbackStart;
+        const [startYear, startMonth, startDay] = startString.split('-').map(Number);
+        ramadanStartDate = new Date(startYear, startMonth - 1, startDay);
         
         // Set both dates to noon to avoid timezone issues
         dateToUse.setHours(12, 0, 0, 0);
         ramadanStartDate.setHours(12, 0, 0, 0);
-        fastingCheckStartDate.setHours(12, 0, 0, 0);
         
         // Calculate difference in days
         const timeDiff = dateToUse - ramadanStartDate;
         const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24)); // +1 because first day is day 1
         
-        // Determine if fasting options should be available (not the pre-fast day)
-        const isFastingAvailable = dateToUse >= fastingCheckStartDate;
-        setIsFastingDayAvailable(isFastingAvailable);
-        
         // Set the current Ramadan day (between 1 and 30)
-        if (dayDiff >= 1 && dayDiff <= 30) {
+        const totalDays = userData?.ramadanLength || 30;
+        if (dayDiff >= 1 && dayDiff <= totalDays) {
           setCurrentRamadanDay(dayDiff);
         } else if (dayDiff < 1) {
           // Before Ramadan started
           setCurrentRamadanDay(1); // Default to day 1
         } else {
           // After Ramadan ended
-          setCurrentRamadanDay(30); // Cap at day 30
+          setCurrentRamadanDay(totalDays); // Cap at configured length
         }
       }
     };
@@ -104,7 +104,11 @@ const FastingCheck = () => {
   useEffect(() => {
     const loadStreak = async () => {
       if (user?.uid) {
-        const { current } = await calculateStreak(user.uid, 'fasting');
+        const ramadanMode = isWithinRamadan(getEffectiveDate());
+        const { current } = await calculateStreak(user.uid, 'fasting', { 
+          ramadanOnly: ramadanMode,
+          baseDate: getEffectiveDate()
+        });
         
         // Only show streak if user is fasting (in current or historical view)
         if (userData?.fasting === true) {
@@ -116,37 +120,41 @@ const FastingCheck = () => {
     };
     
     loadStreak();
-  }, [user, userData?.fasting]);
+  }, [user, userData?.fasting, userData?.isHistoricalView, userData?.historicalDate, isWithinRamadan]);
 
   if (!userData) return null;
+  const effectiveDate = getEffectiveDate();
+  const isRamadanMode = isWithinRamadan ? isWithinRamadan(effectiveDate) : false;
+  const daysInMonth = new Date(effectiveDate.getFullYear(), effectiveDate.getMonth() + 1, 0).getDate();
+  const ramadanLength = userData?.ramadanLength || 30;
+  const progressPercentage = isRamadanMode
+    ? (currentRamadanDay / ramadanLength) * 100
+    : (effectiveDate.getDate() / daysInMonth) * 100;
 
   // Update fasting status with proper streak tracking and date validation
   const handleFastingToggle = async (status) => {
-    // Prevent recording data for dates before Ramadan
-    if (isBeforeRamadanDay) {
-      alert("You cannot record fasting for dates before Ramadan begins.");
-      return;
-    }
-    
-    // Prevent recording fasting data on the first day of Ramadan (pre-fast day)
-    if (!isFastingDayAvailable) {
-      alert("You will fast tomorrow. Today is the first day of Ramadan.");
-      return;
-    }
-    
     try {
       // Update user data in Firebase
       await updateUserData({ fasting: status });
+      setAnimate(true);
+      setTimeout(() => setAnimate(false), 350);
       
       // Record this action in daily history
       await recordDailyAction('fasting', status);
       
       // Update streak data
       if (user?.uid) {
-        await updateStreakData(user.uid, 'fasting', status);
+        const ramadanMode = isWithinRamadan(getEffectiveDate());
+        await updateStreakData(user.uid, 'fasting', status, { 
+          ramadanOnly: ramadanMode,
+          baseDate: getEffectiveDate()
+        });
         
         // Refresh streak display
-        const { current } = await calculateStreak(user.uid, 'fasting');
+        const { current } = await calculateStreak(user.uid, 'fasting', { 
+          ramadanOnly: ramadanMode,
+          baseDate: getEffectiveDate()
+        });
         setStreak(current);
       }
     } catch (error) {
@@ -154,11 +162,8 @@ const FastingCheck = () => {
     }
   };
 
-  // Determine if the component should be disabled
-  const isDisabled = isBeforeRamadanDay || !isFastingDayAvailable;
-
   return (
-    <div className={`fasting-container ${isDisabled ? 'disabled' : ''}`}>
+    <div className={`fasting-container ${animate ? 'pulse' : ''}`}>
       <div className="fasting-header">
         <h3>🧆 Fasting today?</h3>
         {streak > 0 && (
@@ -169,30 +174,16 @@ const FastingCheck = () => {
         )}
       </div>
       
-      {isBeforeRamadanDay && (
-        <div className="pre-ramadan-notice">
-          Cannot record fasting for dates before Ramadan begins.
-        </div>
-      )}
-      
-      {!isBeforeRamadanDay && !isFastingDayAvailable && (
-        <div className="pre-ramadan-notice">
-         Fasting tracker will be availble after first Taraweeh!
-        </div>
-      )}
-      
       <div className="toggle-buttons">
         <button 
           className={`toggle-button ${!userData.fasting ? 'active' : ''}`}
           onClick={() => handleFastingToggle(false)}
-          disabled={isDisabled}
         >
           No
         </button>
         <button 
           className={`toggle-button ${userData.fasting ? 'active' : ''}`}
           onClick={() => handleFastingToggle(true)}
-          disabled={isDisabled}
         >
           Yes
         </button>
@@ -201,7 +192,7 @@ const FastingCheck = () => {
       <div className="progress-bar">
         <div 
           className="progress-fill"
-          style={{ width: `${(currentRamadanDay / 30) * 100}%` }}
+          style={{ width: `${progressPercentage}%` }}
         ></div>
       </div>
       
@@ -209,11 +200,6 @@ const FastingCheck = () => {
         {currentRamadanDay} out of 30
       </div>
        */}
-      {locationStatus === 'error' && (
-        <div className="location-warning">
-          <small>Using estimated Ramadan dates. Enable location for more accuracy.</small>
-        </div>
-      )}
     </div>
   );
 };

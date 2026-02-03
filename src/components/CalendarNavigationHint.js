@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
-import { isBeforeRamadan, getRamadanStartDate, getRamadanEndDate } from '../utils/dateValidation';
+import { isWithinRamadan, getRamadanStartDate, getRamadanEndDate } from '../utils/dateValidation';
 import './CalendarNavigationHint.css';
 
 const CalendarNavigationHint = ({ showCalendar }) => {
@@ -13,9 +13,9 @@ const CalendarNavigationHint = ({ showCalendar }) => {
       return;
     }
 
-    // Show hint if we're before Ramadan
-    const isBefore = isBeforeRamadan(new Date(), userData);
-    setShouldShow(isBefore);
+    // Show hint during Ramadan to encourage focused tracking
+    const isRamadan = isWithinRamadan(new Date(), userData);
+    setShouldShow(isRamadan);
   }, [userData, showCalendar]);
 
   if (!shouldShow) {
@@ -29,11 +29,11 @@ const CalendarNavigationHint = ({ showCalendar }) => {
     <div className="calendar-hint-banner">
       <div className="hint-icon">📅</div>
       <div className="hint-content">
-        <p className="hint-title">Navigate to Ramadan Dates</p>
+        <p className="hint-title">Ramadan Mode Active</p>
         <p className="hint-subtitle">
-          Use the arrows to navigate to <strong>February {startDate.getDate()}</strong> - <strong>March {endDate.getDate()}, {endDate.getFullYear()}</strong>
+          Track daily progress from <strong>February {startDate.getDate()}</strong> - <strong>March {endDate.getDate()}, {endDate.getFullYear()}</strong>
         </p>
-        <p className="hint-help">You can plan ahead and edit your progress for upcoming Ramadan days</p>
+        <p className="hint-help">Your Ramadan streaks replace regular streaks during this month</p>
       </div>
     </div>
   );

@@ -47,7 +47,7 @@ const Login = () => {
       </div>
       
       <p className="login-description">
-Track your prayers, fasts, and reflections during Ramadan. This app will disappear after the month, keeping your focus on what truly matters.
+Track your prayers, fasts, and reflections every day. Ramadan unlocks special streaks and focused insights to help you make the most of the month.
 
 <h4 className='hero-text'>Begin Your Spiritual Journey</h4>
       </p>

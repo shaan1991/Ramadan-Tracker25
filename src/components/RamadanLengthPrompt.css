@@ -1,0 +1,55 @@
+.ramadan-length-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: #fffdf5;
+  border: 1px solid rgba(245, 166, 35, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  margin-bottom: 16px;
+}
+
+.prompt-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prompt-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+}
+
+.prompt-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.prompt-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.prompt-btn {
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.prompt-btn.outline {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #333;
+}
+
+.prompt-btn.solid {
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+}

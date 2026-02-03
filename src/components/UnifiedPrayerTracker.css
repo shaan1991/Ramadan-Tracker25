@@ -100,16 +100,28 @@
   gap: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  user-select: none;
 }
 
 .prayer-card:hover {
   background: #f9f9f9;
   border-color: #e0e0e0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.prayer-card:active {
+  transform: translateY(0px);
 }
 
 .prayer-card.completed {
   background: #f0f8f0;
   border-color: #c0e0c0;
+}
+
+.prayer-card.completed:hover {
+  background: #e8f5e8;
+  box-shadow: 0 4px 8px rgba(0, 100, 0, 0.1);
 }
 
 .prayer-header {
@@ -145,11 +157,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
 }
 
-.prayer-toggle:hover {
-  border-color: #b0b0b0;
-  transform: scale(1.1);
+.prayer-card:hover .prayer-toggle {
+  transform: scale(1.05);
 }
 
 .prayer-toggle.checked {

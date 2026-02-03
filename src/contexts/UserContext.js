@@ -8,7 +8,8 @@ import {
   isWithinRamadan, 
   calculateRamadanDay as calculateDayFromDate,
   getRamadanStartDate,
-  RAMADAN_REGIONS
+  RAMADAN_REGIONS,
+  DEFAULT_RAMADAN_REGION
 } from '../utils/dateValidation';
 
 export const UserContext = createContext();
@@ -110,19 +111,20 @@ export const UserProvider = ({ children }) => {
             
             // Simple mapping of some common timezones to regions
             const regionMap = {
-              // North America, Saudi, etc. (March 1)
-              'America/': 'USA, Saudi Arabia & Others',
-              'Europe/': 'USA, Saudi Arabia & Others',
-              'Asia/Riyadh': 'USA, Saudi Arabia & Others',
+              // Likely start Feb 19 in many calendars
+              'America/': 'Likely start (Expected Feb 19)',
+              'Europe/': 'Likely start (Expected Feb 19)',
+              'Asia/Riyadh': 'Likely start (Expected Feb 19)',
+              'Asia/Dubai': 'Likely start (Expected Feb 19)',
               
-              // India, Pakistan, Bangladesh (March 2)
-              'Asia/Kolkata': 'India, Pakistan, Bangladesh',
-              'Asia/Karachi': 'India, Pakistan, Bangladesh',
-              'Asia/Dhaka': 'India, Pakistan, Bangladesh'
+              // Early sighting possibility
+              'Asia/Kolkata': 'Early sighting (Possible Feb 18)',
+              'Asia/Karachi': 'Early sighting (Possible Feb 18)',
+              'Asia/Dhaka': 'Early sighting (Possible Feb 18)'
             };
             
             // Set region based on timezone prefix match
-            let detectedRegion = 'USA, Saudi Arabia & Others'; // Default
+            let detectedRegion = 'Likely start (Expected Feb 19)'; // Default
             for (const [tzPrefix, region] of Object.entries(regionMap)) {
               if (timezone.startsWith(tzPrefix)) {
                 detectedRegion = region;
@@ -144,11 +146,24 @@ export const UserProvider = ({ children }) => {
           } catch (error) {
             console.warn("Error detecting region:", error);
             // Set default if detection fails
-            data.ramadanRegion = 'USA, Saudi Arabia & Others';
-            data.ramadanStartDate = RAMADAN_REGIONS['USA, Saudi Arabia & Others'];
+            data.ramadanRegion = 'Likely start (Expected Feb 19)';
+            data.ramadanStartDate = RAMADAN_REGIONS['Likely start (Expected Feb 19)'];
           }
         }
         
+        // Auto-correct legacy 2026 dates unless user has manually overridden
+        const legacyDates = new Set(['2026-02-22', '2026-02-23', '2026-02-24']);
+        if (!data.ramadanStartDateOverride && legacyDates.has(data.ramadanStartDate)) {
+          const correctedStart = RAMADAN_REGIONS[DEFAULT_RAMADAN_REGION];
+          await updateDoc(userDocRef, {
+            ramadanRegion: DEFAULT_RAMADAN_REGION,
+            ramadanStartDate: correctedStart,
+            ramadanLength: data.ramadanLength || 30
+          });
+          data.ramadanRegion = DEFAULT_RAMADAN_REGION;
+          data.ramadanStartDate = correctedStart;
+        }
+
         setUserData(data);
         setLastActiveDate(data.lastActiveDate || null);
         
@@ -160,22 +175,23 @@ export const UserProvider = ({ children }) => {
         
         // Try to auto-detect region
         let regionData = {
-          ramadanRegion: 'USA, Saudi Arabia & Others', // Default region
-          ramadanStartDate: RAMADAN_REGIONS['USA, Saudi Arabia & Others']
+          ramadanRegion: DEFAULT_RAMADAN_REGION, // Default region
+          ramadanStartDate: RAMADAN_REGIONS[DEFAULT_RAMADAN_REGION]
         };
         
         try {
           const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
           const regionMap = {
-            // North America, Saudi, etc. (March 1)
-            'America/': 'USA, Saudi Arabia & Others',
-            'Europe/': 'USA, Saudi Arabia & Others',
-            'Asia/Riyadh': 'USA, Saudi Arabia & Others',
+            // Likely start Feb 19 in many calendars
+            'America/': 'Likely start (Expected Feb 19)',
+            'Europe/': 'Likely start (Expected Feb 19)',
+            'Asia/Riyadh': 'Likely start (Expected Feb 19)',
+            'Asia/Dubai': 'Likely start (Expected Feb 19)',
             
-            // India, Pakistan, Bangladesh (March 2)
-            'Asia/Kolkata': 'India, Pakistan, Bangladesh',
-            'Asia/Karachi': 'India, Pakistan, Bangladesh',
-            'Asia/Dhaka': 'India, Pakistan, Bangladesh'
+            // Early sighting possibility
+            'Asia/Kolkata': 'Early sighting (Possible Feb 18)',
+            'Asia/Karachi': 'Early sighting (Possible Feb 18)',
+            'Asia/Dhaka': 'Early sighting (Possible Feb 18)'
           };
           
           for (const [tzPrefix, region] of Object.entries(regionMap)) {
@@ -215,6 +231,9 @@ export const UserProvider = ({ children }) => {
           history: {},
           lastActiveDate: today,
           onboardingCompleted: false,
+          ramadanLength: 30,
+          ramadanLengthConfirmed: false,
+          ramadanStartDateOverride: false,
           duas: [
             'Use this page to add your duas and track them - long press to edit and swipe to delete'
           ],
@@ -307,13 +326,6 @@ export const UserProvider = ({ children }) => {
       try {
         // If we're in historical view and updating data, save to the history object
         if (isHistoricalView && historicalDate) {
-          // Check if this date is before Ramadan - don't allow updates
-          // Use userData for region-aware validation
-          if (isBeforeRamadan(new Date(historicalDate), userData)) {
-            console.warn("Cannot update data for date before Ramadan:", historicalDate);
-            return false;
-          }
-          
           // Update the history object for the specific date
           const historyUpdate = {};
           
@@ -348,53 +360,6 @@ export const UserProvider = ({ children }) => {
           // Normal update for today's data
           const today = formatDate(new Date()); // Use consistent date formatting
           const userDocRef = doc(db, 'users', user.uid);
-          
-          // For current data, check if today is before Ramadan starts (with region awareness)
-          if (isBeforeRamadan(new Date(), userData)) {
-            // Always allow region updates even before Ramadan
-            if (dataToUpdate.ramadanRegion || dataToUpdate.ramadanStartDate) {
-              await updateDoc(userDocRef, {
-                ramadanRegion: dataToUpdate.ramadanRegion,
-                ramadanStartDate: dataToUpdate.ramadanStartDate
-              });
-              
-              setUserData(prevData => {
-                if (!prevData) return prevData; // Safety check
-                return { 
-                  ...prevData, 
-                  ramadanRegion: dataToUpdate.ramadanRegion,
-                  ramadanStartDate: dataToUpdate.ramadanStartDate
-                };
-              });
-              
-              return true;
-            }
-            
-            // Filter out Ramadan tracking data if today is before Ramadan
-            const allowedKeys = ['lastActiveDate', 'onboardingCompleted', 'user', 'duas', 'ramadanRegion', 'ramadanStartDate'];
-            
-            // Filter dataToUpdate to only include allowed keys
-            const filteredUpdates = {};
-            for (const key of allowedKeys) {
-              if (key in dataToUpdate) {
-                filteredUpdates[key] = dataToUpdate[key];
-              }
-            }
-            
-            // If there's nothing left to update, return
-            if (Object.keys(filteredUpdates).length === 0) {
-              console.warn("Cannot update Ramadan data before Ramadan starts");
-              return false;
-            }
-            
-            // Update with only the allowed data
-            await updateDoc(userDocRef, filteredUpdates);
-            setUserData(prevData => {
-              if (!prevData) return prevData; // Safety check
-              return { ...prevData, ...filteredUpdates };
-            });
-            return true;
-          }
           
           // Continue with normal update during Ramadan
           // Also record in history for today
@@ -482,12 +447,6 @@ export const UserProvider = ({ children }) => {
 
     // If we're in historical view, update the historical record
     if (isHistoricalView && historicalDate) {
-      // Don't allow recording data for dates before Ramadan (with region awareness)
-      if (isBeforeRamadan(new Date(historicalDate), userData)) {
-        console.warn("Cannot record data for date before Ramadan:", historicalDate);
-        return false;
-      }
-      
       const historyUpdate = {
         [`history.${historicalDate}.${action}`]: value,
         [`history.${historicalDate}.day`]: calculateDayFromDate(new Date(historicalDate), userData)
@@ -495,15 +454,9 @@ export const UserProvider = ({ children }) => {
       
       return await updateUserData(historyUpdate);
     }
-    
-    // For today, also ensure we're in Ramadan (with region awareness)
-    const today = new Date();
-    if (isBeforeRamadan(today, userData)) {
-      console.warn("Cannot record data - today is before Ramadan");
-      return false;
-    }
-    
+
     // Otherwise update today's record - using consistent date formatting
+    const today = new Date();
     const todayFormatted = formatDate(today);
     const historyUpdate = {
       [`history.${todayFormatted}.${action}`]: value,

@@ -56,9 +56,16 @@ export const runDataMigrations = async (userId) => {
       
       await updateDoc(userDocRef, {
         streaks: {
-          current: 0,
-          longest: 0,
-          lastReadDate: null
+          general: {
+            fasting: { current: 0, best: 0, lastDate: null },
+            taraweeh: { current: 0, best: 0, lastDate: null },
+            quran: { current: 0, best: 0, lastDate: null }
+          },
+          ramadan: {
+            fasting: { current: 0, best: 0, lastDate: null },
+            taraweeh: { current: 0, best: 0, lastDate: null },
+            quran: { current: 0, best: 0, lastDate: null }
+          }
         },
         schemaVersion: 4
       });
@@ -86,7 +93,7 @@ export const initializeUserWithLatestSchema = async (userId, displayName) => {
       const today = formatDate(new Date());
       
       // Calculate Ramadan day
-      const startDate = new Date('2026-02-23'); // Example: Ramadan start date
+      const startDate = new Date('2026-02-19'); // Expected Ramadan start date
       const diffTime = Math.abs(new Date() - startDate);
       const ramadanDay = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       const currentDay = ramadanDay > 30 ? 30 : ramadanDay;
@@ -114,9 +121,16 @@ export const initializeUserWithLatestSchema = async (userId, displayName) => {
         history: {},
         juzHistory: {},
         streaks: {
-          current: 0,
-          longest: 0,
-          lastReadDate: null
+          general: {
+            fasting: { current: 0, best: 0, lastDate: null },
+            taraweeh: { current: 0, best: 0, lastDate: null },
+            quran: { current: 0, best: 0, lastDate: null }
+          },
+          ramadan: {
+            fasting: { current: 0, best: 0, lastDate: null },
+            taraweeh: { current: 0, best: 0, lastDate: null },
+            quran: { current: 0, best: 0, lastDate: null }
+          }
         },
         lastActiveDate: today,
         schemaVersion: 4,

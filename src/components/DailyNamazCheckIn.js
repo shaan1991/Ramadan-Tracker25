@@ -4,7 +4,6 @@ import { useUser } from '../contexts/UserContext';
 import Celebration from './Celebration';
 import './DailyNamazCheckIn.css';
 // Import styles
-import '../styles/preRamadan.css';
 import './Celebration.css';
 
 const DailyNamazCheckIn = () => {
@@ -30,19 +29,10 @@ const DailyNamazCheckIn = () => {
 
   if (!userData) return null;
 
-  // Check if we're viewing a date before Ramadan
-  const isBeforeRamadanDay = userData.beforeRamadan;
-
   // Calculate completed prayers
   const completedCount = Object.values(userData.namaz).filter(Boolean).length;
 
   const handlePrayerToggle = async (prayer) => {
-    // Prevent recording data for dates before Ramadan
-    if (isBeforeRamadanDay) {
-      alert("You cannot record prayers for dates before Ramadan begins.");
-      return;
-    }
-    
     // Create a copy of the current namaz state
     const updatedNamaz = { ...userData.namaz, [prayer]: !userData.namaz[prayer] };
     
@@ -78,14 +68,8 @@ const DailyNamazCheckIn = () => {
   };
 
   return (
-    <div className={`namaz-container ${isBeforeRamadanDay ? 'disabled' : ''}`}>
+    <div className="namaz-container">
       <h3>🤲 Daily Namaz/Salah Check-In</h3>
-      
-      {isBeforeRamadanDay && (
-        <div className="pre-ramadan-notice">
-          Cannot record prayers for dates before Ramadan begins.
-        </div>
-      )}
       
       <div className="prayer-buttons">
         {prayers.map((prayer) => (
@@ -93,7 +77,6 @@ const DailyNamazCheckIn = () => {
             key={prayer.id}
             className={`prayer-button ${userData.namaz[prayer.id] ? 'completed' : ''}`}
             onClick={() => handlePrayerToggle(prayer.id)}
-            disabled={isBeforeRamadanDay}
           >
             {prayer.label}
           </button>

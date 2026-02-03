@@ -1,14 +1,17 @@
 // src/utils/dateValidation.js
 // Utilities for validating dates related to Ramadan with region support
 
-// Default Ramadan dates 
-export const DEFAULT_RAMADAN_START_DATE = new Date('2026-02-23'); // February 23, 2026
-export const DEFAULT_RAMADAN_END_DATE = new Date('2026-03-24');   // March 24, 2026
+// Default Ramadan dates (expected, subject to moon sighting)
+// Many astronomical sources point to first fast on Feb 19, 2026 (if the crescent isn't visible on Feb 17).
+export const DEFAULT_RAMADAN_START_DATE = new Date('2026-02-19'); // February 19, 2026 (expected)
+export const DEFAULT_RAMADAN_END_DATE = new Date('2026-03-20');   // March 20, 2026 (expected end if 30 days)
 
 // Region-specific start dates (exported for use in RegionSelector)
+export const DEFAULT_RAMADAN_REGION = 'Likely start (Expected Feb 19)';
+
 export const RAMADAN_REGIONS = {
-  'USA, Saudi Arabia & Others': '2026-02-23',
-  'India, Pakistan, Bangladesh': '2026-02-24'
+  'Early sighting (Possible Feb 18)': '2026-02-18',
+  'Likely start (Expected Feb 19)': '2026-02-19'
 };
 
 /**
@@ -38,8 +41,9 @@ export const getRamadanStartDate = (userData) => {
  */
 export const getRamadanEndDate = (userData) => {
   const startDate = getRamadanStartDate(userData);
+  const length = userData?.ramadanLength || 30;
   const endDate = new Date(startDate);
-  endDate.setDate(startDate.getDate() + 29); // 30 days of Ramadan (including first day)
+  endDate.setDate(startDate.getDate() + (length - 1)); // 29 or 30 days (including first day)
   return endDate;
 };
 

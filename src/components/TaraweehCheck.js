@@ -3,23 +3,32 @@ import React, { useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { usePrayerTimes } from '../contexts/PrayerTimesContext';
 import { calculateStreak, updateStreakData } from '../services/streakService';
+import { DEFAULT_RAMADAN_START_DATE } from '../utils/dateValidation';
 import './TaraweehCheck.css';
-import '../styles/preRamadan.css';
 
 const TaraweehCheck = () => {
-  const { user, userData, updateUserData, recordDailyAction } = useUser();
+  const { user, userData, updateUserData, recordDailyAction, isWithinRamadan } = useUser();
   const { prayerTimes } = usePrayerTimes();
   const [streak, setStreak] = useState(0);
   const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
+  const [animate, setAnimate] = useState(false);
 
-  // Check if we're viewing a date before Ramadan
-  const isBeforeRamadanDay = userData?.beforeRamadan;
+  const getEffectiveDate = () => {
+    if (userData?.isHistoricalView && userData?.historicalDate) {
+      const [year, month, day] = userData.historicalDate.split('-').map(num => parseInt(num));
+      return new Date(year, month - 1, day);
+    }
+    return new Date();
+  };
   
   // Calculate Ramadan day based on Adhan's date calculation when available
   useEffect(() => {
     const calculateRamadanDay = () => {
-      // Define Ramadan start date
-      const ramadanStartDate = new Date(2026, 1, 23); // February 23, 2026 (month is 0-indexed)
+      // Define Ramadan start date (region-aware when available)
+      const fallbackStart = `${DEFAULT_RAMADAN_START_DATE.getFullYear()}-${String(DEFAULT_RAMADAN_START_DATE.getMonth() + 1).padStart(2, '0')}-${String(DEFAULT_RAMADAN_START_DATE.getDate()).padStart(2, '0')}`;
+      const startString = userData?.ramadanStartDate || fallbackStart;
+      const [startYear, startMonth, startDay] = startString.split('-').map(Number);
+      const ramadanStartDate = new Date(startYear, startMonth - 1, startDay);
       
       let dateToUse;
       
@@ -46,14 +55,15 @@ const TaraweehCheck = () => {
       const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1; // +1 because first day is day 1
       
       // Set the current Ramadan day (between 1 and 30)
-      if (dayDiff >= 1 && dayDiff <= 30) {
+      const totalDays = userData?.ramadanLength || 30;
+      if (dayDiff >= 1 && dayDiff <= totalDays) {
         setCurrentRamadanDay(dayDiff);
       } else if (dayDiff < 1) {
         // Before Ramadan started
         setCurrentRamadanDay(1); // Default to day 1
       } else {
         // After Ramadan ended
-        setCurrentRamadanDay(30); // Cap at day 30
+        setCurrentRamadanDay(totalDays); // Cap at configured length
       }
     };
     
@@ -64,7 +74,11 @@ const TaraweehCheck = () => {
   useEffect(() => {
     const loadStreak = async () => {
       if (user?.uid) {
-        const { current } = await calculateStreak(user.uid, 'taraweeh');
+        const ramadanMode = isWithinRamadan(getEffectiveDate());
+        const { current } = await calculateStreak(user.uid, 'taraweeh', { 
+          ramadanOnly: ramadanMode,
+          baseDate: getEffectiveDate()
+        });
         
         // Only show streak if user prayed taraweeh
         if (userData?.prayedTaraweeh === true) {
@@ -76,31 +90,41 @@ const TaraweehCheck = () => {
     };
     
     loadStreak();
-  }, [user, userData?.prayedTaraweeh]); 
+  }, [user, userData?.prayedTaraweeh, userData?.isHistoricalView, userData?.historicalDate, isWithinRamadan]); 
 
   if (!userData) return null;
+  const effectiveDate = getEffectiveDate();
+  const isRamadanMode = isWithinRamadan ? isWithinRamadan(effectiveDate) : false;
+  const daysInMonth = new Date(effectiveDate.getFullYear(), effectiveDate.getMonth() + 1, 0).getDate();
+  const ramadanLength = userData?.ramadanLength || 30;
+  const progressPercentage = isRamadanMode
+    ? (currentRamadanDay / ramadanLength) * 100
+    : (effectiveDate.getDate() / daysInMonth) * 100;
 
   // Update taraweeh status with proper streak tracking and date validation
   const handleTaraweehToggle = async (status) => {
-    // Prevent recording data for dates before Ramadan
-    if (isBeforeRamadanDay) {
-      alert("You cannot record Taraweeh prayers for dates before Ramadan begins.");
-      return;
-    }
-    
     try {
       // Update user data in Firebase
       await updateUserData({ prayedTaraweeh: status });
+      setAnimate(true);
+      setTimeout(() => setAnimate(false), 350);
       
       // Record this action in daily history
       await recordDailyAction('taraweeh', status);
       
       // Update streak data
       if (user?.uid) {
-        await updateStreakData(user.uid, 'taraweeh', status);
+        const ramadanMode = isWithinRamadan(getEffectiveDate());
+        await updateStreakData(user.uid, 'taraweeh', status, { 
+          ramadanOnly: ramadanMode,
+          baseDate: getEffectiveDate()
+        });
         
         // Refresh streak display
-        const { current } = await calculateStreak(user.uid, 'taraweeh');
+        const { current } = await calculateStreak(user.uid, 'taraweeh', { 
+          ramadanOnly: ramadanMode,
+          baseDate: getEffectiveDate()
+        });
         // Ensure streak shows 1 if taraweeh was prayed today
         setStreak(status ? Math.max(current, 1) : current);
       }
@@ -110,7 +134,7 @@ const TaraweehCheck = () => {
   };
 
   return (
-    <div className={`taraweeh-container ${isBeforeRamadanDay ? 'disabled' : ''}`}>
+    <div className={`taraweeh-container ${animate ? 'pulse' : ''}`}>
       <div className="taraweeh-header">
         <h3>🌙 Prayed Taraweeh Today?</h3>
         {streak > 0 && (
@@ -120,25 +144,16 @@ const TaraweehCheck = () => {
           </div>
         )}
       </div>
-      
-      {isBeforeRamadanDay && (
-        <div className="pre-ramadan-notice">
-          Cannot record Taraweeh prayers for dates before Ramadan begins.
-        </div>
-      )}
-      
       <div className="toggle-buttons">
         <button 
           className={`toggle-button ${!userData.prayedTaraweeh ? 'active' : ''}`}
           onClick={() => handleTaraweehToggle(false)}
-          disabled={isBeforeRamadanDay}
         >
           No
         </button>
         <button 
           className={`toggle-button ${userData.prayedTaraweeh ? 'active' : ''}`}
           onClick={() => handleTaraweehToggle(true)}
-          disabled={isBeforeRamadanDay}
         >
           Yes
         </button>
@@ -147,7 +162,7 @@ const TaraweehCheck = () => {
       <div className="progress-bar">
         <div 
           className="progress-fill"
-          style={{ width: `${(currentRamadanDay / 30) * 100}%` }}
+          style={{ width: `${progressPercentage}%` }}
         ></div>
       </div>
     </div>

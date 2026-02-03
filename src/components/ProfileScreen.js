@@ -3,40 +3,80 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { logOut } from '../services/authService';
+import { getAllStreaks, calculatePrayerStreakFromData } from '../services/streakService';
+import { DEFAULT_RAMADAN_START_DATE, DEFAULT_RAMADAN_REGION, RAMADAN_REGIONS } from '../utils/dateValidation';
 import RegionSelector from './RegionSelector'; // Import the RegionSelector component
 import './ProfileScreen.css';
-import zelle from '../qr-code/zelle.jpeg';
 
 const ProfileScreen = () => {
-  const { user, userData } = useUser(); // Get userData to display current region
+  const { user, userData, isWithinRamadan, updateUserData } = useUser();
   const navigate = useNavigate();
-  const [daysRemaining, setDaysRemaining] = useState(29);
-  const [dataAvailableUntil, setDataAvailableUntil] = useState('');
+  const isRamadanMode = isWithinRamadan ? isWithinRamadan(new Date()) : false;
+  const [streakMode, setStreakMode] = useState(isRamadanMode ? 'ramadan' : 'general');
+  const [customStart, setCustomStart] = useState('');
+  const [customLength, setCustomLength] = useState(30);
+  const [streaks, setStreaks] = useState({
+    quran: { current: 0, best: 0 },
+    fasting: { current: 0, best: 0 },
+    taraweeh: { current: 0, best: 0 },
+    prayers: { current: 0, best: 0 }
+  });
 
   useEffect(() => {
-    // Calculate remaining days of Ramadan
-    const calculateRamadanDays = () => {
-      // Ramadan 2026 is expected to end on March 24
-      const ramadanEndDate = new Date('2026-03-24');
-      const today = new Date();
-      
-      // Calculate difference in days
-      const diffTime = ramadanEndDate - today;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      // Set days remaining (ensure it's not negative)
-      setDaysRemaining(Math.max(0, diffDays));
-      
-      // Calculate data availability (typically a few days after Ramadan)
-      const dataEndDate = new Date('2026-03-25');
-      const dataMonth = dataEndDate.toLocaleString('en-US', { month: 'numeric' });
-      const dataDay = dataEndDate.toLocaleString('en-US', { day: 'numeric' });
-      
-      setDataAvailableUntil(`${dataMonth}/${dataDay}`);
+    if (!userData) return;
+    const defaultStart = RAMADAN_REGIONS[DEFAULT_RAMADAN_REGION] || formatDateString(DEFAULT_RAMADAN_START_DATE);
+    setCustomStart(userData.ramadanStartDate || defaultStart);
+    setCustomLength(userData.ramadanLength || 30);
+  }, [userData]);
+
+  useEffect(() => {
+    if (isRamadanMode) {
+      setStreakMode('ramadan');
+    }
+  }, [isRamadanMode]);
+
+  useEffect(() => {
+    const loadStreaks = async () => {
+      if (!user?.uid) return;
+      const ramadanOnly = streakMode === 'ramadan';
+      const data = await getAllStreaks(user.uid, { ramadanOnly, baseDate: new Date() });
+      const prayerStreak = calculatePrayerStreakFromData(userData, { ramadanOnly, baseDate: new Date() });
+      setStreaks({ ...data, prayers: prayerStreak });
     };
-    
-    calculateRamadanDays();
-  }, []);
+    loadStreaks();
+  }, [user, userData, streakMode]);
+
+  const formatDateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleSaveRamadanDates = async () => {
+    if (!customStart) return;
+    const length = Number(customLength) === 29 ? 29 : 30;
+    await updateUserData({
+      ramadanStartDate: customStart,
+      ramadanLength: length,
+      ramadanLengthConfirmed: length === 29,
+      ramadanStartDateOverride: true,
+      ramadanRegion: 'Custom (Manual)'
+    });
+  };
+
+  const handleResetRamadanDates = async () => {
+    const defaultStart = RAMADAN_REGIONS[DEFAULT_RAMADAN_REGION] || formatDateString(DEFAULT_RAMADAN_START_DATE);
+    await updateUserData({
+      ramadanStartDate: defaultStart,
+      ramadanLength: 30,
+      ramadanLengthConfirmed: false,
+      ramadanStartDateOverride: false,
+      ramadanRegion: DEFAULT_RAMADAN_REGION
+    });
+    setCustomStart(defaultStart);
+    setCustomLength(30);
+  };
 
   const handleSignOut = () => {
     // Show the sign out confirmation dialog
@@ -108,16 +148,94 @@ const ProfileScreen = () => {
     <div className="profile-screen">
       <div className="profile-content">
         <div className="countdown-section">
-          <h2>This App will delete itself after</h2>
-          <div className="days-count">{daysRemaining} days</div>
+          <h2>Year-Round Tracking</h2>
+          <div className="days-count">{isRamadanMode ? 'Ramadan Mode' : 'Daily Mode'}</div>
           <p className="data-availability">
-            Your data will be available only till {dataAvailableUntil}
+            Track your worship every day. Ramadan gets special streaks and focus.
           </p>
         </div>
 
         <div className="links-section">
           {/* Add the RegionSelector component at the top of the links section */}
           <RegionSelector />
+
+          <div className="ramadan-settings-panel">
+            <div className="ramadan-settings-header">
+              <h3>Ramadan Dates</h3>
+              <p>Manually update before Ramadan if needed</p>
+            </div>
+            <div className="ramadan-settings-grid">
+              <label className="ramadan-settings-field">
+                <span>Start date</span>
+                <input
+                  type="date"
+                  value={customStart}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                />
+              </label>
+              <label className="ramadan-settings-field">
+                <span>Length (days)</span>
+                <select
+                  value={customLength}
+                  onChange={(e) => setCustomLength(Number(e.target.value))}
+                >
+                  <option value={29}>29</option>
+                  <option value={30}>30</option>
+                </select>
+              </label>
+            </div>
+            <div className="ramadan-settings-actions">
+              <button className="ramadan-btn outline" onClick={handleResetRamadanDates}>
+                Reset to expected
+              </button>
+              <button className="ramadan-btn solid" onClick={handleSaveRamadanDates}>
+                Save dates
+              </button>
+            </div>
+          </div>
+
+          <div className="streaks-panel">
+            <div className="streaks-header">
+              <h3>Streaks</h3>
+              <div className="streaks-toggle">
+                <button
+                  className={`toggle-btn ${streakMode === 'general' ? 'active' : ''}`}
+                  onClick={() => setStreakMode('general')}
+                >
+                  Daily
+                </button>
+                <button
+                  className={`toggle-btn ${streakMode === 'ramadan' ? 'active' : ''}`}
+                  onClick={() => setStreakMode('ramadan')}
+                >
+                  Ramadan
+                </button>
+              </div>
+            </div>
+
+            <div className="streaks-grid">
+              <div className="streak-card">
+                <div className="streak-icon">🙌</div>
+                <div className="streak-label">Prayers</div>
+                <div className="streak-value">{streaks.prayers.current} days</div>
+              </div>
+              <div className="streak-card">
+                <div className="streak-icon">📖</div>
+                <div className="streak-label">Qur'an</div>
+                <div className="streak-value">{streaks.quran.current} days</div>
+              </div>
+              <div className="streak-card">
+                <div className="streak-icon">🌙</div>
+                <div className="streak-label">Fasting</div>
+                <div className="streak-value">{streaks.fasting.current} days</div>
+              </div>
+              <div className="streak-card">
+                <div className="streak-icon">🕌</div>
+                <div className="streak-label">Taraweeh</div>
+                <div className="streak-value">{streaks.taraweeh.current} days</div>
+              </div>
+            </div>
+          </div>
           
           <button className="profile-link" onClick={handleQiblaFinder}>
             <span className="link-icon">🧭</span> Qibla Finder

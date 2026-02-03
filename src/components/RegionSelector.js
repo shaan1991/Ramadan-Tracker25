@@ -1,13 +1,8 @@
 // src/components/RegionSelector.js
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
+import { RAMADAN_REGIONS } from '../utils/dateValidation';
 import './RegionSelector.css';
-
-// Define region groups with their Ramadan start dates
-export const RAMADAN_REGIONS = {
-  'USA, Saudi Arabia & Others': '2026-02-23',
-  'India, Pakistan, Bangladesh, Malaysia & Others': '2026-02-24'
-};
 
 const RegionSelector = () => {
   const { userData, updateUserData } = useUser();
@@ -17,7 +12,7 @@ const RegionSelector = () => {
   // Load the user's selected region when component mounts
   useEffect(() => {
     if (userData) {
-      setSelectedRegion(userData.ramadanRegion || 'USA, Saudi Arabia & Others'); // Default
+      setSelectedRegion(userData.ramadanRegion || 'Likely start (Expected Feb 19)'); // Default
     }
   }, [userData]);
 

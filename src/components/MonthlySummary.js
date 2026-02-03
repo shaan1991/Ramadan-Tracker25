@@ -1,13 +1,11 @@
 // src/components/MonthlySummary.js (Simplified version)
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
-import { getMonthlyJuzReport } from '../services/historyTracker';
 import { getAllStreaks, getBestStreak } from '../services/streakService';
-import { isWithinRamadan } from '../utils/dateValidation';
 import './MonthlySummary.css';
 
 const MonthlySummary = () => {
-  const { user, userData } = useUser();
+  const { user, userData, isWithinRamadan } = useUser();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [streaks, setStreaks] = useState({
@@ -26,26 +24,50 @@ const MonthlySummary = () => {
       setLoading(true);
       
       try {
-        // Load Quran progress report
-        const monthReport = await getMonthlyJuzReport(user.uid);
-        setReport(monthReport);
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         
-        // Load streak information for all activities
-        const allStreaks = await getAllStreaks(user.uid);
+        // Determine whether to show Ramadan-only streaks
+        const ramadanMode = isWithinRamadan ? isWithinRamadan(now) : false;
+        
+        // Load streak information for all activities (Ramadan-only during Ramadan)
+        const allStreaks = await getAllStreaks(user.uid, { 
+          ramadanOnly: ramadanMode,
+          baseDate: now
+        });
         setStreaks(allStreaks);
         
         // Get best streak across all activities
-        const best = await getBestStreak(user.uid);
+        const best = await getBestStreak(user.uid, { 
+          ramadanOnly: ramadanMode,
+          baseDate: now
+        });
         setBestStreak(best);
         
-        // Calculate active days (days with any activity)
-        if (userData && userData.history) {
-          // Only count days that are within Ramadan
-          const validDates = Object.keys(userData.history).filter(dateString => {
+        // Calculate active days and Quran progress for the current month
+        if (userData) {
+          const historyDates = userData.history ? Object.keys(userData.history) : [];
+          const validDates = historyDates.filter(dateString => {
             const date = new Date(dateString);
-            return isWithinRamadan(date);
+            return date >= monthStart && date <= monthEnd;
           });
           setActiveDays(validDates.length);
+          
+          // Calculate monthly Quran progress from juzHistory if available
+          const juzHistory = userData.juzHistory || {};
+          const monthlyJuzs = new Set();
+          Object.keys(juzHistory).forEach(dateString => {
+            const date = new Date(dateString);
+            if (date >= monthStart && date <= monthEnd) {
+              (juzHistory[dateString] || []).forEach(juz => monthlyJuzs.add(juz));
+            }
+          });
+          
+          setReport({
+            totalCompleted: monthlyJuzs.size,
+            completedJuzs: Array.from(monthlyJuzs)
+          });
         }
         
         setLoading(false);
@@ -63,7 +85,7 @@ const MonthlySummary = () => {
     }, 60000); // Refresh every minute
     
     return () => clearInterval(intervalId);
-  }, [user, userData]);
+  }, [user, userData, isWithinRamadan]);
   
   if (loading) {
     return (
