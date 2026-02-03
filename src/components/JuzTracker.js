@@ -6,7 +6,7 @@ import { calculateStreak, updateStreakData } from '../services/streakService';
 import './JuzTracker.css';
 
 const JuzTracker = () => {
-  const { user, userData, updateUserData, recordDailyAction, isWithinRamadan } = useUser();
+  const { user, userData, updateUserData, isWithinRamadan } = useUser();
   const [completedJuzs, setCompletedJuzs] = useState([]);
   const [advancedMode, setAdvancedMode] = useState(false);
   const [selectedJuz, setSelectedJuz] = useState(null);
@@ -92,7 +92,6 @@ const JuzTracker = () => {
       // Use the specialized history tracking service
       if (user?.uid && addedJuz) {
         await trackJuzProgress(user.uid, addedJuz, true);
-        await recordDailyAction('juzReadToday', addedJuz);
       } else if (user?.uid && removedJuz) {
         await trackJuzProgress(user.uid, removedJuz, false);
       }
@@ -170,11 +169,6 @@ const JuzTracker = () => {
           total: totalJuzs 
         }
       });
-      
-      // Record TODAY's specific progress in daily history
-      if (willBeCompleted) {
-        await recordDailyAction('juzReadToday', selectedJuz);
-      }
       
       // Update streak data
       if (user?.uid) {

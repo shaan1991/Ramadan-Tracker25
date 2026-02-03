@@ -123,13 +123,14 @@ const Home = () => {
       const timeDiff = historicalDate - ramadanStartDate;
       const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1;
       
+      const totalDays = userData?.ramadanLength || 30;
       // Update the day based on historical date
-      if (dayDiff >= 1 && dayDiff <= 30) {
+      if (dayDiff >= 1 && dayDiff <= totalDays) {
         setCurrentRamadanDay(dayDiff);
       } else if (dayDiff < 1) {
         setCurrentRamadanDay(0);
       } else {
-        setCurrentRamadanDay(30);
+        setCurrentRamadanDay(totalDays);
       }
     }
   }, [userData?.historicalDate, userData?.isHistoricalView]);

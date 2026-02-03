@@ -8,7 +8,7 @@ import './UnifiedPrayerTracker.css';
 import './Celebration.css';
 
 const UnifiedPrayerTracker = () => {
-  const { user, userData, updateUserData, recordDailyAction, isWithinRamadan } = useUser();
+  const { user, userData, updateUserData, isWithinRamadan } = useUser();
   const [todayKhushu, setTodayKhushu] = useState({});
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedPrayer, setSelectedPrayer] = useState(null);
@@ -116,8 +116,6 @@ const UnifiedPrayerTracker = () => {
       }
     });
     
-    // Record action in history
-    await recordDailyAction(`prayer_${prayerLower}`, updatedNamaz[prayerLower]);
   };
 
   // Handle khushu rating

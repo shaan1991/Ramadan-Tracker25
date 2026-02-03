@@ -7,7 +7,7 @@ import { DEFAULT_RAMADAN_START_DATE } from '../utils/dateValidation';
 import './TaraweehCheck.css';
 
 const TaraweehCheck = () => {
-  const { user, userData, updateUserData, recordDailyAction, isWithinRamadan } = useUser();
+  const { user, userData, updateUserData, isWithinRamadan } = useUser();
   const { prayerTimes } = usePrayerTimes();
   const [streak, setStreak] = useState(0);
   const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
@@ -108,9 +108,6 @@ const TaraweehCheck = () => {
       await updateUserData({ prayedTaraweeh: status });
       setAnimate(true);
       setTimeout(() => setAnimate(false), 350);
-      
-      // Record this action in daily history
-      await recordDailyAction('taraweeh', status);
       
       // Update streak data
       if (user?.uid) {

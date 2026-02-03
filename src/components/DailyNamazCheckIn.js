@@ -7,7 +7,7 @@ import './DailyNamazCheckIn.css';
 import './Celebration.css';
 
 const DailyNamazCheckIn = () => {
-  const { userData, updateUserData, recordDailyAction } = useUser();
+  const { userData, updateUserData } = useUser();
   const [showCelebration, setShowCelebration] = useState(false);
   const [prevCompletedCount, setPrevCompletedCount] = useState(0);
 
@@ -48,8 +48,6 @@ const DailyNamazCheckIn = () => {
       }
     });
     
-    // Record this action in history
-    await recordDailyAction(`prayer_${prayer}`, updatedNamaz[prayer]);
   };
 
   const prayers = [

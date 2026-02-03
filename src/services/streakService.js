@@ -249,7 +249,8 @@ export const calculateStreak = async (userId, activityType, options = {}) => {
       
       // Cap streaks at the number of days passed in Ramadan
       currentStreak = Math.min(currentStreak, daysSinceRamadanStart);
-      bestStreak = Math.min(bestStreak, 30); // Maximum 30 days for Ramadan
+      const ramadanLength = userData?.ramadanLength || 30;
+      bestStreak = Math.min(bestStreak, ramadanLength);
     }
     
   return { current: currentStreak, best: bestStreak };

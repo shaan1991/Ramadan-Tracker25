@@ -7,7 +7,7 @@ import { DEFAULT_RAMADAN_START_DATE } from '../utils/dateValidation';
 import './FastingCheck.css';
 
 const FastingCheck = () => {
-  const { user, userData, updateUserData, recordDailyAction, isWithinRamadan } = useUser();
+  const { user, userData, updateUserData, isWithinRamadan } = useUser();
   const { prayerTimes } = usePrayerTimes();
   const [streak, setStreak] = useState(0);
   const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
@@ -138,9 +138,6 @@ const FastingCheck = () => {
       await updateUserData({ fasting: status });
       setAnimate(true);
       setTimeout(() => setAnimate(false), 350);
-      
-      // Record this action in daily history
-      await recordDailyAction('fasting', status);
       
       // Update streak data
       if (user?.uid) {
