@@ -42,34 +42,50 @@
   color: #FF9800;
 }
 
-.toggle-buttons {
+.pill-toggle {
+  position: relative;
   display: flex;
-  justify-content: center;
-  gap: 10px;
+  align-items: center;
+  background: #f3f3f3;
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
   margin: 16px 0;
+  overflow: hidden;
 }
 
-.toggle-button {
+.pill-slider {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: #000;
+  border-radius: 999px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 0;
+}
+
+.pill-toggle.is-yes .pill-slider {
+  transform: translateX(100%);
+}
+
+.pill-option {
   flex: 1;
   border: none;
-  background-color: #f5f5f5;
+  background: transparent;
   color: #555;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 10px 0;
+  border-radius: 999px;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  max-width: 120px;
+  transition: color 0.2s ease;
+  z-index: 1;
 }
 
-.toggle-button:hover {
-  background-color: #e8e8e8;
-}
-
-.toggle-button.active {
-  background-color: #000;
-  color: white;
+.pill-option.active {
+  color: #fff;
 }
 
 .progress-bar {

@@ -174,15 +174,16 @@ const FastingCheck = () => {
         )}
       </div>
       
-      <div className="toggle-buttons">
+      <div className={`pill-toggle ${userData.fasting ? 'is-yes' : 'is-no'}`}>
+        <div className="pill-slider" />
         <button 
-          className={`toggle-button ${!userData.fasting ? 'active' : ''}`}
+          className={`pill-option ${!userData.fasting ? 'active' : ''}`}
           onClick={() => handleFastingToggle(false)}
         >
           No
         </button>
         <button 
-          className={`toggle-button ${userData.fasting ? 'active' : ''}`}
+          className={`pill-option ${userData.fasting ? 'active' : ''}`}
           onClick={() => handleFastingToggle(true)}
         >
           Yes

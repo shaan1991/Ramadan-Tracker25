@@ -144,15 +144,16 @@ const TaraweehCheck = () => {
           </div>
         )}
       </div>
-      <div className="toggle-buttons">
+      <div className={`pill-toggle ${userData.prayedTaraweeh ? 'is-yes' : 'is-no'}`}>
+        <div className="pill-slider" />
         <button 
-          className={`toggle-button ${!userData.prayedTaraweeh ? 'active' : ''}`}
+          className={`pill-option ${!userData.prayedTaraweeh ? 'active' : ''}`}
           onClick={() => handleTaraweehToggle(false)}
         >
           No
         </button>
         <button 
-          className={`toggle-button ${userData.prayedTaraweeh ? 'active' : ''}`}
+          className={`pill-option ${userData.prayedTaraweeh ? 'active' : ''}`}
           onClick={() => handleTaraweehToggle(true)}
         >
           Yes

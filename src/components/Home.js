@@ -343,26 +343,48 @@ const Home = () => {
         </div>
       )}
 
-      <DailyOverview />
+      <div className="elastic-expand">
+        <DailyOverview />
+      </div>
       {/* <ShareButton />  Add this line */}
 
       {/* Add the Monthly Summary component for progress stats */}
-      {!isHistoricalView && <MonthlySummary />}
+      {!isHistoricalView && (
+        <div className="elastic-expand">
+          <MonthlySummary />
+        </div>
+      )}
 
       {/* NEW FEATURES - 2026 Enhancements */}
-      {!isHistoricalView && <Achievements />}
+      {!isHistoricalView && (
+        <div className="elastic-expand">
+          <Achievements />
+        </div>
+      )}
 
       {/* Unified Prayer Tracker - combines both completion and focus (Khushu) */}
-      <UnifiedPrayerTracker />
-      <FastingCheck />
-      <TaraweehCheck />
-      <JuzTracker />
+      <div className="elastic-expand">
+        <UnifiedPrayerTracker />
+      </div>
+      <div className="elastic-expand">
+        <FastingCheck />
+      </div>
+      <div className="elastic-expand">
+        <TaraweehCheck />
+      </div>
+      <div className="elastic-expand">
+        <JuzTracker />
+      </div>
 
       {/* Sunnah of the Day */}
-      <RandomSunnahSuggestion currentRamadanDay={currentRamadanDay} />
+      <div className="elastic-expand">
+        <RandomSunnahSuggestion currentRamadanDay={currentRamadanDay} />
+      </div>
 
       {/* Replace the quote container with Hadith of the Day */}
-      <HadithOfTheDay />
+      <div className="elastic-expand">
+        <HadithOfTheDay />
+      </div>
 
       <div className="dua-request">
         <p>I request you to include me and my family in your Dua's</p>
