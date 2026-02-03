@@ -273,21 +273,39 @@ dialog {
 
 /* Ramadan settings panel */
 .ramadan-settings-panel {
-  background: #ffffff;
-  border: 1px solid #eee;
+  background: linear-gradient(135deg, #ffffff 0%, #f7f4ee 100%);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.ramadan-settings-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ramadan-settings-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #111;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
 }
 
 .ramadan-settings-header h3 {
-  margin: 0 0 4px 0;
+  margin: 0;
   font-size: 16px;
   font-weight: 600;
 }
 
 .ramadan-settings-header p {
-  margin: 0;
+  margin: 2px 0 0 0;
   font-size: 12px;
   color: #666;
 }
@@ -310,9 +328,19 @@ dialog {
 .ramadan-settings-field input,
 .ramadan-settings-field select {
   padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #f7f7f7;
   font-size: 13px;
+  transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.ramadan-settings-field input:focus,
+.ramadan-settings-field select:focus {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+  background: #fff;
 }
 
 .ramadan-settings-actions {
@@ -326,6 +354,12 @@ dialog {
   padding: 8px 12px;
   font-size: 12px;
   cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ramadan-btn:active {
+  transform: scale(0.98);
 }
 
 .ramadan-btn.outline {
@@ -338,6 +372,7 @@ dialog {
   border: 1px solid #111;
   background: #111;
   color: #fff;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
 }
 
 .cancel-button, .confirm-button {

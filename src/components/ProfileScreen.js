@@ -161,8 +161,13 @@ const ProfileScreen = ({ onNavigate }) => {
 
           <div className="ramadan-settings-panel">
             <div className="ramadan-settings-header">
-              <h3>Ramadan Dates</h3>
-              <p>Manually update before Ramadan if needed</p>
+              <div className="ramadan-settings-title">
+                <span className="ramadan-settings-icon">🌙</span>
+                <div>
+                  <h3>Ramadan Dates</h3>
+                  <p>Manually update before Ramadan if needed</p>
+                </div>
+              </div>
             </div>
             <div className="ramadan-settings-grid">
               <label className="ramadan-settings-field">
