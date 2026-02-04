@@ -352,6 +352,95 @@ dialog {
   flex-wrap: wrap;
 }
 
+/* PWA install panel */
+.pwa-install-panel {
+  background: linear-gradient(135deg, #ffffff 0%, #f3f5f8 100%);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pwa-install-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pwa-install-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #111;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.pwa-install-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pwa-install-header p {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.pwa-install-button {
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  align-self: flex-start;
+}
+
+.pwa-install-button:active {
+  transform: scale(0.98);
+}
+
+.pwa-install-badge {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.08);
+  color: #111;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.pwa-install-panel.installed .pwa-install-icon {
+  background: #1b5e20;
+}
+
+.pwa-install-panel.installed .pwa-install-badge {
+  background: rgba(27, 94, 32, 0.12);
+  color: #1b5e20;
+}
+
+.pwa-install-hint {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+}
+
 .ramadan-btn {
   border-radius: 999px;
   padding: 8px 12px;

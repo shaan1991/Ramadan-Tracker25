@@ -21,6 +21,10 @@ const ProfileScreen = ({ onNavigate }) => {
   });
   const [ramadanSaveStatus, setRamadanSaveStatus] = useState('idle');
   const [ramadanSaveMessage, setRamadanSaveMessage] = useState('');
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [canInstall, setCanInstall] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [showIosHint, setShowIosHint] = useState(false);
 
   useEffect(() => {
     if (!userData) return;
@@ -28,6 +32,37 @@ const ProfileScreen = ({ onNavigate }) => {
     setCustomStart(userData.ramadanStartDate || defaultStart);
     setCustomLength(userData.ramadanLength || 30);
   }, [userData]);
+
+  useEffect(() => {
+    const isStandaloneMode =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+    setIsStandalone(isStandaloneMode);
+
+    const isIosDevice = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    setShowIosHint(isIosDevice && !isStandaloneMode);
+
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+      setCanInstall(true);
+    };
+
+    const handleAppInstalled = () => {
+      setCanInstall(false);
+      setInstallPrompt(null);
+      setIsStandalone(true);
+      setShowIosHint(false);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
 
   useEffect(() => {
     if (isRamadanMode) {
@@ -148,6 +183,17 @@ const ProfileScreen = ({ onNavigate }) => {
       navigator.clipboard.writeText(message).then(() => {
         alert('Invite message copied to clipboard! You can now share on WhatsApp or other platforms.');
       });
+    }
+  };
+
+  const handleInstallApp = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    try {
+      await installPrompt.userChoice;
+    } finally {
+      setInstallPrompt(null);
+      setCanInstall(false);
     }
   };
   
@@ -299,6 +345,34 @@ const ProfileScreen = ({ onNavigate }) => {
           <button className="profile-link signout" onClick={handleSignOut}>
             <span className="link-icon">🚪</span> Sign out
           </button>
+
+          <div className={`pwa-install-panel ${isStandalone ? 'installed' : ''}`}>
+            <div className="pwa-install-header">
+              <span className="pwa-install-icon">⬇️</span>
+              <div>
+                <h3>
+                  Install the App
+                  {isStandalone && <span className="pwa-install-badge">Installed</span>}
+                </h3>
+                <p>Get quick access and a smoother experience.</p>
+              </div>
+            </div>
+            {canInstall && !isStandalone && (
+              <button className="pwa-install-button" onClick={handleInstallApp}>
+                Install on this device
+              </button>
+            )}
+            {!canInstall && !isStandalone && showIosHint && (
+              <p className="pwa-install-hint">
+                On iPhone or iPad, tap Share and choose Add to Home Screen.
+              </p>
+            )}
+            {!canInstall && !isStandalone && !showIosHint && (
+              <p className="pwa-install-hint">
+                Install is available in supported browsers after a few visits.
+              </p>
+            )}
+          </div>
         </div>
       </div>
       
