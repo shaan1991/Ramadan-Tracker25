@@ -400,13 +400,23 @@ export const UserProvider = ({ children }) => {
     }
     
     // If we're just updating view state, update the local context data
+    const nextIsHistoricalView = newData.hasOwnProperty('isHistoricalView')
+      ? newData.isHistoricalView
+      : isHistoricalView;
+    const nextHistoricalDate = newData.hasOwnProperty('historicalDate')
+      ? newData.historicalDate
+      : historicalDate;
+    const nextCurrentViewData = newData.hasOwnProperty('currentViewData')
+      ? newData.currentViewData
+      : currentViewData;
+
     setUserData(prevData => {
       if (!prevData) return prevData; // Safety check
       return {
         ...prevData,
-        isHistoricalView,
-        historicalDate,
-        currentViewData
+        isHistoricalView: nextIsHistoricalView,
+        historicalDate: nextHistoricalDate,
+        currentViewData: nextCurrentViewData
       };
     });
     

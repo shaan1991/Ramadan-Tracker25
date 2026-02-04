@@ -6,6 +6,7 @@ import './MonthlySummary.css';
 
 const MonthlySummary = () => {
   const { user, userData, isWithinRamadan } = useUser();
+  const [collapsed, setCollapsed] = useState(true);
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [streaks, setStreaks] = useState({
@@ -95,8 +96,70 @@ const MonthlySummary = () => {
     );
   }
   
+  const isRamadan = isWithinRamadan ? isWithinRamadan(new Date()) : false;
+
   return (
     <div className="monthly-summary">
+      <div className="summary-header">
+        <div>
+          <div className="summary-title">Day At a Glance</div>
+          <div className="summary-subtitle">Today&apos;s snapshot</div>
+        </div>
+      </div>
+
+      <div className="daily-glance-grid">
+        <div className="daily-glance-item">
+          <div className="daily-icon-bg green">
+            <span className="daily-icon">🙌</span>
+          </div>
+          <div className="daily-label">Salah</div>
+          <div className="daily-value">{userData.salah.completed}/{userData.salah.total}</div>
+        </div>
+
+        <div className="daily-glance-item">
+          <div className="daily-icon-bg blue">
+            <span className="daily-icon">🍉</span>
+          </div>
+          <div className="daily-label">Roza/Fast</div>
+          <div className="daily-value">{userData.fasting ? 'Yes' : 'No'}</div>
+        </div>
+
+        {isRamadan && (
+          <div className="daily-glance-item">
+            <div className="daily-icon-bg yellow">
+              <span className="daily-icon">🌙</span>
+            </div>
+            <div className="daily-label">Taraweeh</div>
+            <div className="daily-value">{userData.prayedTaraweeh ? 'Yes' : 'No'}</div>
+          </div>
+        )}
+
+        <div className="daily-glance-item">
+          <div className="daily-icon-bg gray">
+            <span className="daily-icon">📖</span>
+          </div>
+          <div className="daily-label">Quran</div>
+          <div className="daily-value">{userData.quran.completed}/{userData.quran.total}</div>
+        </div>
+      </div>
+
+      <div className="summary-divider" />
+
+      <div className="summary-header">
+        <div>
+          <div className="summary-title">Monthly Summary</div>
+          <div className="summary-subtitle">Quick stats for this month</div>
+        </div>
+        <button
+          className={`summary-toggle ${collapsed ? '' : 'open'}`}
+          onClick={() => setCollapsed(!collapsed)}
+          aria-expanded={!collapsed}
+        >
+          {collapsed ? 'Show details' : 'Hide details'}
+          <span className="summary-chevron">›</span>
+        </button>
+      </div>
+
       {/* Streak summary row */}
       <div className="streak-summary">
         <div className="streak-category">
@@ -115,30 +178,33 @@ const MonthlySummary = () => {
           </div>
         </div>
         
-        <div className="streak-category">
-          <div className="streak-icon">🕌</div>
-          <div className="streak-info">
-            <div className="streak-label">Taraweeh</div>
-            <div className="streak-value">{streaks.taraweeh.current} days</div>
+        {isRamadan && (
+          <div className="streak-category">
+            <div className="streak-icon">🕌</div>
+            <div className="streak-info">
+              <div className="streak-label">Taraweeh</div>
+              <div className="streak-value">{streaks.taraweeh.current} days</div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       
-      {/* Stats boxes */}
-      <div className="summary-stats">
-        <div className="stat-box">
-          <div className="stat-value">{report?.totalCompleted || 0}</div>
-          <div className="stat-label">Juz Completed</div>
-        </div>
-        
-        <div className="stat-box">
-          <div className="stat-value">{bestStreak}</div>
-          <div className="stat-label">Best Streak</div>
-        </div>
-        
-        <div className="stat-box">
-          <div className="stat-value">{activeDays}</div>
-          <div className="stat-label">Active Days</div>
+      <div className={`summary-collapsible ${collapsed ? '' : 'open'}`}>
+        <div className="summary-stats">
+          <div className="stat-box">
+            <div className="stat-value">{report?.totalCompleted || 0}</div>
+            <div className="stat-label">Juz Completed</div>
+          </div>
+          
+          <div className="stat-box">
+            <div className="stat-value">{bestStreak}</div>
+            <div className="stat-label">Best Streak</div>
+          </div>
+          
+          <div className="stat-box">
+            <div className="stat-value">{activeDays}</div>
+            <div className="stat-label">Active Days</div>
+          </div>
         </div>
       </div>
     </div>

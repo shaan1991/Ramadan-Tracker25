@@ -9,25 +9,36 @@ const Onboarding = ({ onComplete }) => {
   
   const pages = [
     {
-      title: "Welcome to Ramadan Tracker",
-      description: "Your companion for a blessed month of Ramadan",
+      title: "Welcome to Your Daily Tracker",
+      description: "Built for everyday worship, with a special Ramadan focus.",
       icon: "🌙",
       features: [
-        { icon: "🙌", text: "Track your daily prayers" },
-        { icon: "🍉", text: "Monitor your fasting" },
-        { icon: "📖", text: "Record Quran reading progress" },
-        { icon: "🕌", text: "Keep track of Taraweeh prayers" }
+        { icon: "🤲", text: "Prayer tracking with focus (Khushu) rating" },
+        { icon: "🍉", text: "Fasting and Taraweeh toggles with streaks" },
+        { icon: "📖", text: "Qur'an Juz progress and daily totals" },
+        { icon: "📅", text: "Calendar to backfill missed days" }
       ]
     },
     {
-      title: "Features at a Glance",
-      description: "Everything you need for your Ramadan journey",
+      title: "Daily Inspiration",
+      description: "Small guidance that keeps you grounded each day.",
       icon: "✨",
       features: [
-        { icon: "📿", text: "Digital tasbeeh counter" },
-        { icon: "🔥", text: "Build streaks with consistent worship" },
-        { icon: "📝", text: "Record personal duas" },
-        { icon: "🕋", text: "Qibla Finder and More" }
+        { icon: "🌿", text: "Suggested Sunnah of the day with completion" },
+        { icon: "🕌", text: "Hadith of the day for reflection" },
+        { icon: "🔥", text: "Achievements for milestones and consistency" },
+        { icon: "📿", text: "Tasbeeh counter for dhikr" }
+      ]
+    },
+    {
+      title: "Personalize Your Ramadan",
+      description: "Keep dates accurate and streaks meaningful.",
+      icon: "🧭",
+      features: [
+        { icon: "🗓️", text: "Ramadan countdown + length (29/30)" },
+        { icon: "📍", text: "Region‑based dates with manual override" },
+        { icon: "📝", text: "Save personal duas" },
+        { icon: "✨", text: "Separate Ramadan vs everyday achievements" }
       ]
     }
   ];

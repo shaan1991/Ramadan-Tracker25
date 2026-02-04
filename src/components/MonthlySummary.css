@@ -6,6 +6,109 @@
     margin: 16px 0;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   }
+
+.daily-glance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+  align-items: stretch;
+}
+
+.daily-glance-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 0;
+}
+
+.daily-icon-bg {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.daily-icon-bg.green { background-color: #e6f7e6; }
+.daily-icon-bg.blue { background-color: #e6f0f7; }
+.daily-icon-bg.yellow { background-color: #fff9e6; }
+.daily-icon-bg.gray { background-color: #f0f0f0; }
+
+.daily-icon {
+  font-size: 18px;
+}
+
+.daily-label {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.2;
+}
+
+.daily-value {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.2;
+}
+
+.summary-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 16px 0;
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.summary-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+}
+
+.summary-subtitle {
+  font-size: 12px;
+  color: #777;
+}
+
+.summary-toggle {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  color: #222;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-toggle:active {
+  transform: scale(0.98);
+}
+
+.summary-chevron {
+  display: inline-block;
+  transform: rotate(90deg);
+  transition: transform 0.2s ease;
+}
+
+.summary-toggle.open .summary-chevron {
+  transform: rotate(270deg);
+}
   
   .monthly-summary h3 {
     font-size: 22px;
@@ -74,7 +177,7 @@
   }
   
   /* Streak Summary */
-  .streak-summary {
+.streak-summary {
     display: flex;
     justify-content: space-between;
     margin: 20px 0;
@@ -109,11 +212,28 @@
   }
   
   /* Stats Boxes */
-  .summary-stats {
+.summary-stats {
     display: flex;
     justify-content: space-between;
     margin: 24px 0;
   }
+
+.summary-collapsible {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.99);
+  overflow: hidden;
+  transition:
+    max-height 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.25s ease,
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.summary-collapsible.open {
+  max-height: 260px;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
   
   .stat-box {
     flex: 1;

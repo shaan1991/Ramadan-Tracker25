@@ -188,26 +188,6 @@
 }
 
 /* Historical view banner */
-.historical-banner {
-  background-color: #e3f2fd;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.return-to-today {
-  background-color: #2196f3;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  cursor: pointer;
-}
-
-
 /* Loading state */
 .loading-container {
   display: flex;
@@ -307,23 +287,30 @@
 }
 
 .historical-banner {
-  background-color: #e8f4fd;
-  padding: 10px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  text-align: center;
+  background: linear-gradient(135deg, #ffffff 0%, #eef5ff 100%);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .return-to-today {
-  background-color: #3498db;
-  color: white;
+  background: #111;
+  color: #fff;
   border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 14px;
-  margin: 0 auto;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.return-to-today:active {
+  transform: scale(0.98);
 }

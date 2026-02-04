@@ -7,7 +7,6 @@ import './Home.css';
 
 // Components
 import Calendar from './Calendar';
-import DailyOverview from './DailyOverview';
 import DailyNamazCheckIn from './DailyNamazCheckIn';
 import FastingCheck from './FastingCheck';
 import TaraweehCheck from './TaraweehCheck';
@@ -318,24 +317,29 @@ const Home = () => {
       )}
 
       {/* Calendar (shown/hidden based on state) */}
-      {showCalendar && (
-        <Calendar 
-          onDateSelect={handleDateSelect} 
-          onClose={handleCloseCalendar} 
-        />
-      )}
+      <div className={`elastic-collapse ${showCalendar ? 'open' : ''}`}>
+        {showCalendar && (
+          <Calendar 
+            onDateSelect={handleDateSelect} 
+            onClose={handleCloseCalendar} 
+          />
+        )}
+      </div>
       
       {isHistoricalView && (
         <div className="historical-banner">
-          Viewing data for {dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+          <div>
+            Viewing data for {dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+          </div>
           <button 
-            onClick={() => {
-              updateUserData({
+            onClick={async () => {
+              await updateUserData({
                 isHistoricalView: false,
                 currentViewData: null,
                 historicalDate: null
               });
               setSelectedDate(formattedToday);
+              setShowCalendar(false);
             }}
             className="return-to-today"
           >
@@ -344,12 +348,7 @@ const Home = () => {
         </div>
       )}
 
-      <div className="elastic-expand">
-        <DailyOverview />
-      </div>
-      {/* <ShareButton />  Add this line */}
-
-      {/* Add the Monthly Summary component for progress stats */}
+      {/* Combined daily + monthly overview */}
       {!isHistoricalView && (
         <div className="elastic-expand">
           <MonthlySummary />

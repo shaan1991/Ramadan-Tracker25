@@ -463,10 +463,18 @@ const Achievements = () => {
         }
       ];
 
-      setGeneralAll(generalDefinitions);
-      setRamadanAll(ramadanDefinitions);
-      setGeneralBadges(generalDefinitions.filter((badge) => badge.unlocked));
-      setRamadanBadges(ramadanDefinitions.filter((badge) => badge.unlocked));
+      const sortByUnlocked = (a, b) => {
+        if (a.unlocked === b.unlocked) return 0;
+        return a.unlocked ? -1 : 1;
+      };
+
+      const sortedGeneral = [...generalDefinitions].sort(sortByUnlocked);
+      const sortedRamadan = [...ramadanDefinitions].sort(sortByUnlocked);
+
+      setGeneralAll(sortedGeneral);
+      setRamadanAll(sortedRamadan);
+      setGeneralBadges(sortedGeneral.filter((badge) => badge.unlocked));
+      setRamadanBadges(sortedRamadan.filter((badge) => badge.unlocked));
     };
 
     loadAchievements();

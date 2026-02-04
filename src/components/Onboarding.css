@@ -5,7 +5,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: white;
+    background: linear-gradient(135deg, #ffffff 0%, #f6f2ea 100%);
     z-index: 1000;
     display: flex;
     justify-content: center;
@@ -13,7 +13,7 @@
     animation: fadeIn 0.5s ease;
   }
   
-  .onboarding-content {
+.onboarding-content {
     width: 90%;
     max-width: 400px;
     padding: 30px 20px;
@@ -21,12 +21,15 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   }
   
-  .onboarding-icon {
+.onboarding-icon {
     font-size: 48px;
     margin-bottom: 20px;
-    animation: bounce 2s infinite;
+    animation: bounce 2.4s infinite;
   }
   
   .onboarding-title {
@@ -43,7 +46,7 @@
     line-height: 1.5;
   }
   
-  .features-list {
+.features-list {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -51,14 +54,15 @@
     margin-bottom: 30px;
   }
   
-  .feature-item {
+.feature-item {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px;
     border-radius: 10px;
-    background-color: #f9f9f9;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
     animation: slideIn 0.5s ease;
     text-align: left;
   }
@@ -78,7 +82,7 @@
     margin-bottom: 24px;
   }
   
-  .pagination-dot {
+.pagination-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
@@ -86,12 +90,12 @@
     cursor: pointer;
   }
   
-  .pagination-dot.active {
+.pagination-dot.active {
     background-color: #333;
     transform: scale(1.2);
   }
   
-  .next-button {
+.next-button {
     background-color: black;
     color: white;
     border: none;
@@ -101,6 +105,7 @@
     font-weight: bold;
     cursor: pointer;
     transition: transform 0.2s, background-color 0.2s;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
   }
   
   .next-button:hover {
@@ -118,7 +123,7 @@
     to { opacity: 1; }
   }
   
-  @keyframes slideIn {
+@keyframes slideIn {
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
