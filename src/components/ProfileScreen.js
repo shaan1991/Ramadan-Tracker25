@@ -247,11 +247,11 @@ const ProfileScreen = ({ onNavigate }) => {
           </button>
           
           <button className="profile-link" onClick={handleReadQuran}>
-            <span className="link-icon">📖</span> Read Quran online
+            <span className="link-icon">📖</span> Read Qur'an online
           </button>
           
           <button className="profile-link" onClick={handleEnglishQuran}>
-            <span className="link-icon">📒</span> Read Quran in modern english
+            <span className="link-icon">📒</span> Read Qur'an in modern english
           </button>
           
           <button className="profile-link" onClick={handleFeedback}>

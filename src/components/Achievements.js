@@ -289,69 +289,80 @@ const Achievements = () => {
         });
       }
 
+      const makeProgress = (current, target) => `${Math.min(current, target)}/${target}`;
+
       const generalDefinitions = [
         {
           id: 'general-first-step',
           name: '🌱 First Step',
           description: 'Logged your first day',
           icon: '🌱',
-          unlocked: totalActiveDays >= 1
+          unlocked: totalActiveDays >= 1,
+          progressText: makeProgress(totalActiveDays, 1)
         },
         {
           id: 'general-prayer-7',
           name: '🙌 7-Day Prayer Streak',
           description: 'Consistent prayers for a week',
           icon: '🙌',
-          unlocked: prayerStreakGeneral.current >= 7
+          unlocked: prayerStreakGeneral.current >= 7,
+          progressText: makeProgress(prayerStreakGeneral.current, 7)
         },
         {
           id: 'general-prayer-30',
           name: '✨ 30-Day Prayer Streak',
           description: 'Prayed consistently for 30 days',
           icon: '✨',
-          unlocked: prayerStreakGeneral.current >= 30
+          unlocked: prayerStreakGeneral.current >= 30,
+          progressText: makeProgress(prayerStreakGeneral.current, 30)
         },
         {
           id: 'general-quran-7',
           name: '📗 7-Day Qur\'an Streak',
           description: 'Read Qur\'an 7 days straight',
           icon: '📗',
-          unlocked: quranStreakGeneral.current >= 7
+          unlocked: quranStreakGeneral.current >= 7,
+          progressText: makeProgress(quranStreakGeneral.current, 7)
         },
         {
           id: 'general-quran-10',
           name: '📖 10 Qur\'an Days',
           description: 'Read Qur\'an on 10 different days',
           icon: '📖',
-          unlocked: quranDays >= 10
+          unlocked: quranDays >= 10,
+          progressText: makeProgress(quranDays, 10)
         },
         {
           id: 'general-sunnah-5',
           name: '🌿 Sunnah Routine',
           description: 'Completed 5 Sunnahs on different days',
           icon: '🌿',
-          unlocked: sunnahDaysGeneral >= 5
+          unlocked: sunnahDaysGeneral >= 5,
+          progressText: makeProgress(sunnahDaysGeneral, 5)
         },
         {
           id: 'general-sunnah-10',
           name: '✨ Sunnah Consistency',
           description: 'Completed 10 Sunnahs on different days',
           icon: '✨',
-          unlocked: sunnahDaysGeneral >= 10
+          unlocked: sunnahDaysGeneral >= 10,
+          progressText: makeProgress(sunnahDaysGeneral, 10)
         },
         {
           id: 'general-sunnah-20',
           name: '🌟 Sunnah Momentum',
           description: 'Completed 20 Sunnahs on different days',
           icon: '🌟',
-          unlocked: sunnahDaysGeneral >= 20
+          unlocked: sunnahDaysGeneral >= 20,
+          progressText: makeProgress(sunnahDaysGeneral, 20)
         },
         {
           id: 'general-fasting-3',
           name: '🥗 Voluntary Fasts',
           description: 'Fasted 3 non‑Ramadan days',
           icon: '🥗',
-          unlocked: fastingDaysGeneral >= 3
+          unlocked: fastingDaysGeneral >= 3,
+          progressText: makeProgress(fastingDaysGeneral, 3)
         }
       ];
 
@@ -361,105 +372,120 @@ const Achievements = () => {
           name: '🕌 7 Ramadan Prayers',
           description: 'Seven days of complete prayers',
           icon: '🕌',
-          unlocked: prayerStreakRamadan.current >= 7
+          unlocked: prayerStreakRamadan.current >= 7,
+          progressText: makeProgress(prayerStreakRamadan.current, 7)
         },
         {
           id: 'ramadan-prayer-14',
           name: '🌙 14 Ramadan Prayers',
           description: 'Two weeks of complete prayers',
           icon: '🌙',
-          unlocked: prayerStreakRamadan.current >= 14
+          unlocked: prayerStreakRamadan.current >= 14,
+          progressText: makeProgress(prayerStreakRamadan.current, 14)
         },
         {
           id: 'ramadan-prayer-full',
           name: '✨ Full Ramadan Prayers',
           description: `Complete prayers for all ${ramadanLength} days`,
           icon: '✨',
-          unlocked: prayerStreakRamadan.current >= ramadanLength
+          unlocked: prayerStreakRamadan.current >= ramadanLength,
+          progressText: makeProgress(prayerStreakRamadan.current, ramadanLength)
         },
         {
           id: 'ramadan-fasting-10',
           name: '🌙 10-Day Faster',
           description: '10 days of fasting',
           icon: '🌙',
-          unlocked: fastingDaysRamadan >= 10
+          unlocked: fastingDaysRamadan >= 10,
+          progressText: makeProgress(fastingDaysRamadan, 10)
         },
         {
           id: 'ramadan-fasting-20',
           name: '⭐ 20-Day Faster',
           description: '20 days of fasting',
           icon: '⭐',
-          unlocked: fastingDaysRamadan >= 20
+          unlocked: fastingDaysRamadan >= 20,
+          progressText: makeProgress(fastingDaysRamadan, 20)
         },
         {
           id: 'ramadan-fasting-full',
           name: '🏁 Full Ramadan Fast',
           description: `Fasted all ${ramadanLength} days`,
           icon: '🏁',
-          unlocked: fastingDaysRamadan >= ramadanLength
+          unlocked: fastingDaysRamadan >= ramadanLength,
+          progressText: makeProgress(fastingDaysRamadan, ramadanLength)
         },
         {
           id: 'ramadan-taraweeh-10',
           name: '🕯️ 10 Taraweeh Nights',
           description: 'Prayed Taraweeh 10 nights',
           icon: '🕯️',
-          unlocked: taraweehDaysRamadan >= 10
+          unlocked: taraweehDaysRamadan >= 10,
+          progressText: makeProgress(taraweehDaysRamadan, 10)
         },
         {
           id: 'ramadan-taraweeh-20',
           name: '🕌 20 Taraweeh Nights',
           description: 'Prayed Taraweeh 20 nights',
           icon: '🕌',
-          unlocked: taraweehDaysRamadan >= 20
+          unlocked: taraweehDaysRamadan >= 20,
+          progressText: makeProgress(taraweehDaysRamadan, 20)
         },
         {
           id: 'ramadan-taraweeh-full',
           name: '🌙 Full Taraweeh',
           description: `Prayed Taraweeh all ${ramadanLength} nights`,
           icon: '🌙',
-          unlocked: taraweehDaysRamadan >= ramadanLength
+          unlocked: taraweehDaysRamadan >= ramadanLength,
+          progressText: makeProgress(taraweehDaysRamadan, ramadanLength)
         },
         {
           id: 'ramadan-quran-streak-7',
           name: '📗 7-Day Qur\'an Streak',
           description: 'Read Qur\'an 7 days in Ramadan',
           icon: '📗',
-          unlocked: quranStreakRamadan.current >= 7
+          unlocked: quranStreakRamadan.current >= 7,
+          progressText: makeProgress(quranStreakRamadan.current, 7)
         },
         {
           id: 'ramadan-quran-10',
           name: '📖 10 Juz Reader',
           description: 'Read 10 Juz in Ramadan',
           icon: '📖',
-          unlocked: totalJuzCompleted >= 10
+          unlocked: totalJuzCompleted >= 10,
+          progressText: makeProgress(totalJuzCompleted, 10)
         },
         {
           id: 'ramadan-quran-30',
           name: '📚 Qur\'an Master',
           description: 'Completed the Qur\'an',
           icon: '📚',
-          unlocked: totalJuzCompleted >= 30
+          unlocked: totalJuzCompleted >= 30,
+          progressText: makeProgress(totalJuzCompleted, 30)
         },
         {
           id: 'ramadan-sunnah-10',
           name: '🌿 Sunnah Routine',
           description: 'Completed Sunnah 10 days',
           icon: '🌿',
-          unlocked: sunnahDaysRamadan >= 10
+          unlocked: sunnahDaysRamadan >= 10,
+          progressText: makeProgress(sunnahDaysRamadan, 10)
         },
         {
           id: 'ramadan-sunnah-15',
           name: '✨ Sunnah Steady',
           description: 'Completed Sunnah 15 days',
           icon: '✨',
-          unlocked: sunnahDaysRamadan >= 15
+          unlocked: sunnahDaysRamadan >= 15,
+          progressText: makeProgress(sunnahDaysRamadan, 15)
         },
         {
           id: 'ramadan-sunnah-full',
           name: '🌙 Full Sunnah Ramadan',
           description: `Completed Sunnah all ${ramadanLength} days`,
           icon: '🌙',
-          unlocked: sunnahDaysRamadan >= ramadanLength
+          unlocked: sunnahDaysRamadan >= ramadanLength,
+          progressText: makeProgress(sunnahDaysRamadan, ramadanLength)
         }
       ];
 
@@ -598,6 +624,9 @@ const Achievements = () => {
                         <div className="badge-info">
                           <p className="badge-name">{badge.name}</p>
                           <p className="badge-desc">{badge.description}</p>
+                          {badge.progressText && (
+                            <p className="badge-progress">Progress: {badge.progressText}</p>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -614,6 +643,9 @@ const Achievements = () => {
                         <div className="badge-info">
                           <p className="badge-name">{badge.name}</p>
                           <p className="badge-desc">{badge.description}</p>
+                          {badge.progressText && (
+                            <p className="badge-progress">Progress: {badge.progressText}</p>
+                          )}
                         </div>
                       </div>
                     ))}

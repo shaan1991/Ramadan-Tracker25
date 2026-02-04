@@ -210,7 +210,7 @@ const JuzTracker = () => {
           </div>
         )}
       </div>
-      <p className="juz-description">Track your Quran reading during Ramadan</p>
+      <p className="juz-description">Track your Qur'an reading during Ramadan</p>
       {/* Simple counter UI */}
       <div className="juz-counter">
         <button 

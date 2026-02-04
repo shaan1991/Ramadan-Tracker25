@@ -83,7 +83,7 @@ const MonthlySummary = () => {
     // Refresh data periodically
     const intervalId = setInterval(() => {
       if (user?.uid) loadAllData();
-    }, 60000); // Refresh every minute
+    }, 300000); // Refresh every 5 minutes
     
     return () => clearInterval(intervalId);
   }, [user, userData, isWithinRamadan]);
@@ -120,7 +120,7 @@ const MonthlySummary = () => {
           <div className="daily-icon-bg blue">
             <span className="daily-icon">🍉</span>
           </div>
-          <div className="daily-label">Roza/Fast</div>
+          <div className="daily-label">Fast</div>
           <div className="daily-value">{userData.fasting ? 'Yes' : 'No'}</div>
         </div>
 
@@ -138,7 +138,7 @@ const MonthlySummary = () => {
           <div className="daily-icon-bg gray">
             <span className="daily-icon">📖</span>
           </div>
-          <div className="daily-label">Quran</div>
+          <div className="daily-label">Qur'an</div>
           <div className="daily-value">{userData.quran.completed}/{userData.quran.total}</div>
         </div>
       </div>
@@ -165,7 +165,7 @@ const MonthlySummary = () => {
         <div className="streak-category">
           <div className="streak-icon">📖</div>
           <div className="streak-info">
-            <div className="streak-label">Quran</div>
+            <div className="streak-label">Qur'an</div>
             <div className="streak-value">{streaks.quran.current} days</div>
           </div>
         </div>
