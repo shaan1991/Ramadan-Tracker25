@@ -19,6 +19,8 @@ const ProfileScreen = ({ onNavigate }) => {
     taraweeh: { current: 0, best: 0 },
     prayers: { current: 0, best: 0 }
   });
+  const [ramadanSaveStatus, setRamadanSaveStatus] = useState('idle');
+  const [ramadanSaveMessage, setRamadanSaveMessage] = useState('');
 
   useEffect(() => {
     if (!userData) return;
@@ -54,13 +56,32 @@ const ProfileScreen = ({ onNavigate }) => {
   const handleSaveRamadanDates = async () => {
     if (!customStart) return;
     const length = Number(customLength) === 29 ? 29 : 30;
-    await updateUserData({
-      ramadanStartDate: customStart,
-      ramadanLength: length,
-      ramadanLengthConfirmed: length === 29,
-      ramadanStartDateOverride: true,
-      ramadanRegion: 'Custom (Manual)'
-    });
+    try {
+      setRamadanSaveStatus('saving');
+      setRamadanSaveMessage('Saving…');
+      const result = await updateUserData({
+        ramadanStartDate: customStart,
+        ramadanLength: length,
+        ramadanLengthConfirmed: length === 29,
+        ramadanStartDateOverride: true,
+        ramadanRegion: 'Custom (Manual)'
+      });
+      if (result === false) {
+        setRamadanSaveStatus('error');
+        setRamadanSaveMessage('Could not save. Try again.');
+        return;
+      }
+      setRamadanSaveStatus('success');
+      setRamadanSaveMessage('Saved');
+      setTimeout(() => {
+        setRamadanSaveStatus('idle');
+        setRamadanSaveMessage('');
+      }, 1500);
+    } catch (error) {
+      console.error('Error saving Ramadan dates:', error);
+      setRamadanSaveStatus('error');
+      setRamadanSaveMessage('Could not save. Try again.');
+    }
   };
 
   const handleResetRamadanDates = async () => {
@@ -189,14 +210,19 @@ const ProfileScreen = ({ onNavigate }) => {
                 </select>
               </label>
             </div>
-            <div className="ramadan-settings-actions">
-              <button className="ramadan-btn outline" onClick={handleResetRamadanDates}>
-                Reset to expected
-              </button>
-              <button className="ramadan-btn solid" onClick={handleSaveRamadanDates}>
-                Save dates
-              </button>
-            </div>
+          <div className="ramadan-settings-actions">
+            <button className="ramadan-btn outline" onClick={handleResetRamadanDates}>
+              Reset to expected
+            </button>
+            <button className="ramadan-btn solid" onClick={handleSaveRamadanDates}>
+              Save dates
+            </button>
+            {ramadanSaveStatus !== 'idle' && (
+              <span className={`ramadan-save-status ${ramadanSaveStatus}`}>
+                {ramadanSaveMessage}
+              </span>
+            )}
+          </div>
           </div>
 
           <div className="streaks-panel">

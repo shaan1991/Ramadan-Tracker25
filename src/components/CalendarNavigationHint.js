@@ -24,6 +24,7 @@ const CalendarNavigationHint = ({ showCalendar }) => {
 
   const startDate = getRamadanStartDate(userData);
   const endDate = getRamadanEndDate(userData);
+  const formatMonthDay = (date) => date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
 
   return (
     <div className="calendar-hint-banner">
@@ -31,7 +32,7 @@ const CalendarNavigationHint = ({ showCalendar }) => {
       <div className="hint-content">
         <p className="hint-title">Ramadan Mode Active</p>
         <p className="hint-subtitle">
-          Track daily progress from <strong>February {startDate.getDate()}</strong> - <strong>March {endDate.getDate()}, {endDate.getFullYear()}</strong>
+          Track daily progress from <strong>{formatMonthDay(startDate)}</strong> - <strong>{formatMonthDay(endDate)}, {endDate.getFullYear()}</strong>
         </p>
         <p className="hint-help">Your Ramadan streaks replace regular streaks during this month</p>
       </div>

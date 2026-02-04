@@ -108,10 +108,12 @@ const JuzTracker = () => {
       // Update streak data
       if (user?.uid) {
         const ramadanMode = isWithinRamadan(getEffectiveDate());
-        await updateStreakData(user.uid, 'quran', newCompletedJuzs.length > 0, { 
-          ramadanOnly: ramadanMode,
-          baseDate: getEffectiveDate()
-        });
+        if (!userData?.isHistoricalView) {
+          await updateStreakData(user.uid, 'quran', newCompletedJuzs.length > 0, { 
+            ramadanOnly: ramadanMode,
+            baseDate: getEffectiveDate()
+          });
+        }
         
         // Only load streak data if juz have been read
         if (newCompletedJuzs.length > 0) {
@@ -173,10 +175,12 @@ const JuzTracker = () => {
       // Update streak data
       if (user?.uid) {
         const ramadanMode = isWithinRamadan(getEffectiveDate());
-        await updateStreakData(user.uid, 'quran', newCompletedJuzs.length > 0, { 
-          ramadanOnly: ramadanMode,
-          baseDate: getEffectiveDate()
-        });
+        if (!userData?.isHistoricalView) {
+          await updateStreakData(user.uid, 'quran', newCompletedJuzs.length > 0, { 
+            ramadanOnly: ramadanMode,
+            baseDate: getEffectiveDate()
+          });
+        }
         
         // Only load streak data if juz have been read
         if (newCompletedJuzs.length > 0) {

@@ -362,9 +362,11 @@ const Home = () => {
       <div className="elastic-expand">
         <FastingCheck />
       </div>
-      <div className="elastic-expand">
-        <TaraweehCheck />
-      </div>
+      {isRamadan && (
+        <div className="elastic-expand">
+          <TaraweehCheck />
+        </div>
+      )}
       <div className="elastic-expand">
         <JuzTracker />
       </div>

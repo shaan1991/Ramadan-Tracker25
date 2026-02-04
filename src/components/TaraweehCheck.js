@@ -112,10 +112,12 @@ const TaraweehCheck = () => {
       // Update streak data
       if (user?.uid) {
         const ramadanMode = isWithinRamadan(getEffectiveDate());
-        await updateStreakData(user.uid, 'taraweeh', status, { 
-          ramadanOnly: ramadanMode,
-          baseDate: getEffectiveDate()
-        });
+        if (!userData?.isHistoricalView) {
+          await updateStreakData(user.uid, 'taraweeh', status, { 
+            ramadanOnly: ramadanMode,
+            baseDate: getEffectiveDate()
+          });
+        }
         
         // Refresh streak display
         const { current } = await calculateStreak(user.uid, 'taraweeh', { 
