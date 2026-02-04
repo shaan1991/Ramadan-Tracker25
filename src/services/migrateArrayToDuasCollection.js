@@ -84,6 +84,11 @@ import {
         message: `Successfully migrated ${userData.duas.length} duas to subcollection` 
       };
     } catch (error) {
+      const isPermissionDenied = error?.code === 'permission-denied' || /permission/i.test(error?.message || '');
+      if (isPermissionDenied) {
+        console.warn("Dua migration blocked by permissions:", error);
+        return { success: false, blocked: true, error: error.message };
+      }
       console.error("Error migrating duas:", error);
       return { success: false, error: error.message };
     }

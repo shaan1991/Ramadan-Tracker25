@@ -30,7 +30,8 @@ const BottomNavigation = ({ currentPath, onNavigate }) => {
   const isActive = (path) => currentPath === path;
   
   return (
-    <div className="bottom-nav">
+    <div className="bottom-nav-container">
+      <div className="bottom-nav">
       <div 
         className={`nav-item ${isActive('/') ? 'active' : ''}`}
         onClick={() => onNavigate('/')}
@@ -58,6 +59,7 @@ const BottomNavigation = ({ currentPath, onNavigate }) => {
       >
         <div className="nav-icon">✨</div>
         <p>{labels.profile}</p>
+      </div>
       </div>
     </div>
   );

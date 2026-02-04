@@ -1,7 +1,7 @@
 /* File: src/components/BottomNavigation.css */
 .bottom-nav-container {
     position: fixed;
-    bottom: 20px;
+    bottom: 12px;
     left: 0;
     width: 100%;
     display: flex;
@@ -58,11 +58,11 @@
   @media (max-width: 480px) {
     .bottom-nav-container {
       padding: 0 16px;
-      margin-bottom: 40px;
+      margin-bottom: 24px;
     }
     
     .bottom-nav {
       width: 90%;
-      margin-bottom: 40px;
+      margin-bottom: 24px;
     }
   }

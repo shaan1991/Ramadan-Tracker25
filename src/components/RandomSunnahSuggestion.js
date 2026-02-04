@@ -3,13 +3,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useUser } from '../contexts/UserContext';
 import './RandomSunnahSuggestion.css';
 
-const RandomSunnahSuggestion = () => {
-  const { user, userData, recordDailyAction } = useUser();
-  const [currentSunnah, setCurrentSunnah] = useState(null);
-  const [completed, setCompleted] = useState(false);
-
-  // Expanded collection of Sunnah suggestions
-  const sunnahSuggestions = [
+// Expanded collection of Sunnah suggestions
+const SUNNAH_SUGGESTIONS = [
     {
       title: "🤲 Pray an Extra Sunnah Prayer",
       description: "Praying voluntary prayers in addition to the obligatory ones increases your rewards. Try adding 2 rakats before Fajr, 4 before Zuhr and 2 after, 2 after Maghrib, and 2 after Isha."
@@ -248,6 +243,11 @@ const RandomSunnahSuggestion = () => {
     }
   ];
 
+const RandomSunnahSuggestion = () => {
+  const { user, userData, recordDailyAction } = useUser();
+  const [currentSunnah, setCurrentSunnah] = useState(null);
+  const [completed, setCompleted] = useState(false);
+
   const getDateKey = () => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
       return userData.historicalDate;
@@ -262,7 +262,7 @@ const RandomSunnahSuggestion = () => {
   }, [user?.uid, userData?.isHistoricalView, userData?.historicalDate]);
 
   const shuffledSuggestions = useMemo(() => {
-    const items = [...sunnahSuggestions];
+    const items = [...SUNNAH_SUGGESTIONS];
     const hash = (str) => {
       let h = 2166136261;
       for (let i = 0; i < str.length; i++) {
@@ -283,7 +283,7 @@ const RandomSunnahSuggestion = () => {
       [items[i], items[j]] = [items[j], items[i]];
     }
     return items;
-  }, [seed, sunnahSuggestions]);
+  }, [seed]);
 
   useEffect(() => {
     if (shuffledSuggestions.length === 0) return;
@@ -296,7 +296,7 @@ const RandomSunnahSuggestion = () => {
     if (!userData) return;
     const historyEntry = userData.history?.[dateKey];
     setCompleted(!!historyEntry?.sunnahCompleted);
-  }, [dateKey]);
+  }, [dateKey, userData]);
 
   const toggleCompleted = async (e) => {
     e.stopPropagation();
