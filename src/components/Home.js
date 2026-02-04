@@ -356,13 +356,6 @@ const Home = () => {
         </div>
       )}
 
-      {/* NEW FEATURES - 2026 Enhancements */}
-      {!isHistoricalView && (
-        <div className="elastic-expand">
-          <Achievements />
-        </div>
-      )}
-
       {/* Unified Prayer Tracker - combines both completion and focus (Khushu) */}
       <div className="elastic-expand">
         <UnifiedPrayerTracker />
@@ -386,6 +379,13 @@ const Home = () => {
       <div className="elastic-expand">
         <HadithOfTheDay />
       </div>
+
+      {/* NEW FEATURES - 2026 Enhancements */}
+      {!isHistoricalView && (
+        <div className="elastic-expand">
+          <Achievements />
+        </div>
+      )}
 
       <div className="dua-request">
         <p>I request you to include me and my family in your Dua's</p>

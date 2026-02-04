@@ -92,7 +92,11 @@
   align-items: center;
   justify-content: center;
   z-index: 1200;
-  animation: modalFadeIn 0.18s ease;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+.achievements-modal-overlay.closing {
+  animation: modalFadeOut 0.16s ease-in;
 }
 
 .achievements-modal {
@@ -103,7 +107,11 @@
   padding: 16px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
-  animation: modalLiftIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: modalLiftIn 0.26s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.achievements-modal.closing {
+  animation: modalLiftOut 0.18s ease-in;
 }
 
 .achievements-modal-header {
@@ -165,11 +173,27 @@
 @keyframes modalLiftIn {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(10px) scale(0.97);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modalFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes modalLiftOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
   }
 }
 
@@ -199,6 +223,7 @@
   background: #f9f9f9;
   color: #bdbdbd;
   opacity: 0.7;
+  filter: grayscale(1);
 }
 
 .badge-icon {
