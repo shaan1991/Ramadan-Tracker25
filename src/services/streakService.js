@@ -20,7 +20,7 @@ export const calculatePrayerStreakFromData = (userData, options = {}) => {
 
   const completedToday = userData.namaz
     ? ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'].every(prayer => userData.namaz[prayer])
-    : false;
+    : (userData.salah?.completed === 5);
 
   const allDates = [todayKey, ...Object.keys(history)]
     .filter((date, index, self) => self.indexOf(date) === index)
@@ -42,6 +42,9 @@ export const calculatePrayerStreakFromData = (userData, options = {}) => {
     if (byPrayerFlags) return true;
     if (entry.namaz) {
       return ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'].every(prayer => entry.namaz?.[prayer] === true);
+    }
+    if (entry.salah?.completed === 5) {
+      return true;
     }
     return false;
   };

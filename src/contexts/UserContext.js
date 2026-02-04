@@ -380,7 +380,14 @@ export const UserProvider = ({ children }) => {
           await updateDoc(userDocRef, combinedUpdates);
           setUserData(prevData => {
             if (!prevData) return prevData; // Safety check
-            return { ...prevData, ...dataToUpdate };
+            const nextData = { ...prevData, ...dataToUpdate };
+            if (!nextData.history) nextData.history = {};
+            if (!nextData.history[today]) nextData.history[today] = {};
+            for (const key in dataToUpdate) {
+              nextData.history[today][key] = dataToUpdate[key];
+            }
+            nextData.history[today].day = ramadanDay;
+            return nextData;
           });
           setLastActiveDate(today);
         }

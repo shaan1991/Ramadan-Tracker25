@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
-import { db } from '../firebase';
-import { doc, setDoc, getDoc, collection, query, getDocs, orderBy, limit } from 'firebase/firestore';
 import { calculatePrayerStreakFromData } from '../services/streakService';
 import Celebration from './Celebration';
 import './UnifiedPrayerTracker.css';
 import './Celebration.css';
 
 const UnifiedPrayerTracker = () => {
-  const { user, userData, updateUserData, isWithinRamadan } = useUser();
+  const { userData, updateUserData, isWithinRamadan } = useUser();
   const [todayKhushu, setTodayKhushu] = useState({});
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedPrayer, setSelectedPrayer] = useState(null);
@@ -21,57 +19,60 @@ const UnifiedPrayerTracker = () => {
   const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   const prayersLower = ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'];
 
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const getKhushuDateKey = () => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
       return userData.historicalDate;
     }
-    return new Date().toISOString().split('T')[0];
+    return formatDate(new Date());
   };
 
-  // Load khushu data on component mount or date change
+  const computeAverageKhushu = (entries) => {
+    let totalRatings = 0;
+    let count = 0;
+    entries.forEach((entry) => {
+      if (!entry) return;
+      const ratings = Object.values(entry)
+        .map((value) => (typeof value === 'string' ? Number(value) : value))
+        .filter((value) => Number.isFinite(value) && value >= 1 && value <= 5);
+      ratings.forEach((rating) => {
+        totalRatings += rating;
+        count++;
+      });
+    });
+    if (count === 0) {
+      return 0;
+    }
+    return Math.round((totalRatings / count) * 10) / 10;
+  };
+
+  // Load khushu data from history (single source of truth)
   useEffect(() => {
-    const loadKhushuData = async () => {
-      if (!user) return;
-      try {
-        // Load today's khushu ratings
-        const dateKey = getKhushuDateKey();
-        const docRef = doc(db, 'users', user.uid, 'khushuProgress', dateKey);
-        const snapshot = await getDoc(docRef);
-        if (snapshot.exists()) {
-          setTodayKhushu(snapshot.data());
-        } else {
-          setTodayKhushu({});
-        }
+    if (!userData) return;
+    const dateKey = getKhushuDateKey();
+    const historyEntry = userData.history?.[dateKey] || {};
+    const todaysKhushu = historyEntry.khushu || {};
+    setTodayKhushu(todaysKhushu);
 
-        // Calculate average khushu
-        const khushuRef = collection(db, 'users', user.uid, 'khushuHistory');
-        const q = query(khushuRef, orderBy('date', 'desc'), limit(30));
-        const khushuSnapshots = await getDocs(q);
-        
-        let totalRatings = 0;
-        let count = 0;
-        khushuSnapshots.forEach((doc) => {
-          const data = doc.data();
-          const ratings = Object.values(data).filter(v => typeof v === 'number');
-          ratings.forEach(rating => {
-            totalRatings += rating;
-            count++;
-          });
-        });
+    const entries = Object.entries(userData.history || {})
+      .sort((a, b) => new Date(b[0]) - new Date(a[0]))
+      .slice(0, 30)
+      .map(([, entry]) => entry?.khushu)
+      .filter(Boolean);
 
-        if (count > 0) {
-          setAverageKhushu(Math.round((totalRatings / count) * 10) / 10);
-        }
-        // Streak is calculated separately from prayer completion data
-      } catch (error) {
-        console.error('Error loading Khushu data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const combined = entries.some((entry) => entry === todaysKhushu)
+      ? entries
+      : [...entries, todaysKhushu];
 
-    loadKhushuData();
-  }, [user, userData?.isHistoricalView, userData?.historicalDate]);
+    setAverageKhushu(computeAverageKhushu(combined));
+    setLoading(false);
+  }, [userData, userData?.isHistoricalView, userData?.historicalDate]);
 
   // Calculate prayer streak from recorded completion data
   useEffect(() => {
@@ -120,7 +121,7 @@ const UnifiedPrayerTracker = () => {
 
   // Handle khushu rating
   const handleRatePrayer = async (prayer, rating) => {
-    if (!user) return;
+    if (!userData) return;
 
     const dateKey = getKhushuDateKey();
     const newKhushu = { ...todayKhushu, [prayer]: rating };
@@ -131,13 +132,16 @@ const UnifiedPrayerTracker = () => {
     setSelectedPrayer(null);
 
     try {
-      // Save to today's tracking (khushuProgress)
-    const docRef = doc(db, 'users', user.uid, 'khushuProgress', dateKey);
-      await setDoc(docRef, { ...newKhushu, date: dateKey }, { merge: true });
-
-      // Save to history (khushuHistory)
-      const historyRef = doc(db, 'users', user.uid, 'khushuHistory', dateKey);
-      await setDoc(historyRef, { ...newKhushu, date: dateKey }, { merge: true });
+      await updateUserData({ khushu: newKhushu });
+      setAverageKhushu((prev) => {
+        const historyEntries = Object.entries(userData.history || {})
+          .sort((a, b) => new Date(b[0]) - new Date(a[0]))
+          .slice(0, 30)
+          .map(([, entry]) => entry?.khushu)
+          .filter(Boolean);
+        const combined = [...historyEntries.filter((entry) => entry !== newKhushu), newKhushu];
+        return computeAverageKhushu(combined);
+      });
     } catch (error) {
       console.error('Error saving Khushu rating:', error);
     }
@@ -203,8 +207,8 @@ const UnifiedPrayerTracker = () => {
         </div>
         <div className="stat-card">
           <span className="stat-label">Avg Focus</span>
-          <span className="stat-value">{(averageKhushu / 2).toFixed(1)}/5</span>
-          <span className="stat-bar" style={{ width: `${(averageKhushu / 10) * 100}%` }}></span>
+          <span className="stat-value">{averageKhushu.toFixed(1)}/5</span>
+          <span className="stat-bar" style={{ width: `${(averageKhushu / 5) * 100}%` }}></span>
         </div>
         <div className="stat-card">
           <span className="stat-label">Streak</span>
