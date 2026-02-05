@@ -1,6 +1,5 @@
 // File: src/components/BottomNavigation.js
 import React from 'react';
-import { logOut } from '../services/authService';
 import './BottomNavigation.css';
 
 // Remove the language context for now to get the component working
@@ -14,17 +13,6 @@ const BottomNavigation = ({ currentPath, onNavigate }) => {
     dua: 'Dua',
     tasbeeh: 'Tasbeeh',
     profile: 'More'
-  };
-  
-  const handleLogout = async () => {
-    if (window.confirm('Are you sure you want to log out?')) {
-      try {
-        await logOut();
-        // The auth state change will be handled by onAuthStateChanged in App.js
-      } catch (error) {
-        console.error("Error logging out:", error);
-      }
-    }
   };
   
   const isActive = (path) => currentPath === path;

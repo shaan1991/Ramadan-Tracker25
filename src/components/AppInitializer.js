@@ -1,5 +1,5 @@
 // src/components/AppInitializer.js
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { runDataMigrations } from '../services/DataMigration';
 import { migrateJuzData } from '../services/historyTracker';

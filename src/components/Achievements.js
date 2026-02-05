@@ -18,15 +18,14 @@ const Achievements = () => {
 
     const loadAchievements = async () => {
       const now = new Date();
-      const ramadanMode = isWithinRamadan ? isWithinRamadan(now) : false;
       const ramadanLength = userData?.ramadanLength || 30;
 
       const prayerStreakGeneral = calculatePrayerStreakFromData(userData, { ramadanOnly: false, baseDate: now });
       const prayerStreakRamadan = calculatePrayerStreakFromData(userData, { ramadanOnly: true, baseDate: now });
 
-      const fastingStreakGeneral = await calculateStreak(user.uid, 'fasting', { ramadanOnly: false, baseDate: now });
-      const fastingStreakRamadan = await calculateStreak(user.uid, 'fasting', { ramadanOnly: true, baseDate: now });
-      const taraweehStreakRamadan = await calculateStreak(user.uid, 'taraweeh', { ramadanOnly: true, baseDate: now });
+      await calculateStreak(user.uid, 'fasting', { ramadanOnly: false, baseDate: now });
+      await calculateStreak(user.uid, 'fasting', { ramadanOnly: true, baseDate: now });
+      await calculateStreak(user.uid, 'taraweeh', { ramadanOnly: true, baseDate: now });
       const quranStreakGeneral = await calculateStreak(user.uid, 'quran', { ramadanOnly: false, baseDate: now });
       const quranStreakRamadan = await calculateStreak(user.uid, 'quran', { ramadanOnly: true, baseDate: now });
 
@@ -35,17 +34,6 @@ const Achievements = () => {
         if (!isWithinRamadan) return false;
         return isWithinRamadan(new Date(dateStr));
       };
-
-      const prayerCompleteDays = historyEntries.filter(([date, entry]) => {
-        const byPrayerFlags = ['fajr', 'zuhr', 'asr', 'maghrib', 'isha']
-          .every(prayer => entry?.[`prayer_${prayer}`] === true);
-        if (byPrayerFlags) return true;
-        if (entry?.namaz) {
-          return ['fajr', 'zuhr', 'asr', 'maghrib', 'isha']
-            .every(prayer => entry.namaz?.[prayer] === true);
-        }
-        return false;
-      }).length;
 
       const quranDays = historyEntries.filter(([, entry]) => {
         if (!entry) return false;

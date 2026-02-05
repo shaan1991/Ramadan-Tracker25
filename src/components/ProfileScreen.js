@@ -217,16 +217,6 @@ const ProfileScreen = ({ onNavigate }) => {
     }
   };
   
-  const handleIndiaDonation = () => {
-    // Open donation dialog with India QR
-    document.getElementById('india-donation-dialog').showModal();
-  };
-
-  const handleUSADonation = () => {
-    // Open donation dialog with USA QR
-    document.getElementById('usa-donation-dialog').showModal();
-  };
-
   const closeDialog = (dialogId) => {
     document.getElementById(dialogId).close();
   };

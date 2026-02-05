@@ -7,7 +7,6 @@ import './Home.css';
 
 // Components
 import Calendar from './Calendar';
-import DailyNamazCheckIn from './DailyNamazCheckIn';
 import FastingCheck from './FastingCheck';
 import TaraweehCheck from './TaraweehCheck';
 import JuzTracker from './JuzTracker';
@@ -28,7 +27,6 @@ const Home = () => {
   // Initialize with properly formatted today's date
   const today = new Date();
   const formattedToday = formatDate(today);
-  const [selectedDate, setSelectedDate] = useState(formattedToday);
   
   // Add state for dynamic Ramadan day calculation
   const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
@@ -97,7 +95,7 @@ const Home = () => {
     };
   
     calculateDay();
-  }, [prayerTimes, userData]);
+  }, [prayerTimes, userData, totalDays]);
   
 
   
@@ -132,12 +130,11 @@ const Home = () => {
         setCurrentRamadanDay(totalDays);
       }
     }
-  }, [userData?.historicalDate, userData?.isHistoricalView]);
+  }, [userData?.historicalDate, userData?.isHistoricalView, userData?.ramadanLength, userData?.ramadanStartDate]);
 
 
   const handleDateSelect = (date) => {
     console.log("Selected date:", date);
-    setSelectedDate(date);
     // Load data for the selected date - using exact string passed from Calendar
     loadDateData(date);
     // Close calendar after selection
@@ -338,7 +335,6 @@ const Home = () => {
                 currentViewData: null,
                 historicalDate: null
               });
-              setSelectedDate(formattedToday);
               setShowCalendar(false);
             }}
             className="return-to-today"

@@ -1,5 +1,5 @@
 // File: src/components/JuzTracker.js - With Pre-Ramadan Validation
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { trackJuzProgress } from '../services/historyTracker';
 import { calculateStreak, updateStreakData } from '../services/streakService';
@@ -8,20 +8,31 @@ import './JuzTracker.css';
 const JuzTracker = () => {
   const { user, userData, updateUserData, isWithinRamadan } = useUser();
   const [completedJuzs, setCompletedJuzs] = useState([]);
-  const [advancedMode, setAdvancedMode] = useState(false);
   const [selectedJuz, setSelectedJuz] = useState(null);
   const [streak, setStreak] = useState(0);
   
-  const getEffectiveDate = () => {
+  const getEffectiveDate = useCallback(() => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
       const [year, month, day] = userData.historicalDate.split('-').map(num => parseInt(num));
       return new Date(year, month - 1, day);
     }
     return new Date();
-  };
+  }, [userData?.isHistoricalView, userData?.historicalDate]);
   
   // Total juz in Quran
   const totalJuzs = 30;
+
+  // Load streak data
+  const loadStreakData = useCallback(async () => {
+    if (user?.uid) {
+      const ramadanMode = isWithinRamadan(getEffectiveDate());
+      const { current } = await calculateStreak(user.uid, 'quran', { 
+        ramadanOnly: ramadanMode,
+        baseDate: getEffectiveDate()
+      });
+      setStreak(current);
+    }
+  }, [user?.uid, isWithinRamadan, getEffectiveDate]);
 
   // Load data when component mounts or userData changes
   useEffect(() => {
@@ -43,19 +54,7 @@ const JuzTracker = () => {
         setStreak(0);
       }
     }
-  }, [userData]);
-  
-  // Load streak data
-  const loadStreakData = async () => {
-    if (user?.uid) {
-      const ramadanMode = isWithinRamadan(getEffectiveDate());
-      const { current } = await calculateStreak(user.uid, 'quran', { 
-        ramadanOnly: ramadanMode,
-        baseDate: getEffectiveDate()
-      });
-      setStreak(current);
-    }
-  };
+  }, [userData, loadStreakData]);
 
   // Handle increment/decrement for counter mode
   const handleCounterChange = async (change) => {
@@ -204,7 +203,7 @@ const JuzTracker = () => {
   const progressPercentage = (completedJuzs.length / totalJuzs) * 100;
 
   return (
-    <div className={`juz-tracker ${advancedMode ? 'advanced-mode' : ''}`}>
+    <div className="juz-tracker">
       <div className="juz-header">
         <h3>📖 Juz Tracker</h3>
         {streak > 0 && (

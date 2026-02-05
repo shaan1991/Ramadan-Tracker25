@@ -1,6 +1,6 @@
 // File: src/components/Login.js
 import React, { useState } from 'react';
-import { signInWithGoogle, signInWithApple } from '../services/authService';
+import { signInWithGoogle } from '../services/authService';
 import './Login.css';
 
 const Login = () => {
@@ -15,20 +15,6 @@ const Login = () => {
       // Auth state change will trigger redirect in App.js
     } catch (error) {
       setError('Failed to sign in with Google. Please try again.');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAppleSignIn = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      await signInWithApple();
-      // Auth state change will trigger redirect in App.js
-    } catch (error) {
-      setError('Failed to sign in with Apple. Please try again.');
       console.error(error);
     } finally {
       setLoading(false);

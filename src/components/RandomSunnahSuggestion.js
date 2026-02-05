@@ -1,5 +1,5 @@
 // src/components/RandomSunnahSuggestion.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useUser } from '../contexts/UserContext';
 import './RandomSunnahSuggestion.css';
 
@@ -248,18 +248,18 @@ const RandomSunnahSuggestion = () => {
   const [currentSunnah, setCurrentSunnah] = useState(null);
   const [completed, setCompleted] = useState(false);
 
-  const getDateKey = () => {
+  const getDateKey = useCallback(() => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
       return userData.historicalDate;
     }
     return new Date().toISOString().split('T')[0];
-  };
+  }, [userData?.isHistoricalView, userData?.historicalDate]);
 
   const seed = useMemo(() => {
     const dateKey = getDateKey();
     const userKey = user?.uid || 'anonymous';
     return `${userKey}-${dateKey}`;
-  }, [user?.uid, userData?.isHistoricalView, userData?.historicalDate]);
+  }, [user?.uid, getDateKey]);
 
   const shuffledSuggestions = useMemo(() => {
     const items = [...SUNNAH_SUGGESTIONS];
@@ -290,7 +290,7 @@ const RandomSunnahSuggestion = () => {
     setCurrentSunnah(shuffledSuggestions[0]);
   }, [shuffledSuggestions]);
 
-  const dateKey = useMemo(() => getDateKey(), [userData?.isHistoricalView, userData?.historicalDate]);
+  const dateKey = useMemo(() => getDateKey(), [getDateKey]);
 
   useEffect(() => {
     if (!userData) return;

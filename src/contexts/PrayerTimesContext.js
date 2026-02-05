@@ -1,5 +1,5 @@
 // src/contexts/PrayerTimesContext.js
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { PrayerTimes, CalculationMethod, Coordinates } from 'adhan';
 
 // Create context
@@ -30,7 +30,7 @@ export const PrayerTimesProvider = ({ children }) => {
   });
 
   // Calculate prayer times for a specific date
-  const getPrayerTimesForDate = (date) => {
+  const getPrayerTimesForDate = useCallback((date) => {
     if (!location) return null;
     
     try {
@@ -41,10 +41,10 @@ export const PrayerTimesProvider = ({ children }) => {
       console.error('Error calculating prayer times:', error);
       return null;
     }
-  };
+  }, [location]);
 
   // Format all prayer times
-  const formatPrayerTimes = (times) => {
+  const formatPrayerTimes = useCallback((times) => {
     if (!times) return formattedTimes;
     
     return {
@@ -55,7 +55,7 @@ export const PrayerTimesProvider = ({ children }) => {
       maghrib: formatTime(times.maghrib),
       isha: formatTime(times.isha)
     };
-  };
+  }, [formattedTimes]);
 
   // Get user location and calculate prayer times
   useEffect(() => {
@@ -133,7 +133,7 @@ export const PrayerTimesProvider = ({ children }) => {
     };
     
     getLocationAndPrayerTimes();
-  }, [locationStatus, prayerTimes]);
+  }, [locationStatus, prayerTimes, formatPrayerTimes]);
 
   // Retry getting location
   const retryLocation = () => {

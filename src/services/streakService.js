@@ -277,8 +277,6 @@ export const updateStreakData = async (userId, activityType, isCompleted, option
       return false;
     }
     
-    const userData = userSnapshot.data();
-    
     // Calculate current streak
     const { current, best } = await calculateStreak(userId, activityType, { ramadanOnly, baseDate });
     

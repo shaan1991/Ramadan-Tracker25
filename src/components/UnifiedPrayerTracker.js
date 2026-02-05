@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { calculatePrayerStreakFromData } from '../services/streakService';
 import Celebration from './Celebration';
@@ -171,6 +171,16 @@ const moodAffirmations = [
   'MashaAllah, your effort is shining through.'
 ];
 
+const PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+const PRAYERS_LOWER = ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'];
+
+const formatDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const UnifiedPrayerTracker = () => {
   const { user, userData, updateUserData, isWithinRamadan } = useUser();
   const [localNamaz, setLocalNamaz] = useState(null);
@@ -182,22 +192,12 @@ const UnifiedPrayerTracker = () => {
   const [showCelebration, setShowCelebration] = useState(false);
   const [prevCompletedCount, setPrevCompletedCount] = useState(0);
 
-  const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-  const prayersLower = ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'];
-
-  const formatDate = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const getMoodDateKey = () => {
+  const getMoodDateKey = useCallback(() => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
       return userData.historicalDate;
     }
     return formatDate(new Date());
-  };
+  }, [userData?.isHistoricalView, userData?.historicalDate]);
 
   const getRecentMoodEntries = (history) => Object.entries(history || {})
     .sort((a, b) => new Date(b[0]) - new Date(a[0]))
@@ -234,14 +234,14 @@ const UnifiedPrayerTracker = () => {
     );
     const index = hashSeedToIndex(seed, weighted.length);
     return weighted[index];
-  }, [moodRating, user?.uid, userData?.isHistoricalView, userData?.historicalDate]);
+  }, [moodRating, user?.uid, getMoodDateKey]);
 
   const selectedAffirmation = useMemo(() => {
     if (!moodRating || moodRating < 4) return null;
     const seed = `${user?.uid || 'guest'}-${getMoodDateKey()}-affirm`;
     const index = hashSeedToIndex(seed, moodAffirmations.length);
     return moodAffirmations[index];
-  }, [moodRating, user?.uid, userData?.isHistoricalView, userData?.historicalDate]);
+  }, [moodRating, user?.uid, getMoodDateKey]);
 
   useEffect(() => {
     if (!userData?.namaz) return;
@@ -250,7 +250,7 @@ const UnifiedPrayerTracker = () => {
     const overrideMood = localMoodOverrides[dateKey];
     const isHistorical = userData?.isHistoricalView && userData?.historicalDate;
     const sourceNamaz = isHistorical && historyEntry.namaz ? historyEntry.namaz : userData.namaz;
-    const shouldSync = !localNamaz || prayersLower.some((key) => localNamaz[key] !== sourceNamaz[key]);
+    const shouldSync = !localNamaz || PRAYERS_LOWER.some((key) => localNamaz[key] !== sourceNamaz[key]);
     if (shouldSync) {
       setLocalNamaz(sourceNamaz);
     }
@@ -285,7 +285,7 @@ const UnifiedPrayerTracker = () => {
         return next;
       });
     }
-  }, [userData, userData?.isHistoricalView, userData?.historicalDate, moodRating, averageMood, loading, localNamaz, localMoodOverrides]);
+  }, [userData, userData?.isHistoricalView, userData?.historicalDate, moodRating, averageMood, loading, localNamaz, localMoodOverrides, getMoodDateKey]);
 
   useEffect(() => {
     if (!userData) return;
@@ -447,8 +447,8 @@ const UnifiedPrayerTracker = () => {
       </div>
 
       <div className="unified-prayer-grid">
-        {prayers.map((prayer, idx) => {
-          const prayerLower = prayersLower[idx];
+        {PRAYERS.map((prayer, idx) => {
+          const prayerLower = PRAYERS_LOWER[idx];
           const isCompleted = effectiveNamaz[prayerLower] || false;
 
           return (

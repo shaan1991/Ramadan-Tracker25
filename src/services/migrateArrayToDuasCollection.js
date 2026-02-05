@@ -3,8 +3,7 @@ import {
     doc, 
     getDoc, 
     updateDoc, 
-    collection, 
-    addDoc,
+    collection,
     serverTimestamp,
     writeBatch 
   } from 'firebase/firestore';

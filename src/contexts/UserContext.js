@@ -7,7 +7,6 @@ import {
   isBeforeRamadan, 
   isWithinRamadan, 
   calculateRamadanDay as calculateDayFromDate,
-  getRamadanStartDate,
   RAMADAN_REGIONS,
   DEFAULT_RAMADAN_REGION
 } from '../utils/dateValidation';
@@ -31,66 +30,6 @@ export const UserProvider = ({ children }) => {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
-
-  // Calculate which day of Ramadan it is - updated to pass userData
-  function calculateRamadanDay() {
-    return calculateDayFromDate(new Date(), userData);
-  }
-
-  // Check if the app needs to reset for a new day - using useCallback to avoid dependency issues
-  const checkForDayChange = useCallback(async () => {
-    if (!userData || !user) return;
-    
-    const today = formatDate(new Date());
-    
-    // Get the last active date from user data or use stored state
-    const storedLastActiveDate = userData.lastActiveDate || lastActiveDate;
-    
-    // If this is our first check or the date has changed
-    if (!storedLastActiveDate || storedLastActiveDate !== today) {
-      console.log("New day detected! Resetting daily trackers.");
-      
-      // Calculate Ramadan day using region-aware function
-      const currentRamadanDay = calculateDayFromDate(new Date(), userData);
-      
-      // Comprehensive reset of daily tracking data
-      const resetData = {
-        // Reset namaz (prayer) status
-        namaz: {
-          fajr: false,
-          zuhr: false,
-          asr: false,
-          maghrib: false,
-          isha: false
-        },
-        // EXPLICITLY reset salah tracking to 0 completed
-        salah: { 
-          completed: 0, 
-          total: 5 
-        },
-        // Reset fasting status
-        fasting: false,
-        // Reset taraweeh status
-        prayedTaraweeh: false,
-        // Update last active date
-        lastActiveDate: today,
-        // Recalculate Ramadan day with region awareness
-        day: currentRamadanDay
-      };
-      
-      // Update the user data with a clean slate for today
-      await updateUserData(resetData);
-      
-      // Update local state
-      setLastActiveDate(today);
-      setRamadanDay(currentRamadanDay);
-      
-      // Reset any historical view or current view data
-      setIsHistoricalView(false);
-      setHistoricalDate(null);
-      setCurrentViewData(null);
-    }
-  }, [userData, user, lastActiveDate]); // Add proper dependencies
 
   // Fetch user data function with useCallback
   const fetchUserData = useCallback(async (uid) => {
@@ -277,25 +216,6 @@ export const UserProvider = ({ children }) => {
     return () => unsubscribe();
   }, [fetchUserData]);
 
-  // Effect for checking day change - run on initial load and when userData changes
-  useEffect(() => {
-    if (userData && user) {
-      checkForDayChange();
-    }
-  }, [userData?.lastActiveDate, checkForDayChange, user]); // Add proper dependencies
-
-  // Also check for day change periodically if the app is left open
-  useEffect(() => {
-    if (!user) return;
-    
-    // Check for day change every hour if the app remains open
-    const dayChangeInterval = setInterval(() => {
-      checkForDayChange();
-    }, 3600000); // 1 hour in milliseconds
-    
-    return () => clearInterval(dayChangeInterval);
-  }, [user, checkForDayChange]); // Add proper dependencies
-
   // Update user data function (memoized)
   const updateUserData = useCallback(async (newData) => {
     if (!user) return false;
@@ -421,12 +341,81 @@ export const UserProvider = ({ children }) => {
     });
     
     return true;
-  }, [user, isHistoricalView, historicalDate, ramadanDay, userData]);
+  }, [user, isHistoricalView, historicalDate, ramadanDay, userData, currentViewData]);
 
-  // Calculate Ramadan day for a specific date (with region awareness)
-  const calculateRamadanDayForDate = useCallback((date) => {
-    return calculateDayFromDate(date, userData);
-  }, [userData]);
+  // Check if the app needs to reset for a new day - using useCallback to avoid dependency issues
+  const checkForDayChange = useCallback(async () => {
+    if (!userData || !user) return;
+    
+    const today = formatDate(new Date());
+    
+    // Get the last active date from user data or use stored state
+    const storedLastActiveDate = userData.lastActiveDate || lastActiveDate;
+    
+    // If this is our first check or the date has changed
+    if (!storedLastActiveDate || storedLastActiveDate !== today) {
+      console.log("New day detected! Resetting daily trackers.");
+      
+      // Calculate Ramadan day using region-aware function
+      const currentRamadanDay = calculateDayFromDate(new Date(), userData);
+      
+      // Comprehensive reset of daily tracking data
+      const resetData = {
+        // Reset namaz (prayer) status
+        namaz: {
+          fajr: false,
+          zuhr: false,
+          asr: false,
+          maghrib: false,
+          isha: false
+        },
+        // EXPLICITLY reset salah tracking to 0 completed
+        salah: { 
+          completed: 0, 
+          total: 5 
+        },
+        // Reset fasting status
+        fasting: false,
+        // Reset taraweeh status
+        prayedTaraweeh: false,
+        // Update last active date
+        lastActiveDate: today,
+        // Recalculate Ramadan day with region awareness
+        day: currentRamadanDay
+      };
+      
+      // Update the user data with a clean slate for today
+      await updateUserData(resetData);
+      
+      // Update local state
+      setLastActiveDate(today);
+      setRamadanDay(currentRamadanDay);
+      
+      // Reset any historical view or current view data
+      setIsHistoricalView(false);
+      setHistoricalDate(null);
+      setCurrentViewData(null);
+    }
+  }, [userData, user, lastActiveDate, updateUserData]); // Add proper dependencies
+
+  // Effect for checking day change - run on initial load and when userData changes
+  useEffect(() => {
+    if (userData && user) {
+      checkForDayChange();
+    }
+  }, [userData, userData?.lastActiveDate, checkForDayChange, user]); // Add proper dependencies
+
+  // Also check for day change periodically if the app is left open
+  useEffect(() => {
+    if (!user) return;
+    
+    // Check for day change every hour if the app remains open
+    const dayChangeInterval = setInterval(() => {
+      checkForDayChange();
+    }, 3600000); // 1 hour in milliseconds
+    
+    return () => clearInterval(dayChangeInterval);
+  }, [user, checkForDayChange]); // Add proper dependencies
 
   // Get the effective data to display (either current or historical)
   const getEffectiveData = useCallback(() => {

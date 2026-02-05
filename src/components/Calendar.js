@@ -123,7 +123,6 @@ const Calendar = ({ onDateSelect, onClose }) => {
   };
 
   const handleNextMonth = () => {
-    const nextMonthDate = new Date(currentYear, currentMonth + 1, 1);
     if (currentMonth === 11) {
       setCurrentMonth(0);
       setCurrentYear(currentYear + 1);

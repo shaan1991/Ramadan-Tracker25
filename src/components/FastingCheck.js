@@ -1,5 +1,5 @@
 // File: src/components/FastingCheck.js
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { usePrayerTimes } from '../contexts/PrayerTimesContext';
 import { calculateStreak, updateStreakData } from '../services/streakService';
@@ -13,13 +13,13 @@ const FastingCheck = () => {
   const [currentRamadanDay, setCurrentRamadanDay] = useState(1);
   const [animate, setAnimate] = useState(false);
   
-  const getEffectiveDate = () => {
+  const getEffectiveDate = useCallback(() => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
       const [year, month, day] = userData.historicalDate.split('-').map(num => parseInt(num));
       return new Date(year, month - 1, day);
     }
     return new Date();
-  };
+  }, [userData?.isHistoricalView, userData?.historicalDate]);
   
   // Calculate Ramadan day using Adhan when possible
   useEffect(() => {
@@ -98,7 +98,7 @@ const FastingCheck = () => {
     };
     
     calculateRamadanDay();
-  }, [userData?.isHistoricalView, userData?.historicalDate, prayerTimes]);
+  }, [userData?.isHistoricalView, userData?.historicalDate, userData?.ramadanLength, userData?.ramadanStartDate, prayerTimes]);
 
   // Load streak data when component mounts or userData changes
   useEffect(() => {
@@ -120,7 +120,7 @@ const FastingCheck = () => {
     };
     
     loadStreak();
-  }, [user, userData?.fasting, userData?.isHistoricalView, userData?.historicalDate, isWithinRamadan]);
+  }, [user, userData?.fasting, userData?.isHistoricalView, userData?.historicalDate, isWithinRamadan, getEffectiveDate]);
 
   if (!userData) return null;
   const effectiveDate = getEffectiveDate();

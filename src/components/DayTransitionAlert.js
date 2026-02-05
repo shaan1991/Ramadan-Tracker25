@@ -6,7 +6,6 @@ import './DayTransitionAlert.css';
 const DayTransitionAlert = () => {
   const [showAlert, setShowAlert] = useState(false);
   const { userData, checkForDayChange } = useUser();
-  const [nextCheckTime, setNextCheckTime] = useState(null);
 
   // Helper function for consistent date formatting
   const formatDate = (date) => {
@@ -33,11 +32,6 @@ const DayTransitionAlert = () => {
       const timeUntilMidnight = calculateTimeUntilMidnight();
       console.log(`Scheduling day change check in ${Math.floor(timeUntilMidnight / 1000 / 60)} minutes`);
       
-      // Store the next check time for display
-      const nextCheck = new Date();
-      nextCheck.setTime(nextCheck.getTime() + timeUntilMidnight);
-      setNextCheckTime(nextCheck);
-      
       // Set timeout for midnight check
       const timerId = setTimeout(() => {
         const today = formatDate(new Date());
@@ -63,7 +57,7 @@ const DayTransitionAlert = () => {
     
     // Cleanup
     return () => clearTimeout(timerId);
-  }, [userData?.lastActiveDate]);
+  }, [userData?.lastActiveDate, checkForDayChange]);
 
   const handleRefresh = () => {
     // Refresh the data

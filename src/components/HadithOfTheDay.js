@@ -2,18 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import './HadithOfTheDay.css';
 
-const HadithOfTheDay = () => {
-  const [hadith, setHadith] = useState({
-    text: '',
-    narrator: '',
-    source: '',
-    loading: true,
-    error: false
-  });
-
-  // Collection of verified short hadiths with their narrators and sources
-  // Collection of verified short hadiths with their narrators and sources
-  const hadithCollection = [
+// Collection of verified short hadiths with their narrators and sources
+const HADITH_COLLECTION = [
     {
       text: "None of you truly believes until he loves for his brother what he loves for himself.",
       narrator: "Reported by Al-Bukhari and Muslim",
@@ -181,15 +171,23 @@ const HadithOfTheDay = () => {
       source: "Various sources"
     }
   ];
-  
+
+const HadithOfTheDay = () => {
+  const [hadith, setHadith] = useState({
+    text: '',
+    narrator: '',
+    source: '',
+    loading: true,
+    error: false
+  });
 
   useEffect(() => {
     // Function to get a random hadith
     const getRandomHadith = () => {
       try {
         // Get a random index from the collection
-        const randomIndex = Math.floor(Math.random() * hadithCollection.length);
-        const selectedHadith = hadithCollection[randomIndex];
+        const randomIndex = Math.floor(Math.random() * HADITH_COLLECTION.length);
+        const selectedHadith = HADITH_COLLECTION[randomIndex];
         
         setHadith({
           text: selectedHadith.text,
