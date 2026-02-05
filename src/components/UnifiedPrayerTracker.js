@@ -156,11 +156,27 @@ const moodScale = [
   { value: 5, emoji: '😊', label: 'Great' }
 ];
 
+const moodAffirmations = [
+  'Alhamdulillah, you are doing great today.',
+  'MashaAllah, keep up the good momentum.',
+  'Alhamdulillah — small steps add up.',
+  'MashaAllah, your consistency is showing.',
+  'Alhamdulillah, keep this calm energy going.',
+  'MashaAllah, that is a beautiful state today.',
+  'Alhamdulillah, may this ease continue.',
+  'MashaAllah, your heart feels steady today.',
+  'Alhamdulillah, today is a gift — keep it gentle.',
+  'MashaAllah, you are showing up well.',
+  'Alhamdulillah, may Allah bless this balance.',
+  'MashaAllah, your effort is shining through.'
+];
+
 const UnifiedPrayerTracker = () => {
   const { user, userData, updateUserData, isWithinRamadan } = useUser();
   const [localNamaz, setLocalNamaz] = useState(null);
   const [moodRating, setMoodRating] = useState(0);
   const [averageMood, setAverageMood] = useState(0);
+  const [localMoodOverrides, setLocalMoodOverrides] = useState({});
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -220,20 +236,40 @@ const UnifiedPrayerTracker = () => {
     return weighted[index];
   }, [moodRating, user?.uid, userData?.isHistoricalView, userData?.historicalDate]);
 
+  const selectedAffirmation = useMemo(() => {
+    if (!moodRating || moodRating < 4) return null;
+    const seed = `${user?.uid || 'guest'}-${getMoodDateKey()}-affirm`;
+    const index = hashSeedToIndex(seed, moodAffirmations.length);
+    return moodAffirmations[index];
+  }, [moodRating, user?.uid, userData?.isHistoricalView, userData?.historicalDate]);
+
   useEffect(() => {
     if (!userData?.namaz) return;
-    const shouldSync = !localNamaz || prayersLower.some((key) => localNamaz[key] !== userData.namaz[key]);
-    if (shouldSync) {
-      setLocalNamaz(userData.namaz);
-    }
     const dateKey = getMoodDateKey();
     const historyEntry = userData.history?.[dateKey] || {};
-    const todaysMood = historyEntry.mood || 0;
+    const overrideMood = localMoodOverrides[dateKey];
+    const isHistorical = userData?.isHistoricalView && userData?.historicalDate;
+    const sourceNamaz = isHistorical && historyEntry.namaz ? historyEntry.namaz : userData.namaz;
+    const shouldSync = !localNamaz || prayersLower.some((key) => localNamaz[key] !== sourceNamaz[key]);
+    if (shouldSync) {
+      setLocalNamaz(sourceNamaz);
+    }
+    const todaysMood = historyEntry.mood ?? overrideMood ?? 0;
     if (todaysMood !== moodRating) {
       setMoodRating(todaysMood);
     }
 
-    const entries = getRecentMoodEntries(userData.history);
+    const historyWithOverride =
+      !isHistorical && overrideMood !== undefined && historyEntry.mood === undefined
+        ? {
+            ...(userData.history || {}),
+            [dateKey]: {
+              ...(userData.history?.[dateKey] || {}),
+              mood: overrideMood
+            }
+          }
+        : userData.history;
+    const entries = getRecentMoodEntries(historyWithOverride);
     const nextAverage = computeAverageMood(entries);
     if (nextAverage !== averageMood) {
       setAverageMood(nextAverage);
@@ -241,7 +277,15 @@ const UnifiedPrayerTracker = () => {
     if (loading) {
       setLoading(false);
     }
-  }, [userData, userData?.isHistoricalView, userData?.historicalDate, moodRating, averageMood, loading, localNamaz]);
+
+    if (overrideMood !== undefined && historyEntry.mood === overrideMood) {
+      setLocalMoodOverrides((prev) => {
+        const next = { ...prev };
+        delete next[dateKey];
+        return next;
+      });
+    }
+  }, [userData, userData?.isHistoricalView, userData?.historicalDate, moodRating, averageMood, loading, localNamaz, localMoodOverrides]);
 
   useEffect(() => {
     if (!userData) return;
@@ -258,6 +302,8 @@ const UnifiedPrayerTracker = () => {
 
   useEffect(() => {
     if (!userData) return;
+    const isHistorical = userData?.isHistoricalView && userData?.historicalDate;
+    if (isHistorical) return;
     const completedCount = Object.values(userData.namaz).filter(Boolean).length;
     if (completedCount === 5 && prevCompletedCount !== 5) {
       setShowCelebration(true);
@@ -267,7 +313,10 @@ const UnifiedPrayerTracker = () => {
 
   const handlePrayerToggle = async (prayerLower) => {
     if (!userData) return;
-    const currentNamaz = localNamaz || userData.namaz;
+    const isHistoricalView = userData?.isHistoricalView && userData?.historicalDate;
+    const currentNamaz = localNamaz
+      || (isHistoricalView ? userData.history?.[getMoodDateKey()]?.namaz : null)
+      || userData.namaz;
     const updatedNamaz = { ...currentNamaz, [prayerLower]: !currentNamaz[prayerLower] };
     const completedPrayers = Object.values(updatedNamaz).filter(Boolean).length;
     setLocalNamaz(updatedNamaz);
@@ -284,6 +333,10 @@ const UnifiedPrayerTracker = () => {
   const handleMoodSelect = async (rating) => {
     if (!userData) return;
     setMoodRating(rating);
+    setLocalMoodOverrides((prev) => ({
+      ...prev,
+      [getMoodDateKey()]: rating
+    }));
 
     try {
       await updateUserData({ mood: rating });
@@ -316,7 +369,9 @@ const UnifiedPrayerTracker = () => {
     return <div className="unified-prayer-loading">Loading prayers...</div>;
   }
 
-  const effectiveNamaz = localNamaz || userData.namaz;
+  const isHistorical = userData?.isHistoricalView && userData?.historicalDate;
+  const historyNamaz = isHistorical ? userData.history?.[getMoodDateKey()]?.namaz : null;
+  const effectiveNamaz = localNamaz || historyNamaz || userData.namaz;
   const completedCount = Object.values(effectiveNamaz).filter(Boolean).length;
   const moodBarPercent = Math.round((moodRating / 5) * 100);
 
@@ -370,7 +425,7 @@ const UnifiedPrayerTracker = () => {
           <span className="mood-average">30-day avg: {averageMood ? averageMood.toFixed(1) : '—'}</span>
         </div>
 
-        <div className={`mood-suggestion-shell ${selectedSuggestion ? 'visible' : 'hidden'}`}>
+        <div className={`mood-suggestion-shell ${(selectedSuggestion || selectedAffirmation) ? 'visible' : 'hidden'}`}>
           {selectedSuggestion && (
             <div className="mood-suggestion">
               <div className="mood-suggestion-header">
@@ -381,6 +436,11 @@ const UnifiedPrayerTracker = () => {
                 <strong>{selectedSuggestion.title}</strong>
                 <p>{selectedSuggestion.description}</p>
               </div>
+            </div>
+          )}
+          {selectedAffirmation && !selectedSuggestion && (
+            <div className="mood-affirmation">
+              {selectedAffirmation}
             </div>
           )}
         </div>

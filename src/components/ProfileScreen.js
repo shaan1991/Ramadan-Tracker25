@@ -25,6 +25,8 @@ const ProfileScreen = ({ onNavigate }) => {
   const [canInstall, setCanInstall] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [showIosHint, setShowIosHint] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
+  const [installGuideClosing, setInstallGuideClosing] = useState(false);
 
   useEffect(() => {
     if (!userData) return;
@@ -186,7 +188,20 @@ const ProfileScreen = ({ onNavigate }) => {
     }
   };
 
-  const handleInstallApp = async () => {
+  const handleInstallApp = () => {
+    if (isStandalone) return;
+    setShowInstallGuide(true);
+  };
+
+  const handleCloseInstallGuide = () => {
+    setInstallGuideClosing(true);
+    setTimeout(() => {
+      setShowInstallGuide(false);
+      setInstallGuideClosing(false);
+    }, 220);
+  };
+
+  const handleConfirmInstall = async () => {
     if (!installPrompt) return;
     installPrompt.prompt();
     try {
@@ -194,6 +209,11 @@ const ProfileScreen = ({ onNavigate }) => {
     } finally {
       setInstallPrompt(null);
       setCanInstall(false);
+      setInstallGuideClosing(true);
+      setTimeout(() => {
+        setShowInstallGuide(false);
+        setInstallGuideClosing(false);
+      }, 220);
     }
   };
   
@@ -427,6 +447,65 @@ const ProfileScreen = ({ onNavigate }) => {
           </div>
         </div>
       </dialog>
+
+      {!isStandalone && showInstallGuide && (
+        <div
+          className={`install-guide-overlay ${installGuideClosing ? 'closing' : 'open'}`}
+          onClick={handleCloseInstallGuide}
+        >
+          <div
+            className={`install-guide-card ${installGuideClosing ? 'closing' : 'open'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="install-guide-header">
+              <span className="install-guide-icon">⬇️</span>
+              <div>
+                <h3>Install the App</h3>
+                <p>Get faster access and a more app‑like experience.</p>
+              </div>
+            </div>
+
+            {showIosHint && !canInstall && (
+              <div className="install-guide-steps">
+                <div className="install-guide-step">
+                  <span className="step-number">1</span>
+                  <span>Tap the Share icon in Safari.</span>
+                </div>
+                <div className="install-guide-step">
+                  <span className="step-number">2</span>
+                  <span>Choose “Add to Home Screen”.</span>
+                </div>
+                <div className="install-guide-step">
+                  <span className="step-number">3</span>
+                  <span>Confirm to add the app.</span>
+                </div>
+              </div>
+            )}
+
+            {canInstall && (
+              <div className="install-guide-actions">
+                <button className="install-guide-primary" onClick={handleConfirmInstall}>
+                  Continue to Install
+                </button>
+                <button className="install-guide-secondary" onClick={handleCloseInstallGuide}>
+                  Not now
+                </button>
+              </div>
+            )}
+
+            {!canInstall && !showIosHint && (
+              <div className="install-guide-actions">
+                <p className="install-guide-note">
+                  Install becomes available after a few visits in supported browsers.
+                </p>
+                <button className="install-guide-secondary" onClick={handleCloseInstallGuide}>
+                  Got it
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
