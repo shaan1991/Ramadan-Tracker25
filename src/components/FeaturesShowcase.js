@@ -1,7 +1,6 @@
 import React from 'react';
 import Achievements from './Achievements';
 import EnhancedJuzTracker from './EnhancedJuzTracker';
-import KhushuTracker from './KhushuTracker';
 import './FeaturesShowcase.css';
 
 const FeaturesShowcase = () => {
@@ -24,8 +23,8 @@ const FeaturesShowcase = () => {
         </div>
 
         <div className="feature-section">
-          <h2>🤲 Prayer Focus Tracking</h2>
-          <KhushuTracker />
+          <h2>💭 Daily Check-In</h2>
+          <p>Share how you felt today and get gentle, uplifting suggestions when you need them.</p>
         </div>
       </div>
 
@@ -34,7 +33,7 @@ const FeaturesShowcase = () => {
         <ul>
           <li><strong>Achievements:</strong> Unlock badges for milestones and consistent practice</li>
           <li><strong>Enhanced Juz Tracker:</strong> Track individual Surahs within each Juz with visual progress</li>
-          <li><strong>Khushu Tracker:</strong> Rate your focus and concentration (1-10) for each prayer daily</li>
+          <li><strong>Daily Check-In:</strong> A quick mood prompt with supportive, faith‑friendly guidance</li>
         </ul>
       </div>
     </div>

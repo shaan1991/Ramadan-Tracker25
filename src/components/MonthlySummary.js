@@ -1,5 +1,5 @@
 // src/components/MonthlySummary.js (Simplified version)
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { getAllStreaks, getBestStreak } from '../services/streakService';
 import './MonthlySummary.css';
@@ -16,13 +16,16 @@ const MonthlySummary = () => {
   });
   const [bestStreak, setBestStreak] = useState(0);
   const [activeDays, setActiveDays] = useState(0);
+  const initialLoadRef = useRef(true);
   
   // Load all data when component mounts or user changes
   useEffect(() => {
     const loadAllData = async () => {
       if (!user?.uid) return;
       
-      setLoading(true);
+      if (initialLoadRef.current) {
+        setLoading(true);
+      }
       
       try {
         const now = new Date();
@@ -71,10 +74,16 @@ const MonthlySummary = () => {
           });
         }
         
-        setLoading(false);
+        if (initialLoadRef.current) {
+          setLoading(false);
+          initialLoadRef.current = false;
+        }
       } catch (error) {
         console.error("Error loading summary data:", error);
-        setLoading(false);
+        if (initialLoadRef.current) {
+          setLoading(false);
+          initialLoadRef.current = false;
+        }
       }
     };
     

@@ -218,7 +218,7 @@ const ProfileScreen = ({ onNavigate }) => {
           <h2>Year-Round Tracking</h2>
           <div className="days-count">{isRamadanMode ? 'Ramadan Mode' : 'Daily Mode'}</div>
           <p className="data-availability">
-            Track your worship every day. Ramadan gets special streaks and focus.
+            Track your worship every day. Ramadan gets special streaks and insights.
           </p>
         </div>
 

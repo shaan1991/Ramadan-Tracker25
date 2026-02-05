@@ -50,7 +50,7 @@
 
 .stat-value {
   display: block;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   margin-bottom: 6px;
   color: #333;
@@ -78,9 +78,148 @@
   left: 0;
   top: 0;
   height: 100%;
-  background: #333;
+  background: var(--bar-fill, #333);
   border-radius: 2px;
   width: 100%;
+}
+
+.mood-checkin {
+  margin: 16px 0;
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+.mood-header h4 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mood-header p {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  color: #888;
+}
+
+.mood-scale {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.mood-btn {
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 8px 0;
+  background: #fafafa;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.mood-btn:hover {
+  transform: translateY(-1px);
+  border-color: #d0d0d0;
+}
+
+.mood-btn.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+
+.mood-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.mood-number {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.mood-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 11px;
+  color: #666;
+}
+
+.mood-label {
+  font-weight: 600;
+}
+
+.mood-average {
+  color: #888;
+}
+
+.mood-suggestion {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f7f4ee;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mood-suggestion-shell {
+  margin-top: 12px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: max-height 0.3s ease, opacity 0.25s ease, transform 0.25s ease;
+}
+
+.mood-suggestion-shell.visible {
+  max-height: 240px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mood-suggestion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.mood-suggestion-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mood-suggestion-tag {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  color: #333;
+  font-weight: 600;
+}
+
+.mood-suggestion-text strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.mood-suggestion-text p {
+  margin: 0;
+  font-size: 12px;
+  color: #555;
+  line-height: 1.4;
 }
 
 .unified-prayer-grid {
@@ -178,158 +317,6 @@
   font-style: italic;
 }
 
-.khushu-rating {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  width: 100%;
-}
-
-.khushu-circle {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #e0e0e0;
-  background: #f5f5f5;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.khushu-rating:hover .khushu-circle {
-  transform: scale(1.05);
-  border-color: #d0d0d0;
-}
-
-.khushu-emoji {
-  font-size: 28px;
-  display: inline-block;
-  line-height: 1;
-}
-
-.khushu-rating.unrated .khushu-circle {
-  background: #e8e8e8 !important;
-  border-color: #d0d0d0 !important;
-}
-
-.khushu-rating.unrated .khushu-emoji {
-  font-size: 20px;
-  color: #999;
-  font-weight: bold;
-}
-
-.khushu-label {
-  font-size: 10px;
-  color: #888;
-  text-align: center;
-}
-
-.rating-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.rating-modal {
-  background: white;
-  border-radius: 12px;
-  padding: 16px;
-  max-width: 400px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.rating-modal h4 {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-}
-
-.rating-modal p {
-  margin: 0 0 12px 0;
-  font-size: 13px;
-  color: #666;
-}
-
-.rating-scale {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.rating-btn {
-  aspect-ratio: 1;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: white;
-  color: #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.rating-btn:hover {
-  transform: scale(1.05);
-  background: #f9f9f9;
-  border-color: #d0d0d0;
-}
-
-.rating-btn.active {
-  background: #333;
-  color: white;
-  border-color: #333;
-}
-
-.rating-descriptions {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
-  padding: 10px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  border: 1px solid #f0f0f0;
-  font-size: 12px;
-  color: #666;
-  line-height: 1.4;
-}
-
-.modal-close-btn {
-  width: 100%;
-  padding: 10px;
-  background: white;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.modal-close-btn:hover {
-  background: #f9f9f9;
-  border-color: #e0e0e0;
-}
-
 .unified-prayer-loading {
   text-align: center;
   color: #999;
@@ -356,7 +343,7 @@
   }
 
   .stat-value {
-    font-size: 16px;
+    font-size: 13px;
   }
 
   .unified-prayer-grid {
@@ -364,12 +351,7 @@
     gap: 8px;
   }
 
-  .rating-scale {
+  .mood-scale {
     gap: 8px;
-  }
-
-  .rating-modal {
-    width: 95%;
-    padding: 14px;
   }
 }

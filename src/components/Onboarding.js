@@ -13,7 +13,7 @@ const Onboarding = ({ onComplete }) => {
       description: "Built for everyday worship, with a special Ramadan focus.",
       icon: "🌙",
       features: [
-        { icon: "🤲", text: "Prayer tracking with focus (Khushu) rating" },
+        { icon: "🤲", text: "Prayer tracking with a simple daily check-in" },
         { icon: "🍉", text: "Fasting and Taraweeh toggles with streaks" },
         { icon: "📖", text: "Qur'an Juz progress and daily totals" },
         { icon: "📅", text: "Calendar to backfill missed days" }

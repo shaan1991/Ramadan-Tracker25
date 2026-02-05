@@ -355,7 +355,7 @@ const Home = () => {
         </div>
       )}
 
-      {/* Unified Prayer Tracker - combines both completion and focus (Khushu) */}
+      {/* Unified Prayer Tracker - combines completion with a daily check-in */}
       <div className="elastic-expand">
         <UnifiedPrayerTracker />
       </div>
