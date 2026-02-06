@@ -70,18 +70,6 @@ font-family: 'Poppins', sans-serif;;
     font-family: 'Poppins', sans-serif;
   }
   
-  .swipe-hint {
-    font-size: 12px;
-    color: #999;
-    text-align: right;
-    opacity: 0.55;
-    transition: opacity 0.3s ease;
-    margin-top: 8px;
-  }
-  
-  .dua-item:active .swipe-hint {
-    opacity: 0.7;
-  }
   
   .delete-indicator {
     position: absolute;

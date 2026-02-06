@@ -173,9 +173,6 @@ export const UserProvider = ({ children }) => {
           ramadanLength: 30,
           ramadanLengthConfirmed: false,
           ramadanStartDateOverride: false,
-          duas: [
-            'Use this page to add your duas and track them - long press to edit and swipe to delete'
-          ],
           // Add region information
           ...regionData
         };

@@ -6,6 +6,8 @@ import './Dua.css';
 
 const MAX_CHARACTERS = 250;
 const LONG_PRESS_DURATION = 500; // ms
+const DEFAULT_DUA_SEED =
+  'Use this page to add your duas and track them - long press to edit and swipe to delete';
 
 const Dua = () => {
   const { user } = useUser();
@@ -31,7 +33,14 @@ const Dua = () => {
         try {
           setError(null);
           const userDuas = await getDuas(user.uid);
-          setDuas(userDuas);
+          const seedDuas = userDuas.filter(dua => dua.text === DEFAULT_DUA_SEED);
+          const filteredDuas = userDuas.filter(dua => dua.text !== DEFAULT_DUA_SEED);
+          if (seedDuas.length > 0) {
+            seedDuas.forEach(dua => {
+              deleteDua(user.uid, dua.id).catch(() => {});
+            });
+          }
+          setDuas(filteredDuas);
           setLoading(false);
         } catch (error) {
           console.error("Error fetching duas:", error);
@@ -251,7 +260,6 @@ const Dua = () => {
                 ) : (
                   <>
                     <div className="dua-text">{dua.text}</div>
-                    <div className="swipe-hint">Swipe left to delete</div>
                     <div className="delete-indicator">
                       <span className="delete-icon">🗑️</span>
                     </div>
