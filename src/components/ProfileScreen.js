@@ -85,11 +85,7 @@ const ProfileScreen = ({ onNavigate }) => {
     };
   }, []);
 
-  useEffect(() => {
-    if (isRamadanMode) {
-      setStreakMode('ramadan');
-    }
-  }, [isRamadanMode]);
+  // Allow user to switch between Daily/Ramadan without forcing it.
 
   useEffect(() => {
     const loadStreaks = async () => {
@@ -356,11 +352,13 @@ const ProfileScreen = ({ onNavigate }) => {
                 <div className="streak-label">Fasting</div>
                 <div className="streak-value">{streaks.fasting.current} days</div>
               </div>
-              <div className="streak-card">
-                <div className="streak-icon">🕌</div>
-                <div className="streak-label">Taraweeh</div>
-                <div className="streak-value">{streaks.taraweeh.current} days</div>
-              </div>
+              {isRamadanMode && streakMode === 'ramadan' && (
+                <div className="streak-card">
+                  <div className="streak-icon">🕌</div>
+                  <div className="streak-label">Taraweeh</div>
+                  <div className="streak-value">{streaks.taraweeh.current} days</div>
+                </div>
+              )}
             </div>
           </div>
           
