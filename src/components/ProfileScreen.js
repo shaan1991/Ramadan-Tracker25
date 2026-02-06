@@ -27,6 +27,8 @@ const ProfileScreen = ({ onNavigate }) => {
   const [showIosHint, setShowIosHint] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [installGuideClosing, setInstallGuideClosing] = useState(false);
+  const [installGuideOpen, setInstallGuideOpen] = useState(false);
+  const [installGuidePop, setInstallGuidePop] = useState(false);
 
   useEffect(() => {
     if (!userData) return;
@@ -193,8 +195,27 @@ const ProfileScreen = ({ onNavigate }) => {
     setShowInstallGuide(true);
   };
 
+  useEffect(() => {
+    if (!showInstallGuide) {
+      setInstallGuideOpen(false);
+      setInstallGuidePop(false);
+      return;
+    }
+    const frame = requestAnimationFrame(() => {
+      setInstallGuideOpen(true);
+      setInstallGuidePop(true);
+    });
+    const resetTimer = setTimeout(() => setInstallGuidePop(false), 320);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(resetTimer);
+    };
+  }, [showInstallGuide]);
+
   const handleCloseInstallGuide = () => {
     setInstallGuideClosing(true);
+    setInstallGuideOpen(false);
+    setInstallGuidePop(false);
     setTimeout(() => {
       setShowInstallGuide(false);
       setInstallGuideClosing(false);
@@ -210,6 +231,8 @@ const ProfileScreen = ({ onNavigate }) => {
       setInstallPrompt(null);
       setCanInstall(false);
       setInstallGuideClosing(true);
+      setInstallGuideOpen(false);
+      setInstallGuidePop(false);
       setTimeout(() => {
         setShowInstallGuide(false);
         setInstallGuideClosing(false);
@@ -358,7 +381,7 @@ const ProfileScreen = ({ onNavigate }) => {
 
           <div className={`pwa-install-panel ${isStandalone ? 'installed' : ''}`}>
             <div className="pwa-install-header">
-              <span className="pwa-install-icon">⬇️</span>
+              <span className="pwa-install-icon">✦</span>
               <div>
                 <h3>
                   Install the App
@@ -367,19 +390,24 @@ const ProfileScreen = ({ onNavigate }) => {
                 <p>Get quick access and a smoother experience.</p>
               </div>
             </div>
-            {canInstall && !isStandalone && (
+            {!isStandalone && canInstall && (
               <button className="pwa-install-button" onClick={handleInstallApp}>
                 Install on this device
               </button>
             )}
-            {!canInstall && !isStandalone && showIosHint && (
+            {!isStandalone && showIosHint && !canInstall && (
+              <button className="pwa-install-button outline" onClick={handleInstallApp}>
+                View install steps
+              </button>
+            )}
+            {!isStandalone && !canInstall && !showIosHint && (
               <p className="pwa-install-hint">
-                On iPhone or iPad, tap Share and choose Add to Home Screen.
+                Install isn’t ready yet. Visit a few times or open in Chrome/Edge.
               </p>
             )}
-            {!canInstall && !isStandalone && !showIosHint && (
+            {isStandalone && (
               <p className="pwa-install-hint">
-                Install is available in supported browsers after a few visits.
+                You are already using the installed app.
               </p>
             )}
           </div>
@@ -440,11 +468,11 @@ const ProfileScreen = ({ onNavigate }) => {
 
       {!isStandalone && showInstallGuide && (
         <div
-          className={`install-guide-overlay ${installGuideClosing ? 'closing' : 'open'}`}
+          className={`install-guide-overlay ${installGuideOpen ? 'open' : ''} ${installGuideClosing ? 'closing' : ''}`}
           onClick={handleCloseInstallGuide}
         >
           <div
-            className={`install-guide-card ${installGuideClosing ? 'closing' : 'open'}`}
+            className={`install-guide-card ${installGuideOpen ? 'open' : ''} ${installGuideClosing ? 'closing' : ''} ${installGuidePop ? 'pop' : ''}`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="install-guide-header">

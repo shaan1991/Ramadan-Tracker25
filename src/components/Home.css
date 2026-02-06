@@ -5,8 +5,16 @@
 
 .home-container {
   padding: 16px;
-  background-color: #fff;
+  background-color: #fdfcf9;
   font-family: 'Poppins', sans-serif;;
+}
+
+.home-section {
+  margin: 14px 0;
+}
+
+.home-section + .home-section {
+  margin-top: 18px;
 }
 
 /* App header styling to match the design */

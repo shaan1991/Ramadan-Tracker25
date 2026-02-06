@@ -415,6 +415,13 @@ dialog {
   transform: scale(0.98);
 }
 
+.pwa-install-button.outline {
+  background: #fff;
+  color: #111;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  box-shadow: none;
+}
+
 .pwa-install-badge {
   font-size: 10px;
   padding: 3px 8px;
@@ -472,6 +479,10 @@ dialog {
   transform: translateY(0) scale(1);
 }
 
+.install-guide-card.open.pop {
+  animation: installCardIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 .install-guide-overlay.closing {
   opacity: 0;
 }
@@ -479,6 +490,21 @@ dialog {
 .install-guide-card.closing {
   opacity: 0;
   transform: translateY(8px) scale(0.98);
+}
+
+@keyframes installCardIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .install-guide-header {

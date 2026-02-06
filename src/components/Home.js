@@ -346,40 +346,40 @@ const Home = () => {
 
       {/* Combined daily + monthly overview */}
       {!isHistoricalView && (
-        <div className="elastic-expand">
+        <div className="elastic-expand home-section">
           <MonthlySummary />
         </div>
       )}
 
       {/* Unified Prayer Tracker - combines completion with a daily check-in */}
-      <div className="elastic-expand">
+      <div className="elastic-expand home-section">
         <UnifiedPrayerTracker />
       </div>
-      <div className="elastic-expand">
+      <div className="elastic-expand home-section">
         <FastingCheck />
       </div>
       {isRamadan && (
-        <div className="elastic-expand">
+        <div className="elastic-expand home-section">
           <TaraweehCheck />
         </div>
       )}
-      <div className="elastic-expand">
+      <div className="elastic-expand home-section">
         <JuzTracker />
       </div>
 
       {/* Sunnah of the Day */}
-      <div className="elastic-expand">
+      <div className="elastic-expand home-section">
         <RandomSunnahSuggestion currentRamadanDay={currentRamadanDay} />
       </div>
 
       {/* Replace the quote container with Hadith of the Day */}
-      <div className="elastic-expand">
+      <div className="elastic-expand home-section">
         <HadithOfTheDay />
       </div>
 
       {/* NEW FEATURES - 2026 Enhancements */}
       {!isHistoricalView && (
-        <div className="elastic-expand">
+        <div className="elastic-expand home-section">
           <Achievements />
         </div>
       )}
