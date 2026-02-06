@@ -91,6 +91,11 @@
   border-radius: 12px;
   padding: 14px;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1.05);
+}
+
+.mood-checkin.expanded {
+  animation: elasticCard 420ms cubic-bezier(0.2, 0.8, 0.2, 1.05);
 }
 
 .mood-header h4 {
@@ -123,6 +128,8 @@
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .mood-btn:hover {
@@ -183,14 +190,19 @@
   overflow: hidden;
   max-height: 0;
   opacity: 0;
-  transform: translateY(4px);
-  transition: max-height 0.3s ease, opacity 0.25s ease, transform 0.25s ease;
+  transform: translateY(4px) scaleY(0.98);
+  transform-origin: top;
+  transition: max-height 0.35s cubic-bezier(0.2, 0.8, 0.2, 1.05),
+    opacity 0.3s ease,
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1.05);
+  will-change: max-height, opacity, transform;
 }
 
 .mood-suggestion-shell.visible {
   max-height: 240px;
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scaleY(1);
+  animation: elasticReveal 420ms cubic-bezier(0.2, 0.8, 0.2, 1.05);
 }
 
 .mood-suggestion-header {
@@ -237,6 +249,49 @@
   font-size: 13px;
   font-weight: 600;
   text-align: center;
+  animation: softPop 360ms cubic-bezier(0.2, 0.8, 0.2, 1.05);
+}
+
+@keyframes elasticReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scaleY(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes elasticCard {
+  0% {
+    transform: scale(0.995);
+  }
+  60% {
+    transform: scale(1.01);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes softPop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .unified-prayer-grid {

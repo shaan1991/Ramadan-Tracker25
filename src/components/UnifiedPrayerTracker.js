@@ -192,6 +192,7 @@ const UnifiedPrayerTracker = () => {
   const [loading, setLoading] = useState(true);
   const [showCelebration, setShowCelebration] = useState(false);
   const prevCompletedCountRef = useRef(0);
+  const lastMoodTapRef = useRef({ value: null, ts: 0 });
 
   const getMoodDateKey = useCallback(() => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
@@ -243,6 +244,7 @@ const UnifiedPrayerTracker = () => {
     const index = hashSeedToIndex(seed, moodAffirmations.length);
     return moodAffirmations[index];
   }, [moodRating, user?.uid, getMoodDateKey]);
+  const showMoodMessage = Boolean(selectedSuggestion || selectedAffirmation);
 
   useEffect(() => {
     if (!userData?.namaz) return;
@@ -381,6 +383,12 @@ const UnifiedPrayerTracker = () => {
     }
   };
 
+  const handleMoodPointer = (rating) => {
+    const now = Date.now();
+    lastMoodTapRef.current = { value: rating, ts: now };
+    handleMoodSelect(rating);
+  };
+
   const getMoodEmoji = (rating) => {
     const match = moodScale.find((option) => option.value === rating);
     return match ? match.emoji : '—';
@@ -431,7 +439,7 @@ const UnifiedPrayerTracker = () => {
         </div>
       </div>
 
-      <div className="mood-checkin">
+      <div className={`mood-checkin ${showMoodMessage ? 'expanded' : ''}`}>
         <div className="mood-header">
           <h4>How did you feel today?</h4>
           <p>Quick daily check-in to notice your mood.</p>
@@ -441,7 +449,12 @@ const UnifiedPrayerTracker = () => {
             <button
               key={option.value}
               className={`mood-btn ${moodRating === option.value ? 'active' : ''}`}
-              onClick={() => handleMoodSelect(option.value)}
+              onPointerDown={() => handleMoodPointer(option.value)}
+              onClick={() => {
+                const lastTap = lastMoodTapRef.current;
+                if (lastTap.value === option.value && Date.now() - lastTap.ts < 450) return;
+                handleMoodSelect(option.value);
+              }}
             >
               <span className="mood-emoji">{option.emoji}</span>
               <span className="mood-number">{option.value}</span>
@@ -453,7 +466,7 @@ const UnifiedPrayerTracker = () => {
           <span className="mood-average">30-day avg: {averageMood ? averageMood.toFixed(1) : '—'}</span>
         </div>
 
-        <div className={`mood-suggestion-shell ${(selectedSuggestion || selectedAffirmation) ? 'visible' : 'hidden'}`}>
+        <div className={`mood-suggestion-shell ${showMoodMessage ? 'visible' : 'hidden'}`}>
           {selectedSuggestion && (
             <div className="mood-suggestion">
               <div className="mood-suggestion-header">
