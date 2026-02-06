@@ -412,6 +412,8 @@ const UnifiedPrayerTracker = () => {
   const effectiveNamaz = overrideNamaz || localNamaz || historyNamaz || userData.namaz;
   const completedCount = Object.values(effectiveNamaz).filter(Boolean).length;
   const moodBarPercent = Math.round((moodRating / 5) * 100);
+  const effectiveDate = isHistorical ? new Date(dateKey) : new Date();
+  const isFriday = effectiveDate.getDay() === 5;
 
   return (
     <div className="unified-prayer-container">
@@ -506,6 +508,8 @@ const UnifiedPrayerTracker = () => {
           {PRAYERS.map((prayer, idx) => {
             const prayerLower = PRAYERS_LOWER[idx];
             const isCompleted = effectiveNamaz[prayerLower] || false;
+            const displayPrayer =
+              prayer === 'Dhuhr' && isFriday ? "Jumuʿah" : prayer;
 
             return (
               <button
@@ -516,7 +520,7 @@ const UnifiedPrayerTracker = () => {
               >
                 <div className="prayer-header">
                   <span className="prayer-symbol">{getPrayerSymbol(prayer)}</span>
-                  <span className="prayer-text">{prayer}</span>
+                  <span className="prayer-text">{displayPrayer}</span>
                 </div>
 
                 <div

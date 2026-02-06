@@ -267,7 +267,7 @@
 }
 
 .prayer-section {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .prayer-section-header {
@@ -277,6 +277,7 @@
   gap: 10px;
   font-size: 12px;
   color: #666;
+  margin-bottom: 8px;
 }
 
 .prayer-section-header h4 {
