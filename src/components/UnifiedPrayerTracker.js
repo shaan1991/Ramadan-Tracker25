@@ -192,7 +192,7 @@ const UnifiedPrayerTracker = () => {
   const [loading, setLoading] = useState(true);
   const [showCelebration, setShowCelebration] = useState(false);
   const prevCompletedCountRef = useRef(0);
-  const lastMoodTapRef = useRef({ value: null, ts: 0 });
+  const lastMoodTapRef = useRef({ value: null, ts: 0, dateKey: null });
 
   const getMoodDateKey = useCallback(() => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
@@ -260,7 +260,9 @@ const UnifiedPrayerTracker = () => {
       setLocalNamaz(sourceNamaz);
     }
     const todaysMood = historyEntry.mood ?? overrideMood ?? 0;
-    if (todaysMood !== moodRating) {
+    const recentTap = lastMoodTapRef.current;
+    const isRecentTap = recentTap.dateKey === dateKey && Date.now() - recentTap.ts < 650;
+    if (!isRecentTap && todaysMood !== moodRating) {
       setMoodRating(todaysMood);
     }
 
@@ -385,7 +387,7 @@ const UnifiedPrayerTracker = () => {
 
   const handleMoodPointer = (rating) => {
     const now = Date.now();
-    lastMoodTapRef.current = { value: rating, ts: now };
+    lastMoodTapRef.current = { value: rating, ts: now, dateKey: getMoodDateKey() };
     handleMoodSelect(rating);
   };
 
@@ -439,88 +441,102 @@ const UnifiedPrayerTracker = () => {
         </div>
       </div>
 
-      <div className={`mood-checkin ${showMoodMessage ? 'expanded' : ''}`}>
-        <div className="mood-header">
-          <h4>How did you feel today?</h4>
-          <p>Quick daily check-in to notice your mood.</p>
+      <div className="prayer-section">
+        <div className="prayer-section-header">
+          <h4>Daily check-in</h4>
+          <span className="section-meta">Mood + guidance</span>
         </div>
-        <div className="mood-scale">
-          {moodScale.map((option) => (
-            <button
-              key={option.value}
-              className={`mood-btn ${moodRating === option.value ? 'active' : ''}`}
-              onPointerDown={() => handleMoodPointer(option.value)}
-              onClick={() => {
-                const lastTap = lastMoodTapRef.current;
-                if (lastTap.value === option.value && Date.now() - lastTap.ts < 450) return;
-                handleMoodSelect(option.value);
-              }}
-            >
-              <span className="mood-emoji">{option.emoji}</span>
-              <span className="mood-number">{option.value}</span>
-            </button>
-          ))}
-        </div>
-        <div className="mood-meta">
-          <span className="mood-label">{getMoodLabel(moodRating)}</span>
-          <span className="mood-average">30-day avg: {averageMood ? averageMood.toFixed(1) : '—'}</span>
-        </div>
+        <div className={`mood-checkin ${showMoodMessage ? 'expanded' : ''}`}>
+          <div className="mood-header">
+            <h4>How did you feel today?</h4>
+            <p>Quick daily check-in to notice your mood.</p>
+          </div>
+          <div className="mood-scale">
+            {moodScale.map((option) => (
+              <button
+                key={option.value}
+                className={`mood-btn ${moodRating === option.value ? 'active' : ''}`}
+                onPointerDown={() => handleMoodPointer(option.value)}
+                onClick={() => {
+                  const lastTap = lastMoodTapRef.current;
+                  if (lastTap.value === option.value && Date.now() - lastTap.ts < 450) return;
+                  handleMoodSelect(option.value);
+                }}
+              >
+                <span className="mood-emoji">{option.emoji}</span>
+                <span className="mood-number">{option.value}</span>
+              </button>
+            ))}
+          </div>
+          <div className="mood-meta">
+            <span className="mood-label">{getMoodLabel(moodRating)}</span>
+            <span className="mood-average">30-day avg: {averageMood ? averageMood.toFixed(1) : '—'}</span>
+          </div>
 
-        <div className={`mood-suggestion-shell ${showMoodMessage ? 'visible' : 'hidden'}`}>
-          {selectedSuggestion && (
-            <div className="mood-suggestion">
-              <div className="mood-suggestion-header">
-                <span className="mood-suggestion-title">Try this today</span>
-                <span className="mood-suggestion-tag">{selectedSuggestion.type}</span>
+          <div className={`mood-suggestion-shell ${showMoodMessage ? 'visible' : 'hidden'}`}>
+            {selectedSuggestion && (
+              <div className="mood-suggestion">
+                <div className="mood-suggestion-header">
+                  <span className="mood-suggestion-title">Try this today</span>
+                  <span className="mood-suggestion-tag">{selectedSuggestion.type}</span>
+                </div>
+                <div className="mood-suggestion-text">
+                  <strong>{selectedSuggestion.title}</strong>
+                  <p>{selectedSuggestion.description}</p>
+                </div>
               </div>
-              <div className="mood-suggestion-text">
-                <strong>{selectedSuggestion.title}</strong>
-                <p>{selectedSuggestion.description}</p>
+            )}
+            {selectedAffirmation && !selectedSuggestion && (
+              <div className="mood-affirmation">
+                {selectedAffirmation}
               </div>
-            </div>
-          )}
-          {selectedAffirmation && !selectedSuggestion && (
-            <div className="mood-affirmation">
-              {selectedAffirmation}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="unified-prayer-grid">
-        {PRAYERS.map((prayer, idx) => {
-          const prayerLower = PRAYERS_LOWER[idx];
-          const isCompleted = effectiveNamaz[prayerLower] || false;
+      <div className="section-divider" />
 
-          return (
-            <button
-              key={prayer}
-              type="button"
-              className={`prayer-card ${isCompleted ? 'completed' : 'incomplete'}`}
-              onClick={() => handlePrayerToggle(prayerLower)}
-            >
-              <div className="prayer-header">
-                <span className="prayer-symbol">{getPrayerSymbol(prayer)}</span>
-                <span className="prayer-text">{prayer}</span>
-              </div>
+      <div className="prayer-section">
+        <div className="prayer-section-header">
+          <h4>Prayers</h4>
+          <span className="section-meta">{completedCount}/5 completed</span>
+        </div>
+        <div className="unified-prayer-grid">
+          {PRAYERS.map((prayer, idx) => {
+            const prayerLower = PRAYERS_LOWER[idx];
+            const isCompleted = effectiveNamaz[prayerLower] || false;
 
-              <div
-                className={`prayer-toggle ${isCompleted ? 'checked' : ''}`}
-                title={isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
+            return (
+              <button
+                key={prayer}
+                type="button"
+                className={`prayer-card ${isCompleted ? 'completed' : 'incomplete'}`}
+                onClick={() => handlePrayerToggle(prayerLower)}
               >
-                {isCompleted ? '✓' : '○'}
-              </div>
+                <div className="prayer-header">
+                  <span className="prayer-symbol">{getPrayerSymbol(prayer)}</span>
+                  <span className="prayer-text">{prayer}</span>
+                </div>
 
-              <div className="prayer-footer">
-                {!isCompleted && (
-                  <div className="prayer-placeholder">
-                    Mark complete first
-                  </div>
-                )}
-              </div>
-            </button>
-          );
-        })}
+                <div
+                  className={`prayer-toggle ${isCompleted ? 'checked' : ''}`}
+                  title={isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
+                >
+                  {isCompleted ? '✓' : '○'}
+                </div>
+
+                <div className="prayer-footer">
+                  {!isCompleted && (
+                    <div className="prayer-placeholder">
+                      Mark complete first
+                    </div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {showCelebration && (
