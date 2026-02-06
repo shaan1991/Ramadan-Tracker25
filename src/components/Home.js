@@ -352,7 +352,7 @@ const Home = () => {
       )}
 
       {/* Unified Prayer Tracker - combines completion with a daily check-in */}
-      <div className="elastic-expand home-section">
+      <div className="home-section">
         <UnifiedPrayerTracker />
       </div>
       <div className="elastic-expand home-section">

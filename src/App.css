@@ -20,7 +20,7 @@ html {
     max-width: 480px;
     margin: 0 auto;
     min-height: 100vh;
-    background-color: white;
+    background-color: #fdfcf9;
     position: relative;
     padding-bottom: 70px; /* Space for bottom navigation */
   }
@@ -31,6 +31,20 @@ html {
     align-items: center;
     height: 100vh;
     font-size: 1.2rem;
+    background: #fdfcf9;
+    color: #333;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .app-loading .loading-spinner {
+    display: none;
+  }
+
+  .loading-mark {
+    font-size: 28px;
+    color: #111;
+    letter-spacing: 2px;
   }
 
   /* RTL font family support */

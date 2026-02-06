@@ -246,7 +246,8 @@
 }
 
 .prayer-card {
-  background: white;
+  appearance: none;
+  background: #fff;
   border: 1px solid #f0f0f0;
   border-radius: 8px;
   padding: 12px;
@@ -255,8 +256,10 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
   user-select: none;
+  will-change: transform;
+  text-align: center;
 }
 
 .prayer-card:hover {
@@ -267,7 +270,7 @@
 }
 
 .prayer-card:active {
-  transform: translateY(0px);
+  transform: translateY(0px) scale(0.99);
 }
 
 .prayer-card.completed {
@@ -278,6 +281,11 @@
 .prayer-card.completed:hover {
   background: #e8f5e8;
   box-shadow: 0 4px 8px rgba(0, 100, 0, 0.1);
+}
+
+.prayer-card:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.35);
+  outline-offset: 2px;
 }
 
 .prayer-header {
@@ -332,6 +340,13 @@
   text-align: center;
   padding: 8px 4px;
   font-style: italic;
+}
+
+.prayer-footer {
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .unified-prayer-loading {

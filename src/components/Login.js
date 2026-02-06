@@ -29,14 +29,13 @@ const Login = () => {
           <span className="stars-icon">✧✧</span>
         </div>
         <h1>As-salāmu ʿalaykum</h1>
-        <h1>Ramadan kareem!</h1>
+        <h2 className="login-subtitle">Your daily worship companion</h2>
       </div>
       
       <p className="login-description">
-Track your prayers, fasts, and reflections every day. Ramadan unlocks special streaks and focused insights to help you make the most of the month.
-
-<h4 className='hero-text'>Begin Your Spiritual Journey</h4>
+        Track prayers, fasting, and reflection year‑round. Ramadan unlocks special streaks and focused insights when the month begins.
       </p>
+      <p className="login-cta">Begin your spiritual journey</p>
       
       {error && <p className="error-message">{error}</p>}
       

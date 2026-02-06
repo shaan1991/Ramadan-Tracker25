@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { calculatePrayerStreakFromData } from '../services/streakService';
 import Celebration from './Celebration';
@@ -182,15 +182,16 @@ const formatDate = (date) => {
 };
 
 const UnifiedPrayerTracker = () => {
-  const { user, userData, updateUserData, isWithinRamadan } = useUser();
+  const { user, userData, updateUserData, isWithinRamadan, recordDailyAction } = useUser();
   const [localNamaz, setLocalNamaz] = useState(null);
+  const [localNamazOverrides, setLocalNamazOverrides] = useState({});
   const [moodRating, setMoodRating] = useState(0);
   const [averageMood, setAverageMood] = useState(0);
   const [localMoodOverrides, setLocalMoodOverrides] = useState({});
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [prevCompletedCount, setPrevCompletedCount] = useState(0);
+  const prevCompletedCountRef = useRef(0);
 
   const getMoodDateKey = useCallback(() => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
@@ -247,9 +248,11 @@ const UnifiedPrayerTracker = () => {
     if (!userData?.namaz) return;
     const dateKey = getMoodDateKey();
     const historyEntry = userData.history?.[dateKey] || {};
+    const overrideNamaz = localNamazOverrides[dateKey];
     const overrideMood = localMoodOverrides[dateKey];
     const isHistorical = userData?.isHistoricalView && userData?.historicalDate;
-    const sourceNamaz = isHistorical && historyEntry.namaz ? historyEntry.namaz : userData.namaz;
+    const sourceNamaz = overrideNamaz
+      || (isHistorical && historyEntry.namaz ? historyEntry.namaz : userData.namaz);
     const shouldSync = !localNamaz || PRAYERS_LOWER.some((key) => localNamaz[key] !== sourceNamaz[key]);
     if (shouldSync) {
       setLocalNamaz(sourceNamaz);
@@ -285,7 +288,15 @@ const UnifiedPrayerTracker = () => {
         return next;
       });
     }
-  }, [userData, userData?.isHistoricalView, userData?.historicalDate, moodRating, averageMood, loading, localNamaz, localMoodOverrides, getMoodDateKey]);
+
+    if (overrideNamaz && historyEntry.namaz && PRAYERS_LOWER.every((key) => historyEntry.namaz?.[key] === overrideNamaz[key])) {
+      setLocalNamazOverrides((prev) => {
+        const next = { ...prev };
+        delete next[dateKey];
+        return next;
+      });
+    }
+  }, [userData, userData?.isHistoricalView, userData?.historicalDate, moodRating, averageMood, loading, localNamaz, localMoodOverrides, localNamazOverrides, getMoodDateKey]);
 
   useEffect(() => {
     if (!userData) return;
@@ -304,12 +315,18 @@ const UnifiedPrayerTracker = () => {
     if (!userData) return;
     const isHistorical = userData?.isHistoricalView && userData?.historicalDate;
     if (isHistorical) return;
+    const dateKey = getMoodDateKey();
+    const alreadyCelebrated = userData.history?.[dateKey]?.prayerCelebrated === true;
     const completedCount = Object.values(userData.namaz).filter(Boolean).length;
-    if (completedCount === 5 && prevCompletedCount !== 5) {
+    const prevCompleted = prevCompletedCountRef.current;
+    if (completedCount === 5 && prevCompleted !== 5 && !alreadyCelebrated) {
       setShowCelebration(true);
+      if (recordDailyAction) {
+        recordDailyAction('prayerCelebrated', true);
+      }
     }
-    setPrevCompletedCount(completedCount);
-  }, [userData, prevCompletedCount]);
+    prevCompletedCountRef.current = completedCount;
+  }, [userData, getMoodDateKey, recordDailyAction]);
 
   const handlePrayerToggle = async (prayerLower) => {
     if (!userData) return;
@@ -320,14 +337,23 @@ const UnifiedPrayerTracker = () => {
     const updatedNamaz = { ...currentNamaz, [prayerLower]: !currentNamaz[prayerLower] };
     const completedPrayers = Object.values(updatedNamaz).filter(Boolean).length;
     setLocalNamaz(updatedNamaz);
-
-    await updateUserData({
-      namaz: updatedNamaz,
-      salah: {
-        completed: completedPrayers,
-        total: 5
-      }
-    });
+    setLocalNamazOverrides((prev) => ({ ...prev, [getMoodDateKey()]: updatedNamaz }));
+    try {
+      await updateUserData({
+        namaz: updatedNamaz,
+        salah: {
+          completed: completedPrayers,
+          total: 5
+        }
+      });
+    } catch (error) {
+      setLocalNamazOverrides((prev) => {
+        const next = { ...prev };
+        delete next[getMoodDateKey()];
+        return next;
+      });
+      setLocalNamaz(currentNamaz);
+    }
   };
 
   const handleMoodSelect = async (rating) => {
@@ -370,8 +396,10 @@ const UnifiedPrayerTracker = () => {
   }
 
   const isHistorical = userData?.isHistoricalView && userData?.historicalDate;
-  const historyNamaz = isHistorical ? userData.history?.[getMoodDateKey()]?.namaz : null;
-  const effectiveNamaz = localNamaz || historyNamaz || userData.namaz;
+  const dateKey = getMoodDateKey();
+  const historyNamaz = isHistorical ? userData.history?.[dateKey]?.namaz : null;
+  const overrideNamaz = localNamazOverrides[dateKey];
+  const effectiveNamaz = overrideNamaz || localNamaz || historyNamaz || userData.namaz;
   const completedCount = Object.values(effectiveNamaz).filter(Boolean).length;
   const moodBarPercent = Math.round((moodRating / 5) * 100);
 
@@ -452,8 +480,9 @@ const UnifiedPrayerTracker = () => {
           const isCompleted = effectiveNamaz[prayerLower] || false;
 
           return (
-            <div
+            <button
               key={prayer}
+              type="button"
               className={`prayer-card ${isCompleted ? 'completed' : 'incomplete'}`}
               onClick={() => handlePrayerToggle(prayerLower)}
             >
@@ -469,12 +498,14 @@ const UnifiedPrayerTracker = () => {
                 {isCompleted ? '✓' : '○'}
               </div>
 
-              {!isCompleted && (
-                <div className="prayer-placeholder">
-                  Mark complete first
-                </div>
-              )}
-            </div>
+              <div className="prayer-footer">
+                {!isCompleted && (
+                  <div className="prayer-placeholder">
+                    Mark complete first
+                  </div>
+                )}
+              </div>
+            </button>
           );
         })}
       </div>

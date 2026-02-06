@@ -90,9 +90,9 @@ const AppContent = () => {
 
   if (loading) {
     return (
-      <div className="loading">
-        <div className="loading-spinner"></div>
-        <p>Loading Ramadan Tracker...</p>
+      <div className="loading app-loading">
+        <div className="loading-mark">☾✧</div>
+        <p>Preparing your daily dashboard…</p>
       </div>
     );
   }

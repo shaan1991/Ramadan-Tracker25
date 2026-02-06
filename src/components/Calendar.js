@@ -27,8 +27,10 @@ const Calendar = ({ onDateSelect, onClose }) => {
         const entryMonth = parseInt(monthStr) - 1; // Convert to 0-indexed month
         const entryYear = parseInt(yearStr);
         const entryDay = parseInt(dayStr);
+        const entry = userData.history[key] || {};
+        const hasActivity = Object.keys(entry).some((field) => field !== 'day');
         
-        if (entryMonth === month && entryYear === year) {
+        if (entryMonth === month && entryYear === year && hasActivity) {
           daysWithData.push(entryDay);
         }
       }
