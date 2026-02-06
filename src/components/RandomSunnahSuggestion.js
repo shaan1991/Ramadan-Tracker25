@@ -247,6 +247,8 @@ const RandomSunnahSuggestion = () => {
   const { user, userData, recordDailyAction } = useUser();
   const [currentSunnah, setCurrentSunnah] = useState(null);
   const [completed, setCompleted] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [localOverrides, setLocalOverrides] = useState({});
 
   const getDateKey = useCallback(() => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
@@ -295,14 +297,36 @@ const RandomSunnahSuggestion = () => {
   useEffect(() => {
     if (!userData) return;
     const historyEntry = userData.history?.[dateKey];
-    setCompleted(!!historyEntry?.sunnahCompleted);
-  }, [dateKey, userData]);
+    const override = localOverrides[dateKey];
+    const nextCompleted = override !== undefined ? override : !!historyEntry?.sunnahCompleted;
+    setCompleted(nextCompleted);
+
+    if (override !== undefined && historyEntry?.sunnahCompleted === override) {
+      setLocalOverrides((prev) => {
+        const next = { ...prev };
+        delete next[dateKey];
+        return next;
+      });
+    }
+  }, [dateKey, userData, localOverrides]);
 
   const toggleCompleted = async (e) => {
     e.stopPropagation();
+    if (pending) return;
     const next = !completed;
     setCompleted(next);
-    await recordDailyAction('sunnahCompleted', next);
+    setPending(true);
+    setLocalOverrides((prev) => ({ ...prev, [dateKey]: next }));
+    const success = await recordDailyAction('sunnahCompleted', next);
+    if (!success) {
+      setCompleted(!next);
+      setLocalOverrides((prev) => {
+        const updated = { ...prev };
+        delete updated[dateKey];
+        return updated;
+      });
+    }
+    setPending(false);
   };
 
   if (!currentSunnah) return null;

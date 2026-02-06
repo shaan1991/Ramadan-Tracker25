@@ -451,26 +451,35 @@ export const UserProvider = ({ children }) => {
   const recordDailyAction = useCallback(async (action, value) => {
     if (!user || !userData) return false;
 
-    // If we're in historical view, update the historical record
-    if (isHistoricalView && historicalDate) {
-      const historyUpdate = {
-        [`history.${historicalDate}.${action}`]: value,
-        [`history.${historicalDate}.day`]: calculateDayFromDate(new Date(historicalDate), userData)
-      };
-      
-      return await updateUserData(historyUpdate);
-    }
+    const userDocRef = doc(db, 'users', user.uid);
+    const isHistorical = isHistoricalView && historicalDate;
+    const dateKey = isHistorical ? historicalDate : formatDate(new Date());
+    const dayValue = isHistorical
+      ? calculateDayFromDate(new Date(historicalDate), userData)
+      : ramadanDay;
 
-    // Otherwise update today's record - using consistent date formatting
-    const today = new Date();
-    const todayFormatted = formatDate(today);
     const historyUpdate = {
-      [`history.${todayFormatted}.${action}`]: value,
-      [`history.${todayFormatted}.day`]: ramadanDay
+      [`history.${dateKey}.${action}`]: value,
+      [`history.${dateKey}.day`]: dayValue
     };
 
-    return await updateUserData(historyUpdate);
-  }, [user, userData, isHistoricalView, historicalDate, ramadanDay, updateUserData]);
+    try {
+      await updateDoc(userDocRef, historyUpdate);
+      setUserData(prevData => {
+        if (!prevData) return prevData;
+        const next = { ...prevData };
+        if (!next.history) next.history = {};
+        if (!next.history[dateKey]) next.history[dateKey] = {};
+        next.history[dateKey][action] = value;
+        next.history[dateKey].day = dayValue;
+        return next;
+      });
+      return true;
+    } catch (error) {
+      console.error('Error recording daily action:', error);
+      return false;
+    }
+  }, [user, userData, isHistoricalView, historicalDate, ramadanDay]);
 
   // Use the memoized getEffectiveData to compute the context value
   const effectiveData = userData ? getEffectiveData() : null;
