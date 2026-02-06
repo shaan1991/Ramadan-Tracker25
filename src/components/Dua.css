@@ -16,6 +16,14 @@
     color: #333;
 font-family: 'Poppins', sans-serif;;
   }
+
+  .dua-subtitle {
+    text-align: center;
+    margin: -12px 0 20px;
+    font-size: 13px;
+    color: #777;
+    font-family: 'Poppins', sans-serif;
+  }
   
   .duas-list {
     display: flex;
@@ -25,11 +33,12 @@ font-family: 'Poppins', sans-serif;;
   }
   
   .dua-item {
-    background-color: #f5f5f5;
+    background: linear-gradient(135deg, #ffffff 0%, #f6f4ef 100%);
+    border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: 12px;
     padding: 16px;
     position: relative;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
     transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
     overflow: hidden;
     transform: translateX(0);
@@ -38,7 +47,7 @@ font-family: 'Poppins', sans-serif;;
   }
   
   .dua-item:active {
-    background-color: #f0f0f0;
+    background-color: #f7f7f7;
   }
   
   .dua-text {
@@ -54,7 +63,7 @@ font-family: 'Poppins', sans-serif;;
     font-size: 12px;
     color: #999;
     text-align: right;
-    opacity: 0;
+    opacity: 0.55;
     transition: opacity 0.3s ease;
     margin-top: 8px;
   }
@@ -179,16 +188,16 @@ font-family: 'Poppins', sans-serif;;
   .add-dua-prompt {
     text-align: center;
     padding: 16px;
-    background-color: #f9f9f9;
+    background: #111;
     border-radius: 12px;
-    color: #666;
+    color: #fff;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
     transition: background-color 0.2s ease, transform 0.2s ease;
   }
   
   .add-dua-prompt:active {
-    background-color: #eaeaea;
+    background-color: #111;
     transform: scale(0.98);
   }
   
@@ -231,7 +240,7 @@ font-family: 'Poppins', sans-serif;;
     justify-content: space-around;
     margin-top: 32px;
     padding: 16px;
-    border-top: 1px solid #eaeaea;
+    border-top: 1px solid #efefef;
   }
   
   .hint-item {
@@ -248,6 +257,32 @@ font-family: 'Poppins', sans-serif;;
   .hint-text {
     font-size: 12px;
     color: #666;
+  }
+
+  .dua-empty {
+    margin: 18px 0 24px;
+    padding: 18px;
+    border-radius: 16px;
+    background: #faf8f3;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    text-align: center;
+  }
+
+  .dua-empty-icon {
+    font-size: 28px;
+    margin-bottom: 6px;
+  }
+
+  .dua-empty-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .dua-empty-text {
+    font-size: 12px;
+    color: #777;
+    margin-top: 4px;
   }
   
   /* Animations */
@@ -287,7 +322,7 @@ font-family: 'Poppins', sans-serif;;
   }
   
   .animation-add {
-    animation: fadeIn 0.5s ease;
+    animation: elasticPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   
   .animation-update {
@@ -301,4 +336,10 @@ font-family: 'Poppins', sans-serif;;
   @keyframes flash {
     0%, 100% { background-color: #f5f5f5; }
     50% { background-color: #e0f2f1; }
+  }
+
+  @keyframes elasticPop {
+    0% { transform: scale(0.98); opacity: 0.6; }
+    60% { transform: scale(1.02); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
   }

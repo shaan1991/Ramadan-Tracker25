@@ -49,6 +49,9 @@
   overflow: hidden;
   cursor: pointer;
   user-select: none;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 

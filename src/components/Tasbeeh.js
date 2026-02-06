@@ -48,9 +48,11 @@ const Tasbeeh = () => {
     // Calculate ripple position for the animation
     if (counterRef.current) {
       const rect = counterRef.current.getBoundingClientRect();
+      const clientX = event?.clientX ?? event?.touches?.[0]?.clientX ?? rect.left + rect.width / 2;
+      const clientY = event?.clientY ?? event?.touches?.[0]?.clientY ?? rect.top + rect.height / 2;
       setRipplePosition({
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top
+        x: clientX - rect.left,
+        y: clientY - rect.top
       });
     }
     
@@ -95,7 +97,15 @@ const Tasbeeh = () => {
       <div 
         className="counter-area" 
         ref={counterRef}
-        onClick={handleIncrement}
+        onPointerDown={handleIncrement}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleIncrement(e);
+          }
+        }}
       >
         <div className="counter-number">{count}</div>
         <div className="tap-instruction">Tap to count</div>
