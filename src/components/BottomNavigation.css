@@ -15,7 +15,7 @@
     max-width: 400px;
     margin-bottom: 24px;
     height: 62px;
-    background: linear-gradient(135deg, rgba(20, 20, 20, 0.82), rgba(10, 10, 10, 0.76));
+    background: linear-gradient(135deg, rgba(20, 20, 20, 0.74), rgba(10, 10, 10, 0.68));
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     display: flex;
@@ -31,9 +31,9 @@
   .nav-pill {
     position: absolute;
     top: 6px;
+    bottom: 6px;
     left: 0;
     width: 25%;
-    height: 50px;
     border-radius: 999px;
     background: transparent;
     transform: translateX(calc(var(--pill-index) * 100%));

@@ -110,7 +110,9 @@ const AppContent = () => {
       {/* Day transition alert for when midnight passes */}
       {user && !showOnboarding && <DayTransitionAlert />}
 
-      {page}
+      <div key={path} className="page-transition">
+        {page}
+      </div>
       
       {user && !showOnboarding && (
         <BottomNavigation currentPath={path} onNavigate={navigate} />
