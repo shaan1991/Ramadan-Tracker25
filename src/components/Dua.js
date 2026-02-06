@@ -193,133 +193,126 @@ const Dua = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="loading">
-        <div className="loading-spinner"></div>
-        <p>Loading Duas...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="dua-container">
-      <h1 className="dua-title">O Allah I pray for</h1>
-      <p className="dua-subtitle">Keep your personal duas in one peaceful place.</p>
-      
-      {error && <div className="error-message">{error}</div>}
+      <div className={`dua-content ${loading ? '' : 'loaded'}`}>
+        <h1 className="dua-title">O Allah I pray for</h1>
+        <p className="dua-subtitle">Keep your personal duas in one peaceful place.</p>
+        
+        {error && <div className="error-message">{error}</div>}
 
-      {duas.length === 0 && !showAddForm && (
-        <div className="dua-empty">
-          <div className="dua-empty-icon">🤲</div>
-          <div className="dua-empty-title">Start your first dua</div>
-          <div className="dua-empty-text">Add a dua you want to keep close each day.</div>
-        </div>
-      )}
+        {duas.length === 0 && !showAddForm && !loading && (
+          <div className="dua-empty">
+            <div className="dua-empty-icon">🤲</div>
+            <div className="dua-empty-title">Start your first dua</div>
+            <div className="dua-empty-text">Add a dua you want to keep close each day.</div>
+          </div>
+        )}
 
-      {duas.length > 0 && (
-        <div className="duas-list">
-          {duas.map(dua => (
-            <div 
-              key={dua.id} 
-              ref={el => duaRefs.current[dua.id] = el}
-              className={`dua-item ${animation.id === dua.id ? `animation-${animation.type}` : ''}`}
-              style={swipingId === dua.id ? { transform: `translateX(${swipeOffset}px)` } : {}}
-              onTouchStart={(e) => handleTouchStart(dua, e)}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={() => handleTouchEnd(dua)}
-            >
-              {editMode === dua.id ? (
-                <div className="edit-dua-form">
-                  <textarea
-                    value={editText}
-                    onChange={handleEditDuaChange}
-                    className="edit-dua-textarea"
-                    rows="4"
-                    autoFocus
-                  />
-                  <div className="char-counter">
-                    {editCharCount}/{MAX_CHARACTERS}
+        {duas.length > 0 && (
+          <div className="duas-list">
+            {duas.map(dua => (
+              <div 
+                key={dua.id} 
+                ref={el => duaRefs.current[dua.id] = el}
+                className={`dua-item ${animation.id === dua.id ? `animation-${animation.type}` : ''}`}
+                style={swipingId === dua.id ? { transform: `translateX(${swipeOffset}px)` } : {}}
+                onTouchStart={(e) => handleTouchStart(dua, e)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={() => handleTouchEnd(dua)}
+              >
+                {editMode === dua.id ? (
+                  <div className="edit-dua-form">
+                    <textarea
+                      value={editText}
+                      onChange={handleEditDuaChange}
+                      className="edit-dua-textarea"
+                      rows="4"
+                      autoFocus
+                    />
+                    <div className="char-counter">
+                      {editCharCount}/{MAX_CHARACTERS}
+                    </div>
+                    <div className="edit-actions">
+                      <button 
+                        onClick={() => handleUpdateDua(dua.id)}
+                        className="save-btn ripple-effect"
+                      >
+                        Save
+                      </button>
+                      <button 
+                        onClick={() => setEditMode(null)}
+                        className="cancel-btn ripple-effect"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                  <div className="edit-actions">
-                    <button 
-                      onClick={() => handleUpdateDua(dua.id)}
-                      className="save-btn ripple-effect"
-                    >
-                      Save
-                    </button>
-                    <button 
-                      onClick={() => setEditMode(null)}
-                      className="cancel-btn ripple-effect"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="dua-text">{dua.text}</div>
-                  <div className="swipe-hint">Swipe left to delete</div>
-                  <div className="delete-indicator">
-                    <span className="delete-icon">🗑️</span>
-                  </div>
-                </>
-              )}
+                ) : (
+                  <>
+                    <div className="dua-text">{dua.text}</div>
+                    <div className="swipe-hint">Swipe left to delete</div>
+                    <div className="delete-indicator">
+                      <span className="delete-icon">🗑️</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {showAddForm ? (
+          <div className="add-dua-form animate-in">
+            <textarea
+              value={newDua}
+              onChange={handleNewDuaChange}
+              placeholder="Type your dua here..."
+              className="add-dua-textarea"
+              rows="4"
+              autoFocus
+            />
+            <div className="char-counter">
+              {charCount}/{MAX_CHARACTERS}
             </div>
-          ))}
-        </div>
-      )}
-      
-      {showAddForm ? (
-        <div className="add-dua-form animate-in">
-          <textarea
-            value={newDua}
-            onChange={handleNewDuaChange}
-            placeholder="Type your dua here..."
-            className="add-dua-textarea"
-            rows="4"
-            autoFocus
-          />
-          <div className="char-counter">
-            {charCount}/{MAX_CHARACTERS}
+            <div className="add-actions">
+              <button 
+                onClick={handleAddDua}
+                className="add-btn ripple-effect"
+                disabled={!newDua.trim()}
+              >
+                Add Dua
+              </button>
+              <button 
+                onClick={() => {
+                  setShowAddForm(false);
+                  setNewDua('');
+                  setCharCount(0);
+                }}
+                className="cancel-btn ripple-effect"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-          <div className="add-actions">
-            <button 
-              onClick={handleAddDua}
-              className="add-btn ripple-effect"
-              disabled={!newDua.trim()}
-            >
-              Add Dua
-            </button>
-            <button 
-              onClick={() => {
-                setShowAddForm(false);
-                setNewDua('');
-                setCharCount(0);
-              }}
-              className="cancel-btn ripple-effect"
-            >
-              Cancel
-            </button>
+        ) : (
+          <div 
+            className="add-dua-prompt"
+            onClick={() => setShowAddForm(true)}
+          >
+            + Tap to Add New / Long press to edit
           </div>
-        </div>
-      ) : (
-        <div 
-          className="add-dua-prompt"
-          onClick={() => setShowAddForm(true)}
-        >
-          + Tap to Add New / Long press to edit
-        </div>
-      )}
+        )}
 
-      <div className="gesture-hints">
-        <div className="hint-item">
-          <span className="hint-icon">👆</span>
-          <span className="hint-text">Long press to edit</span>
-        </div>
-        <div className="hint-item">
-          <span className="hint-icon">👈</span>
-          <span className="hint-text">Swipe left to delete</span>
+        <div className="gesture-hints">
+          <div className="hint-item">
+            <span className="hint-icon">👆</span>
+            <span className="hint-text">Long press to edit</span>
+          </div>
+          <div className="hint-item">
+            <span className="hint-icon">👈</span>
+            <span className="hint-text">Swipe left to delete</span>
+          </div>
         </div>
       </div>
     </div>

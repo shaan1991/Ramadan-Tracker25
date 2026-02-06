@@ -29,6 +29,7 @@ const ProfileScreen = ({ onNavigate }) => {
   const [installGuideClosing, setInstallGuideClosing] = useState(false);
   const [installGuideOpen, setInstallGuideOpen] = useState(false);
   const [installGuidePop, setInstallGuidePop] = useState(false);
+  const [installBrowserLabel, setInstallBrowserLabel] = useState('your browser');
 
   useEffect(() => {
     if (!userData) return;
@@ -43,8 +44,24 @@ const ProfileScreen = ({ onNavigate }) => {
       window.navigator.standalone === true;
     setIsStandalone(isStandaloneMode);
 
-    const isIosDevice = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    const userAgent = window.navigator.userAgent || '';
+    const isIosDevice = /iphone|ipad|ipod/i.test(userAgent);
     setShowIosHint(isIosDevice && !isStandaloneMode);
+    const isChrome = /Chrome|Chromium|CriOS/i.test(userAgent);
+    const isEdge = /Edg/i.test(userAgent);
+    const isSafari = /Safari/i.test(userAgent) && !isChrome && !isEdge;
+    const isFirefox = /Firefox/i.test(userAgent);
+    if (isEdge) {
+      setInstallBrowserLabel('Microsoft Edge');
+    } else if (isChrome) {
+      setInstallBrowserLabel('Chrome');
+    } else if (isSafari) {
+      setInstallBrowserLabel('Safari');
+    } else if (isFirefox) {
+      setInstallBrowserLabel('Firefox');
+    } else {
+      setInstallBrowserLabel('your browser');
+    }
 
     const handleBeforeInstallPrompt = (event) => {
       event.preventDefault();
@@ -487,7 +504,7 @@ const ProfileScreen = ({ onNavigate }) => {
               <div className="install-guide-steps">
                 <div className="install-guide-step">
                   <span className="step-number">1</span>
-                  <span>Tap the Share icon in Safari.</span>
+                  <span>Tap the Share icon in {installBrowserLabel}.</span>
                 </div>
                 <div className="install-guide-step">
                   <span className="step-number">2</span>
