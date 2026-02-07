@@ -135,6 +135,15 @@ const Home = () => {
 
   const handleDateSelect = (date) => {
     console.log("Selected date:", date);
+    if (date === formattedToday) {
+      updateUserData({
+        isHistoricalView: false,
+        currentViewData: null,
+        historicalDate: null
+      });
+      setShowCalendar(false);
+      return;
+    }
     // Load data for the selected date - using exact string passed from Calendar
     loadDateData(date);
     // Close calendar after selection
@@ -246,7 +255,10 @@ const Home = () => {
   }
 
   // Determine if we're viewing historical data or today's data
-  const isHistoricalView = userData.isHistoricalView || false;
+  const isHistoricalView =
+    Boolean(userData.isHistoricalView)
+    && Boolean(userData.historicalDate)
+    && userData.historicalDate !== formattedToday;
   const viewDate = isHistoricalView ? userData.historicalDate : formattedToday;
   
   // Parse the date string directly to avoid timezone issues

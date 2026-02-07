@@ -381,8 +381,30 @@ export const UserProvider = ({ children }) => {
         day: currentRamadanDay
       };
       
-      // Update the user data with a clean slate for today
-      await updateUserData(resetData);
+      if (isHistoricalView && historicalDate) {
+        const userDocRef = doc(db, 'users', user.uid);
+        const historyUpdate = {};
+        for (const key in resetData) {
+          historyUpdate[`history.${today}.${key}`] = resetData[key];
+        }
+        historyUpdate[`history.${today}.day`] = currentRamadanDay;
+        const combinedUpdates = { ...resetData, ...historyUpdate };
+        await updateDoc(userDocRef, combinedUpdates);
+        setUserData(prevData => {
+          if (!prevData) return prevData;
+          const nextData = { ...prevData, ...resetData };
+          if (!nextData.history) nextData.history = {};
+          if (!nextData.history[today]) nextData.history[today] = {};
+          for (const key in resetData) {
+            nextData.history[today][key] = resetData[key];
+          }
+          nextData.history[today].day = currentRamadanDay;
+          return nextData;
+        });
+      } else {
+        // Update the user data with a clean slate for today
+        await updateUserData(resetData);
+      }
       
       // Update local state
       setLastActiveDate(today);
@@ -393,7 +415,7 @@ export const UserProvider = ({ children }) => {
       setHistoricalDate(null);
       setCurrentViewData(null);
     }
-  }, [userData, user, lastActiveDate, updateUserData]); // Add proper dependencies
+  }, [userData, user, lastActiveDate, updateUserData, isHistoricalView, historicalDate]); // Add proper dependencies
 
   // Effect for checking day change - run on initial load and when userData changes
   useEffect(() => {

@@ -41,6 +41,7 @@ const Calendar = ({ onDateSelect, onClose }) => {
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     
     // Get data about which days have entries
     const daysWithData = getDaysWithEntries(month, year);
@@ -57,10 +58,9 @@ const Calendar = ({ onDateSelect, onClose }) => {
       const date = new Date(year, month, i);
       const dateString = formatDateString(year, month, i);
       const isToday = isSameDay(date, today);
-      const isFuture = date > today;
+      const isFuture = date > todayStart;
       const hasData = daysWithData.includes(i);
-      // Allow clicking on dates that are within Ramadan, even if they're in the future
-      const isDisabled = false;
+      const isDisabled = isFuture;
       
       days.push({
         day: i,
@@ -94,6 +94,13 @@ const Calendar = ({ onDateSelect, onClose }) => {
   useEffect(() => {
     generateMonthData(currentMonth, currentYear);
   }, [currentMonth, currentYear, generateMonthData]);
+
+  useEffect(() => {
+    const today = new Date();
+    setSelectedDate(today);
+    setCurrentMonth(today.getMonth());
+    setCurrentYear(today.getFullYear());
+  }, [userData?.lastActiveDate]);
 
   const isSameDay = (date1, date2) => {
     return date1.getDate() === date2.getDate() &&
