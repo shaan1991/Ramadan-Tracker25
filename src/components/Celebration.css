@@ -1,9 +1,21 @@
 /* Add this to your src/components/DailyNamazCheckIn.css file */
+  .celebration-glow {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2999;
+    opacity: 0;
+    background:
+      linear-gradient(90deg, rgba(46, 125, 50, 0.18), rgba(46, 125, 50, 0)) left center / 28% 100% no-repeat,
+      linear-gradient(270deg, rgba(46, 125, 50, 0.18), rgba(46, 125, 50, 0)) right center / 28% 100% no-repeat;
+    animation: glow-in 0.3s ease-out forwards, glow-out 0.35s ease-in 1.2s forwards;
+  }
+
   .celebration-toast {
     position: fixed;
     left: 50%;
-    bottom: 110px;
-    transform: translateX(-50%);
+    top: 42%;
+    transform: translate(-50%, -50%);
     z-index: 3000;
     pointer-events: none;
     animation: toast-in 0.3s ease-out forwards, toast-out 0.3s ease-in 1.2s forwards;
@@ -30,22 +42,40 @@
   
   @keyframes toast-in {
     0% {
-      transform: translate(-50%, 8px);
+      transform: translate(-50%, calc(-50% + 8px));
       opacity: 0;
     }
     100% {
-      transform: translate(-50%, 0);
+      transform: translate(-50%, -50%);
       opacity: 1;
     }
   }
 
   @keyframes toast-out {
     0% {
-      transform: translate(-50%, 0);
+      transform: translate(-50%, -50%);
       opacity: 1;
     }
     100% {
-      transform: translate(-50%, 6px);
+      transform: translate(-50%, calc(-50% + 6px));
+      opacity: 0;
+    }
+  }
+
+  @keyframes glow-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes glow-out {
+    0% {
+      opacity: 1;
+    }
+    100% {
       opacity: 0;
     }
   }

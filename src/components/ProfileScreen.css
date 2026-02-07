@@ -107,11 +107,11 @@ font-family: 'Poppins', sans-serif;;
 
 /* Dialog styling - Fix for centering */
 dialog {
-  margin: auto;
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  animation: dialog-in 0.25s ease-out;
 }
 
 /* Donation dialogs */
@@ -129,6 +129,7 @@ dialog {
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
   font-family: 'Poppins', sans-serif;
 }
 
@@ -198,6 +199,31 @@ dialog {
   justify-content: space-between;
   width: 100%;
   margin-top: 20px;
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+  animation: dialog-backdrop 0.25s ease-out;
+}
+
+@keyframes dialog-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dialog-backdrop {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 /* Streaks panel */

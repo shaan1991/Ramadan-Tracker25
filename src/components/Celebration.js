@@ -13,12 +13,15 @@ const Celebration = ({ onComplete }) => {
   }, [onComplete]);
   
   return (
-    <div className="celebration-toast">
-      <div className="celebration-message">
-        MashaAllah
-        <div className="celebration-subtitle">All 5 prayers completed</div>
+    <>
+      <div className="celebration-glow" aria-hidden="true" />
+      <div className="celebration-toast" role="status" aria-live="polite">
+        <div className="celebration-message">
+          MashaAllah
+          <div className="celebration-subtitle">All 5 prayers completed</div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
