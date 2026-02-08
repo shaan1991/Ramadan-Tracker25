@@ -234,6 +234,205 @@ dialog::backdrop {
   padding: 16px;
 }
 
+.prayer-insights-panel {
+  margin-top: 16px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+.prayer-insights-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.prayer-insights-header h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.prayer-insights-header p {
+  margin: 0;
+  font-size: 12px;
+  color: #777;
+}
+
+.insights-total {
+  text-align: right;
+}
+
+.insights-percent {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111;
+}
+
+.insights-sub {
+  font-size: 11px;
+  color: #777;
+}
+
+.insights-summary {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  background: #f7f7f7;
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.insights-label {
+  font-size: 11px;
+  color: #777;
+  margin-bottom: 4px;
+}
+
+.insights-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+.insights-months {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.insights-month-card {
+  background: #fbfbfb;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+}
+
+.month-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+}
+
+.month-value {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #555;
+}
+
+.month-percent {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+}
+
+.insights-viewall {
+  margin-top: 10px;
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  color: #222;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.insights-viewall:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.insights-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+.insights-modal-overlay.closing {
+  animation: modalFadeOut 0.2s ease-in forwards;
+}
+
+.insights-modal {
+  background: #fff;
+  border-radius: 18px;
+  width: min(560px, 90vw);
+  max-height: 80vh;
+  padding: 18px;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
+  animation: modalLiftIn 0.2s ease-out;
+}
+
+.insights-modal.closing {
+  animation: modalLiftOut 0.2s ease-in forwards;
+}
+
+.insights-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.insights-modal-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.insights-modal-close {
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.insights-year-select {
+  margin-bottom: 12px;
+}
+
+.insights-year-select label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #555;
+}
+
+.insights-year-select select {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  background: #fff;
+}
+
+.insights-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.insights-month-card.modal {
+  background: #fafafa;
+}
+
 .streaks-header {
   display: flex;
   align-items: center;

@@ -30,6 +30,10 @@ const ProfileScreen = ({ onNavigate }) => {
   const [installGuideOpen, setInstallGuideOpen] = useState(false);
   const [installGuidePop, setInstallGuidePop] = useState(false);
   const [installBrowserLabel, setInstallBrowserLabel] = useState('your browser');
+  const [prayerInsights, setPrayerInsights] = useState(null);
+  const [showPrayerInsightsModal, setShowPrayerInsightsModal] = useState(false);
+  const [closingPrayerInsightsModal, setClosingPrayerInsightsModal] = useState(false);
+  const [insightsYear, setInsightsYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
     if (!userData) return;
@@ -97,6 +101,96 @@ const ProfileScreen = ({ onNavigate }) => {
     };
     loadStreaks();
   }, [user, userData, streakMode]);
+
+  useEffect(() => {
+    if (!userData) {
+      setPrayerInsights(null);
+      return;
+    }
+
+    const parseDateKey = (key) => {
+      const [y, m, d] = key.split('-').map(Number);
+      return new Date(y, m - 1, d, 12, 0, 0, 0);
+    };
+
+    const today = new Date();
+    const signupDate = user?.metadata?.creationTime
+      ? new Date(user.metadata.creationTime)
+      : null;
+    const defaultStart = new Date(2026, 0, 1);
+    const startDate = signupDate && signupDate > defaultStart ? signupDate : defaultStart;
+
+    const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    const monthMap = new Map();
+    let totalCompleted = 0;
+    let totalPossible = 0;
+
+    const dayLoop = new Date(start);
+    while (dayLoop <= end) {
+      const dateKey = formatDateString(dayLoop);
+      const entry = userData.history?.[dateKey];
+      let completed = 0;
+      if (entry?.namaz) {
+        completed = ['fajr', 'zuhr', 'asr', 'maghrib', 'isha']
+          .filter((p) => entry.namaz?.[p]).length;
+      } else if (entry?.salah?.completed !== undefined) {
+        completed = entry.salah.completed;
+      } else if (dateKey === formatDateString(today)) {
+        if (userData.namaz) {
+          completed = ['fajr', 'zuhr', 'asr', 'maghrib', 'isha']
+            .filter((p) => userData.namaz?.[p]).length;
+        } else if (userData.salah?.completed !== undefined) {
+          completed = userData.salah.completed;
+        }
+      }
+
+      const monthKey = `${dayLoop.getFullYear()}-${String(dayLoop.getMonth() + 1).padStart(2, '0')}`;
+      const monthData = monthMap.get(monthKey) || { completed: 0, possible: 0 };
+      monthData.completed += completed;
+      monthData.possible += 5;
+      monthMap.set(monthKey, monthData);
+
+      totalCompleted += completed;
+      totalPossible += 5;
+      dayLoop.setDate(dayLoop.getDate() + 1);
+    }
+
+    const months = Array.from(monthMap.entries()).map(([key, data]) => {
+      const [y, m] = key.split('-').map(Number);
+      const label = new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short' });
+      const percent = data.possible ? Math.round((data.completed / data.possible) * 100) : 0;
+      return {
+        key,
+        year: y,
+        label,
+        completed: data.completed,
+        possible: data.possible,
+        percent
+      };
+    });
+
+    months.sort((a, b) => parseDateKey(`${a.key}-01`) - parseDateKey(`${b.key}-01`));
+
+    const yearPercent = totalPossible ? Math.round((totalCompleted / totalPossible) * 100) : 0;
+    setPrayerInsights({
+      totalCompleted,
+      totalPossible,
+      yearPercent,
+      months
+    });
+    setInsightsYear(new Date().getFullYear());
+  }, [userData, user]);
+
+  const visibleMonths = prayerInsights?.months
+    ? prayerInsights.months.filter((m) => m.year === new Date().getFullYear()).slice(-2)
+    : [];
+  const availableYears = prayerInsights?.months
+    ? Array.from(new Set(prayerInsights.months.map((m) => m.year)))
+        .filter((y) => y <= new Date().getFullYear())
+        .sort((a, b) => b - a)
+    : [];
 
   const formatDateString = (date) => {
     const year = date.getFullYear();
@@ -361,6 +455,48 @@ const ProfileScreen = ({ onNavigate }) => {
               )}
             </div>
           </div>
+
+          {prayerInsights && (
+            <div className="prayer-insights-panel">
+              <div className="prayer-insights-header">
+                <div>
+                  <h3>Prayer Insights</h3>
+                  <p>Since you started · 2026 onward</p>
+                </div>
+                <div className="insights-total">
+                  <div className="insights-percent">{prayerInsights.yearPercent}%</div>
+                  <div className="insights-sub">Year to date</div>
+                </div>
+              </div>
+
+              <div className="insights-summary">
+                <div>
+                  <div className="insights-label">Total prayers</div>
+                  <div className="insights-value">{prayerInsights.totalCompleted}/{prayerInsights.totalPossible}</div>
+                </div>
+                <div>
+                  <div className="insights-label">Completion</div>
+                  <div className="insights-value">{prayerInsights.yearPercent}%</div>
+                </div>
+              </div>
+
+              <div className="insights-months">
+                {visibleMonths.map((month) => (
+                  <div key={month.key} className="insights-month-card">
+                    <div className="month-label">{month.label}</div>
+                    <div className="month-value">{month.completed}/{month.possible}</div>
+                    <div className="month-percent">{month.percent}%</div>
+                  </div>
+                ))}
+              </div>
+              <button
+                className="insights-viewall"
+                onClick={() => setShowPrayerInsightsModal(true)}
+              >
+                View all months
+              </button>
+            </div>
+          )}
           
           <button className="profile-link" onClick={handleQiblaFinder}>
             <span className="link-icon">🧭</span> Qibla Finder
@@ -536,6 +672,66 @@ const ProfileScreen = ({ onNavigate }) => {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {showPrayerInsightsModal && (
+        <div
+          className={`insights-modal-overlay ${closingPrayerInsightsModal ? 'closing' : ''}`}
+          onClick={() => {
+            setClosingPrayerInsightsModal(true);
+            setTimeout(() => {
+              setShowPrayerInsightsModal(false);
+              setClosingPrayerInsightsModal(false);
+            }, 200);
+          }}
+        >
+          <div
+            className={`insights-modal ${closingPrayerInsightsModal ? 'closing' : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="insights-modal-header">
+              <h4>Monthly Prayer Summary</h4>
+              <button
+                className="insights-modal-close"
+                onClick={() => {
+                  setClosingPrayerInsightsModal(true);
+                  setTimeout(() => {
+                    setShowPrayerInsightsModal(false);
+                    setClosingPrayerInsightsModal(false);
+                  }, 200);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            {availableYears.length > 1 && (
+              <div className="insights-year-select">
+                <label>
+                  Year
+                  <select
+                    value={insightsYear}
+                    onChange={(e) => setInsightsYear(Number(e.target.value))}
+                  >
+                    {availableYears.map((year) => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
+            <div className="insights-modal-grid">
+              {prayerInsights?.months
+                .filter((month) => month.year === insightsYear)
+                .map((month) => (
+                <div key={month.key} className="insights-month-card modal">
+                  <div className="month-label">{month.label}</div>
+                  <div className="month-value">{month.completed}/{month.possible}</div>
+                  <div className="month-percent">{month.percent}%</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
