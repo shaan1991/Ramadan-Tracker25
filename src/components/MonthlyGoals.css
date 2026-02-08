@@ -1,0 +1,192 @@
+.monthly-goals-card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+.monthly-goals-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.monthly-goals-header h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.monthly-goals-header p {
+  margin: 0;
+  font-size: 12px;
+  color: #777;
+}
+
+.monthly-goals-edit {
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  color: #222;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.goal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 10px;
+}
+
+.goal-label {
+  font-size: 12px;
+  color: #555;
+}
+
+.goal-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+}
+
+.goal-percent {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+}
+
+.goal-bar {
+  height: 6px;
+  background: #eee;
+  border-radius: 999px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.goal-bar span {
+  display: block;
+  height: 100%;
+  background: #111;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.goal-edit {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.goal-edit label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #555;
+}
+
+.goal-edit input {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.goal-save {
+  border: none;
+  background: #111;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.goal-status {
+  font-size: 12px;
+  color: #777;
+}
+
+.goal-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+.goal-modal-overlay.closing {
+  animation: modalFadeOut 0.2s ease-in forwards;
+}
+
+.goal-modal {
+  background: #fff;
+  border-radius: 18px;
+  width: min(520px, 90vw);
+  padding: 18px;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
+  animation: modalLiftIn 0.2s ease-out;
+}
+
+.goal-modal.closing {
+  animation: modalLiftOut 0.2s ease-in forwards;
+}
+
+.goal-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.goal-modal-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.goal-modal-close {
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.goal-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes modalLiftIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes modalLiftOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(6px) scale(0.98); }
+}

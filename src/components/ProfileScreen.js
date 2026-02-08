@@ -5,6 +5,7 @@ import { logOut } from '../services/authService';
 import { getAllStreaks, calculatePrayerStreakFromData } from '../services/streakService';
 import { DEFAULT_RAMADAN_START_DATE, DEFAULT_RAMADAN_REGION, RAMADAN_REGIONS } from '../utils/dateValidation';
 import RegionSelector from './RegionSelector'; // Import the RegionSelector component
+import PrayerHeatmap from './PrayerHeatmap';
 import './ProfileScreen.css';
 
 const ProfileScreen = ({ onNavigate }) => {
@@ -495,6 +496,8 @@ const ProfileScreen = ({ onNavigate }) => {
               >
                 View all months
               </button>
+              <div className="insights-divider" />
+              <PrayerHeatmap variant="embedded" />
             </div>
           )}
           

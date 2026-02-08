@@ -12,12 +12,14 @@ import TaraweehCheck from './TaraweehCheck';
 import JuzTracker from './JuzTracker';
 import HadithOfTheDay from './HadithOfTheDay';
 import MonthlySummary from './MonthlySummary'; // New component
+import MonthlyGoals from './MonthlyGoals';
 import RandomSunnahSuggestion from './RandomSunnahSuggestion';
 import RamadanCountdownBanner from './RamadanCountdownBanner';
 import RamadanLengthPrompt from './RamadanLengthPrompt';
 // New Features - 2026 Enhancements
 import Achievements from './Achievements';
 import UnifiedPrayerTracker from './UnifiedPrayerTracker';
+import WeeklyReflection from './WeeklyReflection';
 
 const Home = () => {
   const { user, userData, loading, updateUserData, isWithinRamadan } = useUser();
@@ -353,6 +355,11 @@ const Home = () => {
           <MonthlySummary />
         </div>
       )}
+      {!isHistoricalView && (
+        <div className="elastic-expand home-section">
+          <MonthlyGoals />
+        </div>
+      )}
 
       {/* Unified Prayer Tracker - combines completion with a daily check-in */}
       <div className="home-section">
@@ -384,6 +391,11 @@ const Home = () => {
       {!isHistoricalView && (
         <div className="elastic-expand home-section">
           <Achievements />
+        </div>
+      )}
+      {!isHistoricalView && (
+        <div className="elastic-expand home-section">
+          <WeeklyReflection />
         </div>
       )}
 
