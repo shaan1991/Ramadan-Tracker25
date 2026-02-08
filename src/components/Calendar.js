@@ -132,6 +132,7 @@ const Calendar = ({ onDateSelect, onClose }) => {
   };
 
   const handleNextMonth = () => {
+    if (!canGoNext) return;
     if (currentMonth === 11) {
       setCurrentMonth(0);
       setCurrentYear(currentYear + 1);
@@ -146,6 +147,9 @@ const Calendar = ({ onDateSelect, onClose }) => {
   ];
 
   const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const today = new Date();
+  const canGoNext = currentYear < today.getFullYear()
+    || (currentYear === today.getFullYear() && currentMonth < today.getMonth());
 
   // Debug logging removed for production use
 
@@ -166,6 +170,7 @@ const Calendar = ({ onDateSelect, onClose }) => {
           <button 
             onClick={handleNextMonth} 
             className="month-nav-button"
+            disabled={!canGoNext}
           >
             &gt;
           </button>

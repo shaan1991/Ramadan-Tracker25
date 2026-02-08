@@ -11,6 +11,11 @@ export const formatDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+const parseDateKey = (key) => {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0, 0);
+};
+
 // Calculate prayer streaks from userData (based on completing all 5 prayers in a day)
 export const calculatePrayerStreakFromData = (userData, options = {}) => {
   if (!userData) return { current: 0, best: 0 };
@@ -18,19 +23,15 @@ export const calculatePrayerStreakFromData = (userData, options = {}) => {
   const history = userData.history || {};
   const todayKey = formatDate(baseDate);
 
-  const completedToday = userData.namaz
-    ? ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'].every(prayer => userData.namaz[prayer])
-    : (userData.salah?.completed === 5);
-
   const allDates = [todayKey, ...Object.keys(history)]
     .filter((date, index, self) => self.indexOf(date) === index)
-    .sort((a, b) => new Date(b) - new Date(a));
+    .sort((a, b) => parseDateKey(b) - parseDateKey(a));
 
   const baseDateKey = formatDate(baseDate);
   const relevantDates = (ramadanOnly
-    ? allDates.filter(date => !isBeforeRamadan(new Date(date), userData))
+    ? allDates.filter(date => !isBeforeRamadan(parseDateKey(date), userData))
     : allDates
-  ).filter(date => new Date(date) <= new Date(baseDateKey));
+  ).filter(date => parseDateKey(date) <= parseDateKey(baseDateKey));
 
   const isComplete = (date) => {
     const entry = history[date] || {};
@@ -49,11 +50,15 @@ export const calculatePrayerStreakFromData = (userData, options = {}) => {
     return false;
   };
 
+  const completedToday = history[todayKey]
+    ? isComplete(todayKey)
+    : (userData.namaz
+        ? ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'].every(prayer => userData.namaz[prayer])
+        : (userData.salah?.completed === 5));
+
   const isConsecutiveDay = (currentDate, nextDate) => {
-    const currentObj = new Date(currentDate);
-    const nextObj = new Date(nextDate);
-    currentObj.setHours(12, 0, 0, 0);
-    nextObj.setHours(12, 0, 0, 0);
+    const currentObj = parseDateKey(currentDate);
+    const nextObj = parseDateKey(nextDate);
     const diffTime = currentObj.getTime() - nextObj.getTime();
     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
     return diffDays === 1;
@@ -98,7 +103,7 @@ export const calculatePrayerStreakFromData = (userData, options = {}) => {
 // Helper function to get activity value from history or current state
 const getActivityValue = (userData, activityType, date, ramadanOnly = false, baseDate = new Date()) => {
   // If we're calculating Ramadan-only streaks, ignore dates before Ramadan
-  if (ramadanOnly && isBeforeRamadan(new Date(date), userData)) {
+  if (ramadanOnly && isBeforeRamadan(parseDateKey(date), userData)) {
     return false;
   }
   
@@ -172,17 +177,17 @@ export const calculateStreak = async (userId, activityType, options = {}) => {
     }
     
     // Get all dates from history plus today
-    const allDates = [today, ...Object.keys(userData.history)]
-      .filter((date, index, self) => self.indexOf(date) === index) // Remove duplicates
-      .sort((a, b) => new Date(b) - new Date(a)); // Sort newest first
+  const allDates = [today, ...Object.keys(userData.history)]
+    .filter((date, index, self) => self.indexOf(date) === index) // Remove duplicates
+    .sort((a, b) => parseDateKey(b) - parseDateKey(a)); // Sort newest first
     
     // If Ramadan-only, filter to Ramadan dates; otherwise keep all dates
-    const relevantDates = ramadanOnly
-      ? allDates.filter(date => !isBeforeRamadan(new Date(date), userData))
-      : allDates;
-    
-    const baseDateKey = formatDate(baseDate);
-    const cappedDates = relevantDates.filter(date => new Date(date) <= new Date(baseDateKey));
+  const relevantDates = ramadanOnly
+    ? allDates.filter(date => !isBeforeRamadan(parseDateKey(date), userData))
+    : allDates;
+  
+  const baseDateKey = formatDate(baseDate);
+  const cappedDates = relevantDates.filter(date => parseDateKey(date) <= parseDateKey(baseDateKey));
     
     // Start calculating streak
     let currentStreak = 0;
@@ -193,12 +198,8 @@ export const calculateStreak = async (userId, activityType, options = {}) => {
     
     // Function to check if a date is the next consecutive day
     const isConsecutiveDay = (currentDate, nextDate) => {
-      const current = new Date(currentDate);
-      const next = new Date(nextDate);
-      
-      // Set hours to noon to avoid timezone issues
-      current.setHours(12, 0, 0, 0);
-      next.setHours(12, 0, 0, 0);
+      const current = parseDateKey(currentDate);
+      const next = parseDateKey(nextDate);
       
       // Calculate difference in days
       const diffTime = current.getTime() - next.getTime();

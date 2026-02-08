@@ -181,6 +181,11 @@ const formatDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+const parseDateKey = (key) => {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0, 0);
+};
+
 const UnifiedPrayerTracker = () => {
   const { user, userData, updateUserData, isWithinRamadan, recordDailyAction } = useUser();
   const [localNamaz, setLocalNamaz] = useState(null);
@@ -202,7 +207,7 @@ const UnifiedPrayerTracker = () => {
   }, [userData?.isHistoricalView, userData?.historicalDate]);
 
   const getRecentMoodEntries = (history) => Object.entries(history || {})
-    .sort((a, b) => new Date(b[0]) - new Date(a[0]))
+    .sort((a, b) => parseDateKey(b[0]) - parseDateKey(a[0]))
     .slice(0, 30)
     .map(([, entry]) => {
       const value = entry?.mood;
@@ -304,15 +309,65 @@ const UnifiedPrayerTracker = () => {
 
   useEffect(() => {
     if (!userData) return;
-    const effectiveDate = userData?.isHistoricalView && userData?.historicalDate
-      ? new Date(userData.historicalDate)
+    const isHistoricalView = userData?.isHistoricalView && userData?.historicalDate;
+    const effectiveDate = isHistoricalView
+      ? parseDateKey(userData.historicalDate)
       : new Date();
-    const ramadanMode = isWithinRamadan ? isWithinRamadan(effectiveDate) : false;
-    const prayerStreak = calculatePrayerStreakFromData(userData, {
-      ramadanOnly: ramadanMode,
-      baseDate: effectiveDate
-    });
-    setStreak(prayerStreak.current);
+    const dateKey = formatDate(effectiveDate);
+    const entry = userData.history?.[dateKey] || {};
+    const hasHistoryForDate = Object.keys(entry).length > 0;
+    const baseNamaz = hasHistoryForDate && entry.namaz ? entry.namaz : userData.namaz;
+    const isComplete = baseNamaz
+      ? ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'].every(prayer => baseNamaz?.[prayer])
+      : (entry.salah?.completed === 5 || userData.salah?.completed === 5);
+
+    if (isHistoricalView) {
+      const historyDates = Object.keys(userData.history || {});
+      if (!historyDates.length) {
+        setStreak(0);
+        return;
+      }
+      const isConsecutiveDay = (currentDate, nextDate) => {
+        const current = parseDateKey(currentDate);
+        const next = parseDateKey(nextDate);
+        const diffTime = current.getTime() - next.getTime();
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays === 1;
+      };
+      const sortedDates = historyDates
+        .filter((d) => parseDateKey(d) <= parseDateKey(dateKey))
+        .sort((a, b) => parseDateKey(b) - parseDateKey(a));
+      let currentStreak = 0;
+      for (let i = 0; i < sortedDates.length; i++) {
+        const d = sortedDates[i];
+        const entryForDate = userData.history?.[d] || {};
+        const isDone = entryForDate.namaz
+          ? ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'].every(prayer => entryForDate.namaz?.[prayer])
+          : (entryForDate.salah?.completed === 5);
+        if (isDone) {
+          if (currentStreak === 0) {
+            currentStreak = 1;
+          } else if (i > 0 && isConsecutiveDay(sortedDates[i - 1], d)) {
+            currentStreak += 1;
+          } else {
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+      setStreak(currentStreak);
+    } else {
+      const streakBaseDate = !isComplete
+        ? new Date(effectiveDate.getFullYear(), effectiveDate.getMonth(), effectiveDate.getDate() - 1)
+        : effectiveDate;
+      const ramadanMode = isWithinRamadan ? isWithinRamadan(streakBaseDate) : false;
+      const prayerStreak = calculatePrayerStreakFromData(userData, {
+        ramadanOnly: ramadanMode,
+        baseDate: streakBaseDate
+      });
+      setStreak(prayerStreak.current);
+    }
   }, [userData, isWithinRamadan]);
 
   useEffect(() => {
@@ -412,7 +467,7 @@ const UnifiedPrayerTracker = () => {
   const effectiveNamaz = overrideNamaz || localNamaz || historyNamaz || userData.namaz;
   const completedCount = Object.values(effectiveNamaz).filter(Boolean).length;
   const moodBarPercent = Math.round((moodRating / 5) * 100);
-  const effectiveDate = isHistorical ? new Date(dateKey) : new Date();
+  const effectiveDate = isHistorical ? parseDateKey(dateKey) : new Date();
   const isFriday = effectiveDate.getDay() === 5;
 
   return (
@@ -436,7 +491,7 @@ const UnifiedPrayerTracker = () => {
             style={{ width: `${moodBarPercent}%`, '--bar-fill': '#444' }}
           ></span>
         </div>
-        <div className="stat-card">
+        <div className="stat-card streak-card">
           <span className="stat-label">Streak</span>
           <span className="stat-value">{streak} days</span>
           <span className="stat-icon">🔥</span>

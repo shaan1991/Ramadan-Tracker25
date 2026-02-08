@@ -41,6 +41,12 @@
   overflow: hidden;
 }
 
+.streak-card .stat-label,
+.streak-card .stat-value {
+  color: #333;
+  opacity: 1;
+}
+
 .stat-label {
   display: block;
   font-size: 11px;
@@ -62,7 +68,7 @@
   top: 8px;
   right: 8px;
   font-size: 20px;
-  opacity: 0.2;
+  opacity: 1;
 }
 
 .stat-bar {

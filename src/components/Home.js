@@ -49,7 +49,6 @@ const Home = () => {
       if (prayerTimes && prayerTimes.date && prayerTimes.date.hijri) {
         const hijri = prayerTimes.date.hijri;
         if (hijri.month.number === 9) {
-          console.log("Using Adhan hijri data:", hijri);
           setCurrentRamadanDay(hijri.day);
           return;
         }
@@ -78,12 +77,6 @@ const Home = () => {
       };
       
       const dayDiff = calculateDaysBetween(startDate, today);
-      
-      console.log("DST-proof calculation:", {
-        start: `${startYear}-${startMonth}-${startDay}`,
-        today: `${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}`,
-        dayDiff
-      });
       
       if (dayDiff >= 1 && dayDiff <= totalDays) {
         setCurrentRamadanDay(dayDiff);
@@ -134,7 +127,6 @@ const Home = () => {
 
 
   const handleDateSelect = (date) => {
-    console.log("Selected date:", date);
     if (date === formattedToday) {
       updateUserData({
         isHistoricalView: false,
@@ -155,12 +147,13 @@ const Home = () => {
   };
 
   const loadDateData = async (dateString) => {
-    console.log("Loading data for date:", dateString);
+    const parseDateKey = (key) => {
+      const [y, m, d] = key.split('-').map(Number);
+      return new Date(y, m - 1, d, 12, 0, 0, 0);
+    };
     
     // Check if there's history data for this date - EXACT string match
     if (userData && userData.history && userData.history[dateString]) {
-      console.log("Found history data for date:", dateString);
-      
       const historyData = userData.history[dateString];
 
       const buildNamaz = (data) => ({
@@ -172,11 +165,11 @@ const Home = () => {
       });
 
       const computeQuranProgressForDate = (targetDate) => {
-        const target = new Date(targetDate);
+        const target = parseDateKey(targetDate);
         const completed = new Set();
         const juzHistory = userData.juzHistory || {};
         Object.entries(juzHistory).forEach(([dateKey, juzList]) => {
-          const dateObj = new Date(dateKey);
+          const dateObj = parseDateKey(dateKey);
           if (dateObj <= target) {
             (juzList || []).forEach(juz => completed.add(juz));
           }
@@ -207,15 +200,13 @@ const Home = () => {
         historicalDate: dateString
       });
     } else {
-      console.log("No history data for date:", dateString);
-      
       // If no historical data, show empty state for that day
       const computeQuranProgressForDate = (targetDate) => {
-        const target = new Date(targetDate);
+        const target = parseDateKey(targetDate);
         const completed = new Set();
         const juzHistory = userData?.juzHistory || {};
         Object.entries(juzHistory).forEach(([dateKey, juzList]) => {
-          const dateObj = new Date(dateKey);
+          const dateObj = parseDateKey(dateKey);
           if (dateObj <= target) {
             (juzList || []).forEach(juz => completed.add(juz));
           }

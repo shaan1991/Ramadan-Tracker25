@@ -54,6 +54,13 @@
   color: #777;
 }
 
+.achievements-share-hint {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #777;
+  text-align: right;
+}
+
 .badges-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -166,6 +173,15 @@
   max-height: 60vh;
 }
 
+.share-note {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 14px;
+  padding-top: 10px;
+  margin-bottom: 2px;
+  font-size: 11px;
+  color: #777;
+}
+
 @keyframes modalFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -219,6 +235,12 @@
   border-color: #9e9e9e;
   background: #f0f0f0;
 }
+
+.badge-item.unlocked:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
 
 .badge-item.locked {
   background: #f9f9f9;

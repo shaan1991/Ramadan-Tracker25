@@ -3,8 +3,8 @@
 
 // Default Ramadan dates (expected, subject to moon sighting)
 // Many astronomical sources point to first fast on Feb 19, 2026 (if the crescent isn't visible on Feb 17).
-export const DEFAULT_RAMADAN_START_DATE = new Date('2026-02-19'); // February 19, 2026 (expected)
-export const DEFAULT_RAMADAN_END_DATE = new Date('2026-03-20');   // March 20, 2026 (expected end if 30 days)
+export const DEFAULT_RAMADAN_START_DATE = new Date(2026, 1, 19); // February 19, 2026 (expected)
+export const DEFAULT_RAMADAN_END_DATE = new Date(2026, 2, 20);   // March 20, 2026 (expected end if 30 days)
 
 // Region-specific start dates (exported for use in RegionSelector)
 export const DEFAULT_RAMADAN_REGION = 'Likely start (Expected Feb 19)';
@@ -12,6 +12,19 @@ export const DEFAULT_RAMADAN_REGION = 'Likely start (Expected Feb 19)';
 export const RAMADAN_REGIONS = {
   'Early sighting (Possible Feb 18)': '2026-02-18',
   'Likely start (Expected Feb 19)': '2026-02-19'
+};
+
+const parseDateString = (dateStr) => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
+const normalizeDateInput = (date) => {
+  if (date instanceof Date) return date;
+  if (typeof date === 'string' && date.includes('-')) {
+    return parseDateString(date);
+  }
+  return new Date(date);
 };
 
 /**
@@ -22,12 +35,12 @@ export const RAMADAN_REGIONS = {
 export const getRamadanStartDate = (userData) => {
   // If userData has a ramadanStartDate, use that
   if (userData?.ramadanStartDate) {
-    return new Date(userData.ramadanStartDate);
+    return parseDateString(userData.ramadanStartDate);
   }
   
   // If userData has a ramadanRegion, use the date for that region
   if (userData?.ramadanRegion && RAMADAN_REGIONS[userData.ramadanRegion]) {
-    return new Date(RAMADAN_REGIONS[userData.ramadanRegion]);
+    return parseDateString(RAMADAN_REGIONS[userData.ramadanRegion]);
   }
   
   // If no user data or no valid region, use default
@@ -67,7 +80,7 @@ export const formatDate = (date) => {
  */
 export const isBeforeRamadan = (date, userData) => {
   // Ensure date is a Date object
-  const dateObj = date instanceof Date ? date : new Date(date);
+  const dateObj = normalizeDateInput(date);
   
   // Set time to midnight for accurate comparison
   const normalizedDate = new Date(dateObj);
@@ -87,7 +100,7 @@ export const isBeforeRamadan = (date, userData) => {
  */
 export const isWithinRamadan = (date, userData) => {
   // Ensure date is a Date object
-  const dateObj = date instanceof Date ? date : new Date(date);
+  const dateObj = normalizeDateInput(date);
   
   // Set time to noon for accurate comparison
   const normalizedDate = new Date(dateObj);
@@ -111,7 +124,7 @@ export const isWithinRamadan = (date, userData) => {
  */
 export const calculateRamadanDay = (date, userData) => {
   // Ensure date is a Date object
-  const dateObj = date instanceof Date ? date : new Date(date);
+  const dateObj = normalizeDateInput(date);
   
   // If date is before Ramadan, return 0
   if (isBeforeRamadan(dateObj, userData)) {

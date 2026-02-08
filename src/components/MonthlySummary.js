@@ -22,6 +22,10 @@ const MonthlySummary = () => {
   useEffect(() => {
     const loadAllData = async () => {
       if (!user?.uid) return;
+      const parseDateKey = (key) => {
+        const [y, m, d] = key.split('-').map(Number);
+        return new Date(y, m - 1, d, 12, 0, 0, 0);
+      };
       
       if (initialLoadRef.current) {
         setLoading(true);
@@ -53,7 +57,7 @@ const MonthlySummary = () => {
         if (userData) {
           const historyDates = userData.history ? Object.keys(userData.history) : [];
           const validDates = historyDates.filter(dateString => {
-            const date = new Date(dateString);
+            const date = parseDateKey(dateString);
             return date >= monthStart && date <= monthEnd;
           });
           setActiveDays(validDates.length);
@@ -62,7 +66,7 @@ const MonthlySummary = () => {
           const juzHistory = userData.juzHistory || {};
           const monthlyJuzs = new Set();
           Object.keys(juzHistory).forEach(dateString => {
-            const date = new Date(dateString);
+            const date = parseDateKey(dateString);
             if (date >= monthStart && date <= monthEnd) {
               (juzHistory[dateString] || []).forEach(juz => monthlyJuzs.add(juz));
             }
