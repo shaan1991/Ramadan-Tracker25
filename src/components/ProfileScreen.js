@@ -35,6 +35,8 @@ const ProfileScreen = ({ onNavigate }) => {
   const [showPrayerInsightsModal, setShowPrayerInsightsModal] = useState(false);
   const [closingPrayerInsightsModal, setClosingPrayerInsightsModal] = useState(false);
   const [insightsYear, setInsightsYear] = useState(new Date().getFullYear());
+  const appUrl = 'https://ramadan-tracker.web.app';
+  const inviteMessage = `As-salamu alaykum! I use Ramadan Tracker daily for prayers, Qur'an, Sunnah, and reflections.\n\nTry it here: ${appUrl}`;
 
   useEffect(() => {
     if (!userData) return;
@@ -280,21 +282,24 @@ const ProfileScreen = ({ onNavigate }) => {
     window.open('https://forms.gle/Pv4Fnd2vVFCyumpt6', '_blank');
   };
 
-  const handleInviteFriends = () => {
-    const appUrl = 'https://ramadan-tracker.web.app';
-    const message = `Check out this amazing Ramadan Tracker app! Track your prayers, fasts, and spiritual journey. Visit here: ${appUrl}`;
-
+  const handleInviteFriends = async () => {
     if (navigator.share) {
-      navigator.share({
-        title: 'Ramadan Tracker App',
-        text: message,
-        url: appUrl
-      }).catch(console.error);
-    } else {
-      // Fallback for browsers that don't support Web Share API
-      navigator.clipboard.writeText(message).then(() => {
-        alert('Invite message copied to clipboard! You can now share on WhatsApp or other platforms.');
-      });
+      try {
+        await navigator.share({
+          title: 'Ramadan Tracker',
+          text: inviteMessage
+        });
+        return;
+      } catch (error) {
+        return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(inviteMessage);
+      window.alert('Invite message copied. Paste it in WhatsApp, SMS, or any app.');
+    } catch (error) {
+      window.alert(inviteMessage);
     }
   };
 
@@ -738,6 +743,7 @@ const ProfileScreen = ({ onNavigate }) => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

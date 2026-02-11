@@ -355,11 +355,6 @@ const Home = () => {
           <MonthlySummary />
         </div>
       )}
-      {!isHistoricalView && (
-        <div className="elastic-expand home-section">
-          <MonthlyGoals />
-        </div>
-      )}
 
       {/* Unified Prayer Tracker - combines completion with a daily check-in */}
       <div className="home-section">
@@ -396,6 +391,11 @@ const Home = () => {
       {!isHistoricalView && (
         <div className="elastic-expand home-section">
           <WeeklyReflection />
+        </div>
+      )}
+      {!isHistoricalView && (
+        <div className="elastic-expand home-section">
+          <MonthlyGoals />
         </div>
       )}
 

@@ -7,6 +7,8 @@
   padding: 16px;
   background-color: #fdfcf9;
   font-family: 'Poppins', sans-serif;;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 .home-section {

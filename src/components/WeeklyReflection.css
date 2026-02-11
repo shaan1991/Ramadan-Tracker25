@@ -18,6 +18,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .weekly-reflection-header h3 {
@@ -33,23 +34,33 @@
 }
 
 .weekly-pill {
+  display: inline-flex;
+  align-items: center;
   background: #111;
   color: #fff;
   font-size: 11px;
-  padding: 4px 10px;
+  padding: 8px 14px;
   border-radius: 999px;
   font-weight: 600;
+  white-space: nowrap;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .weekly-history-btn {
+  display: inline-flex;
+  align-items: center;
   border: 1px solid #ddd;
   background: #fff;
   color: #333;
   font-size: 12px;
   font-weight: 600;
-  padding: 4px 10px;
+  padding: 8px 14px;
   border-radius: 999px;
   cursor: pointer;
+  white-space: nowrap;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .weekly-field {
@@ -235,4 +246,21 @@
 @keyframes weeklyLiftOut {
   from { opacity: 1; transform: translateY(0) scale(1); }
   to { opacity: 0; transform: translateY(6px) scale(0.98); }
+}
+
+@media (max-width: 480px) {
+  .weekly-reflection-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .weekly-reflection-header > div:first-child {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .weekly-head-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
