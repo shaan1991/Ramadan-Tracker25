@@ -510,7 +510,7 @@ const ProfileScreen = ({ onNavigate }) => {
           </button>
           
           <button className="profile-link" onClick={handleEnglishQuran}>
-            <span className="link-icon">📒</span> Read Qur'an in modern english
+            <span className="link-icon">📒</span> Qur'an in modern english (with meaning)
           </button>
           
           <button className="profile-link" onClick={handleFeedback}>
@@ -569,7 +569,7 @@ const ProfileScreen = ({ onNavigate }) => {
       </div>
       
       <footer className="profile-footer">
-        <p>Thank you for using ramadan-tracker.web.app</p>
+        <p>I request you to include me and my family in your Dua's</p>
       </footer>
 
       {/* Dialog for India donation QR code */}

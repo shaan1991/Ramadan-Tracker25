@@ -21,6 +21,8 @@ const WeeklyReflection = () => {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState('');
   const [editing, setEditing] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [closingHistory, setClosingHistory] = useState(false);
 
   const { weekKey, existing } = useMemo(() => {
     const now = new Date();
@@ -65,6 +67,22 @@ const WeeklyReflection = () => {
   };
 
   const hasReflection = Boolean(existing?.wentWell || existing?.improve);
+  const historyItems = useMemo(() => {
+    const reflections = userData?.weeklyReflections || {};
+    return Object.entries(reflections)
+      .sort(([a], [b]) => (a < b ? 1 : -1))
+      .map(([startKey, item]) => {
+        const [y, m, d] = startKey.split('-').map(Number);
+        const start = new Date(y, m - 1, d);
+        const end = new Date(y, m - 1, d + 6);
+        return {
+          key: startKey,
+          weekLabel: `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+          wentWell: item?.wentWell || '',
+          improve: item?.improve || ''
+        };
+      });
+  }, [userData]);
 
   return (
     <div className="weekly-reflection-card">
@@ -73,7 +91,12 @@ const WeeklyReflection = () => {
           <h3>Weekly Reflection</h3>
           <p>Small note to end your week with intention.</p>
         </div>
-        <span className="weekly-pill">This week</span>
+        <div className="weekly-head-actions">
+          <span className="weekly-pill">This week</span>
+          <button className="weekly-history-btn" onClick={() => setShowHistory(true)}>
+            History
+          </button>
+        </div>
       </div>
 
       {!editing && hasReflection && (
@@ -121,6 +144,53 @@ const WeeklyReflection = () => {
             {status && <span className="weekly-status">{status}</span>}
           </div>
         </>
+      )}
+
+      {showHistory && (
+        <div
+          className={`weekly-history-overlay ${closingHistory ? 'closing' : ''}`}
+          onClick={() => {
+            setClosingHistory(true);
+            setTimeout(() => {
+              setShowHistory(false);
+              setClosingHistory(false);
+            }, 180);
+          }}
+        >
+          <div
+            className={`weekly-history-modal ${closingHistory ? 'closing' : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="weekly-history-head">
+              <h4>Weekly Reflection History</h4>
+              <button
+                className="weekly-history-close"
+                onClick={() => {
+                  setClosingHistory(true);
+                  setTimeout(() => {
+                    setShowHistory(false);
+                    setClosingHistory(false);
+                  }, 180);
+                }}
+              >
+                x
+              </button>
+            </div>
+            {historyItems.length === 0 ? (
+              <p className="weekly-history-empty">No reflections yet.</p>
+            ) : (
+              <div className="weekly-history-list">
+                {historyItems.map((item) => (
+                  <div key={item.key} className="weekly-history-item">
+                    <div className="weekly-history-week">{item.weekLabel}</div>
+                    <div className="weekly-history-line"><strong>Went well:</strong> {item.wentWell || '-'}</div>
+                    <div className="weekly-history-line"><strong>Improve:</strong> {item.improve || '-'}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

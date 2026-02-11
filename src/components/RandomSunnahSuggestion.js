@@ -243,12 +243,40 @@ const SUNNAH_SUGGESTIONS = [
     }
   ];
 
+const hashSeed = (str) => {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i += 1) {
+    h ^= str.charCodeAt(i);
+    h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+  }
+  return h >>> 0;
+};
+
+const pickSunnahForSeed = (seed) => {
+  const items = [...SUNNAH_SUGGESTIONS];
+  let rnd = hashSeed(seed) || 1;
+  const rand = () => {
+    rnd ^= rnd << 13;
+    rnd ^= rnd >>> 17;
+    rnd ^= rnd << 5;
+    return (rnd >>> 0) / 0xffffffff;
+  };
+  for (let i = items.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rand() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items[0] || null;
+};
+
 const RandomSunnahSuggestion = () => {
   const { user, userData, recordDailyAction } = useUser();
   const [currentSunnah, setCurrentSunnah] = useState(null);
   const [completed, setCompleted] = useState(false);
   const [pending, setPending] = useState(false);
   const [localOverrides, setLocalOverrides] = useState({});
+  const [showHistory, setShowHistory] = useState(false);
+  const [closingHistory, setClosingHistory] = useState(false);
+  const [selectedMonthKey, setSelectedMonthKey] = useState('');
 
   const getDateKey = useCallback(() => {
     if (userData?.isHistoricalView && userData?.historicalDate) {
@@ -264,27 +292,8 @@ const RandomSunnahSuggestion = () => {
   }, [user?.uid, getDateKey]);
 
   const shuffledSuggestions = useMemo(() => {
-    const items = [...SUNNAH_SUGGESTIONS];
-    const hash = (str) => {
-      let h = 2166136261;
-      for (let i = 0; i < str.length; i++) {
-        h ^= str.charCodeAt(i);
-        h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
-      }
-      return h >>> 0;
-    };
-    let rnd = hash(seed) || 1;
-    const rand = () => {
-      rnd ^= rnd << 13;
-      rnd ^= rnd >>> 17;
-      rnd ^= rnd << 5;
-      return (rnd >>> 0) / 0xffffffff;
-    };
-    for (let i = items.length - 1; i > 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
-      [items[i], items[j]] = [items[j], items[i]];
-    }
-    return items;
+    const first = pickSunnahForSeed(seed);
+    return first ? [first] : [];
   }, [seed]);
 
   useEffect(() => {
@@ -329,6 +338,66 @@ const RandomSunnahSuggestion = () => {
     setPending(false);
   };
 
+  const sunnahHistoryByMonth = useMemo(() => {
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const historyDays = Object.entries(userData?.history || {})
+      .filter(([, entry]) => !!entry?.sunnahCompleted)
+      .map(([key]) => key);
+
+    if (completed && !historyDays.includes(dateKey)) {
+      historyDays.push(dateKey);
+    }
+
+    const dayItems = historyDays
+      .sort((a, b) => (a < b ? 1 : -1))
+      .map((key) => {
+        const [y, m, d] = key.split('-').map(Number);
+        const date = new Date(y, m - 1, d);
+        const monthKey = `${y}-${String(m).padStart(2, '0')}`;
+        const suggested = pickSunnahForSeed(`${user?.uid || 'anonymous'}-${key}`);
+        return {
+          dateKey: key,
+          date,
+          monthKey,
+          title: suggested?.title || 'Suggested Sunnah'
+        };
+      });
+
+    const monthKeys = Array.from(new Set(dayItems.map((item) => item.monthKey)));
+    if (!monthKeys.includes(currentMonthKey)) {
+      monthKeys.unshift(currentMonthKey);
+    }
+
+    const monthOptions = monthKeys
+      .map((key) => {
+        const [y, m] = key.split('-').map(Number);
+        const dt = new Date(y, m - 1, 1);
+        return {
+          key,
+          label: dt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        };
+      })
+      .sort((a, b) => (a.key < b.key ? 1 : -1));
+
+    return {
+      currentMonthKey,
+      monthOptions,
+      dayItems
+    };
+  }, [userData, completed, dateKey, user?.uid]);
+
+  useEffect(() => {
+    if (!showHistory) return;
+    const defaultMonth = sunnahHistoryByMonth.currentMonthKey;
+    setSelectedMonthKey((prev) => prev || defaultMonth);
+  }, [showHistory, sunnahHistoryByMonth.currentMonthKey]);
+
+  const selectedMonth = selectedMonthKey || sunnahHistoryByMonth.currentMonthKey;
+  const filteredHistoryDays = sunnahHistoryByMonth.dayItems.filter(
+    (item) => item.monthKey === selectedMonth
+  );
+
   if (!currentSunnah) return null;
 
   return (
@@ -353,8 +422,93 @@ const RandomSunnahSuggestion = () => {
           >
             {completed ? 'Completed' : 'Mark completed'}
           </button>
+          <button
+            className="sunnah-history-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowHistory(true);
+            }}
+          >
+            View history
+          </button>
         </div>
       </div>
+      {showHistory && (
+        <div
+          className={`sunnah-history-overlay ${closingHistory ? 'closing' : ''}`}
+          onClick={() => {
+            setClosingHistory(true);
+            setTimeout(() => {
+              setShowHistory(false);
+              setClosingHistory(false);
+            }, 180);
+          }}
+        >
+          <div
+            className={`sunnah-history-modal ${closingHistory ? 'closing' : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sunnah-history-head">
+              <h4>Sunnah Completion History</h4>
+              <button
+                className="sunnah-history-close"
+                onClick={() => {
+                  setClosingHistory(true);
+                  setTimeout(() => {
+                    setShowHistory(false);
+                    setClosingHistory(false);
+                  }, 180);
+                }}
+              >
+                x
+              </button>
+            </div>
+            <div className="sunnah-history-filters">
+              <label>
+                Month
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonthKey(e.target.value)}
+                >
+                  {sunnahHistoryByMonth.monthOptions.map((month) => (
+                    <option key={month.key} value={month.key}>
+                      {month.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <p className="sunnah-history-sub">
+              {
+                (sunnahHistoryByMonth.monthOptions.find((m) => m.key === selectedMonth)?.label
+                || 'Selected month')
+              } · {filteredHistoryDays.length} days completed
+            </p>
+            {filteredHistoryDays.length === 0 ? (
+              <p className="sunnah-history-empty">No completions this month yet.</p>
+            ) : (
+              <div className="sunnah-history-list">
+                {filteredHistoryDays.map((item) => {
+                  const label = item.date.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric'
+                  });
+                  return (
+                    <div key={item.dateKey} className="sunnah-history-item">
+                      <div className="history-left">
+                        <span>{label}</span>
+                        <span className="history-title">{item.title}</span>
+                      </div>
+                      <span className="history-check">Completed</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
