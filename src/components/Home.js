@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { usePrayerTimes } from '../contexts/PrayerTimesContext';
-import { DEFAULT_RAMADAN_START_DATE } from '../utils/dateValidation';
+import { DEFAULT_RAMADAN_START_DATE, getRamadanStartDate, getRamadanEndDate } from '../utils/dateValidation';
 import './Home.css';
 
 // Components
@@ -263,6 +263,20 @@ const Home = () => {
     'Today';
   
   const isRamadan = isWithinRamadan ? isWithinRamadan(dateObj) : false;
+  const isTaraweehLoggingWindow = (() => {
+    const start = getRamadanStartDate(userData);
+    const end = getRamadanEndDate(userData);
+    const preRamadanNight = new Date(start);
+    preRamadanNight.setDate(preRamadanNight.getDate() - 1);
+
+    const view = new Date(dateObj);
+    view.setHours(12, 0, 0, 0);
+    start.setHours(12, 0, 0, 0);
+    end.setHours(12, 0, 0, 0);
+    preRamadanNight.setHours(12, 0, 0, 0);
+
+    return view >= preRamadanNight && view <= end;
+  })();
 
   return (
     <div className="home-container">
@@ -363,7 +377,7 @@ const Home = () => {
       <div className="elastic-expand home-section">
         <FastingCheck />
       </div>
-      {isRamadan && (
+      {isTaraweehLoggingWindow && (
         <div className="elastic-expand home-section">
           <TaraweehCheck />
         </div>

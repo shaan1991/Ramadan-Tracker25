@@ -232,15 +232,52 @@ export const UserProvider = ({ children }) => {
     
     // If we're updating actual data (not just view state)
     const dataToUpdate = { ...newData };
+    const historyDateOverride = dataToUpdate.historyDateOverride || null;
     
     // Remove view-only properties
     delete dataToUpdate.isHistoricalView;
     delete dataToUpdate.historicalDate;
     delete dataToUpdate.currentViewData;
+    delete dataToUpdate.historyDateOverride;
     
     // If there's still data to update in Firestore
     if (Object.keys(dataToUpdate).length > 0) {
       try {
+        if (historyDateOverride) {
+          const userDocRef = doc(db, 'users', user.uid);
+          const today = formatDate(new Date());
+          const historyUpdate = {};
+
+          for (const key in dataToUpdate) {
+            historyUpdate[`history.${historyDateOverride}.${key}`] = dataToUpdate[key];
+            if (historyDateOverride === today) {
+              historyUpdate[key] = dataToUpdate[key];
+            }
+          }
+          historyUpdate[`history.${historyDateOverride}.day`] = calculateDayFromDate(new Date(historyDateOverride), userData);
+
+          await updateDoc(userDocRef, historyUpdate);
+
+          setUserData(prevData => {
+            if (!prevData) return prevData;
+            const nextData = { ...prevData };
+            if (!nextData.history) nextData.history = {};
+            if (!nextData.history[historyDateOverride]) nextData.history[historyDateOverride] = {};
+
+            for (const key in dataToUpdate) {
+              nextData.history[historyDateOverride][key] = dataToUpdate[key];
+              if (historyDateOverride === today) {
+                nextData[key] = dataToUpdate[key];
+              }
+            }
+
+            nextData.history[historyDateOverride].day = calculateDayFromDate(new Date(historyDateOverride), userData);
+            return nextData;
+          });
+
+          return true;
+        }
+
         // If we're in historical view and updating data, save to the history object
         if (isHistoricalView && historicalDate) {
           // Update the history object for the specific date

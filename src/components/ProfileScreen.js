@@ -402,6 +402,9 @@ const ProfileScreen = ({ onNavigate }) => {
                 </select>
               </label>
             </div>
+            <p className="ramadan-settings-note">
+              Note: First fast is on the selected start date. First Taraweeh is the night before that date.
+            </p>
           <div className="ramadan-settings-actions">
             <button className="ramadan-btn outline" onClick={handleResetRamadanDates}>
               Reset to expected
