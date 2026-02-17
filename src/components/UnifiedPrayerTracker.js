@@ -196,7 +196,7 @@ const UnifiedPrayerTracker = () => {
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showCelebration, setShowCelebration] = useState(false);
-  const prevCompletedCountRef = useRef(0);
+  const celebrationStateRef = useRef({ dateKey: null, prevCompleted: 0, initialized: false });
   const lastMoodTapRef = useRef({ value: null, ts: 0, dateKey: null });
 
   const getMoodDateKey = useCallback(() => {
@@ -375,17 +375,31 @@ const UnifiedPrayerTracker = () => {
     const isHistorical = userData?.isHistoricalView && userData?.historicalDate;
     if (isHistorical) return;
     const dateKey = getMoodDateKey();
-    const alreadyCelebrated = userData.history?.[dateKey]?.prayerCelebrated === true;
-    const completedCount = Object.values(userData.namaz).filter(Boolean).length;
-    const prevCompleted = prevCompletedCountRef.current;
-    if (completedCount === 5 && prevCompleted !== 5 && !alreadyCelebrated) {
+    const dayEntry = userData.history?.[dateKey] || {};
+    const dayNamaz = dayEntry.namaz || userData.namaz || {};
+    const completedCount = ['fajr', 'zuhr', 'asr', 'maghrib', 'isha']
+      .filter((prayer) => dayNamaz?.[prayer])
+      .length;
+    const alreadyCelebrated = dayEntry.prayerCelebrated === true;
+
+    if (celebrationStateRef.current.dateKey !== dateKey) {
+      celebrationStateRef.current = {
+        dateKey,
+        prevCompleted: completedCount,
+        initialized: true
+      };
+      return;
+    }
+
+    const prevCompleted = celebrationStateRef.current.prevCompleted;
+    if (completedCount === 5 && prevCompleted < 5 && !alreadyCelebrated) {
       setShowCelebration(true);
       if (recordDailyAction) {
         recordDailyAction('prayerCelebrated', true);
       }
     }
-    prevCompletedCountRef.current = completedCount;
-  }, [userData, getMoodDateKey, recordDailyAction]);
+    celebrationStateRef.current.prevCompleted = completedCount;
+  }, [userData, userData?.namaz, userData?.history, userData?.isHistoricalView, userData?.historicalDate, getMoodDateKey, recordDailyAction]);
 
   const handlePrayerToggle = async (prayerLower) => {
     if (!userData) return;

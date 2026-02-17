@@ -93,7 +93,7 @@ export const initializeUserWithLatestSchema = async (userId, displayName) => {
       const today = formatDate(new Date());
       
       // Calculate Ramadan day
-      const startDate = new Date('2026-02-19'); // Expected Ramadan start date
+      const startDate = new Date('2026-02-18'); // Expected Ramadan start date
       const diffTime = Math.abs(new Date() - startDate);
       const ramadanDay = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       const currentDay = ramadanDay > 30 ? 30 : ramadanDay;

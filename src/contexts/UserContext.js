@@ -50,20 +50,20 @@ export const UserProvider = ({ children }) => {
             
             // Simple mapping of some common timezones to regions
             const regionMap = {
-              // Likely start Feb 19 in many calendars
-              'America/': 'Likely start (Expected Feb 19)',
-              'Europe/': 'Likely start (Expected Feb 19)',
-              'Asia/Riyadh': 'Likely start (Expected Feb 19)',
-              'Asia/Dubai': 'Likely start (Expected Feb 19)',
+              // Expected Feb 18
+              'America/': 'USA/Canada (Expected Feb 18)',
+              'Europe/': 'Middle East/Europe (Expected Feb 18)',
+              'Asia/Riyadh': 'Middle East/Europe (Expected Feb 18)',
+              'Asia/Dubai': 'Middle East/Europe (Expected Feb 18)',
               
-              // Early sighting possibility
-              'Asia/Kolkata': 'Early sighting (Possible Feb 18)',
-              'Asia/Karachi': 'Early sighting (Possible Feb 18)',
-              'Asia/Dhaka': 'Early sighting (Possible Feb 18)'
+              // Possible Feb 19
+              'Asia/Kolkata': 'South Asia (Possible Feb 19)',
+              'Asia/Karachi': 'South Asia (Possible Feb 19)',
+              'Asia/Dhaka': 'South Asia (Possible Feb 19)'
             };
             
             // Set region based on timezone prefix match
-            let detectedRegion = 'Likely start (Expected Feb 19)'; // Default
+            let detectedRegion = DEFAULT_RAMADAN_REGION; // Default
             for (const [tzPrefix, region] of Object.entries(regionMap)) {
               if (timezone.startsWith(tzPrefix)) {
                 detectedRegion = region;
@@ -85,14 +85,17 @@ export const UserProvider = ({ children }) => {
           } catch (error) {
             console.warn("Error detecting region:", error);
             // Set default if detection fails
-            data.ramadanRegion = 'Likely start (Expected Feb 19)';
-            data.ramadanStartDate = RAMADAN_REGIONS['Likely start (Expected Feb 19)'];
+            data.ramadanRegion = DEFAULT_RAMADAN_REGION;
+            data.ramadanStartDate = RAMADAN_REGIONS[DEFAULT_RAMADAN_REGION];
           }
         }
         
         // Auto-correct legacy 2026 dates unless user has manually overridden
         const legacyDates = new Set(['2026-02-22', '2026-02-23', '2026-02-24']);
-        if (!data.ramadanStartDateOverride && legacyDates.has(data.ramadanStartDate)) {
+        const needsLegacyDefaultMigration =
+          data.ramadanRegion === 'Likely start (Expected Feb 19)' &&
+          data.ramadanStartDate === '2026-02-19';
+        if (!data.ramadanStartDateOverride && (legacyDates.has(data.ramadanStartDate) || needsLegacyDefaultMigration)) {
           const correctedStart = RAMADAN_REGIONS[DEFAULT_RAMADAN_REGION];
           await updateDoc(userDocRef, {
             ramadanRegion: DEFAULT_RAMADAN_REGION,
@@ -121,16 +124,16 @@ export const UserProvider = ({ children }) => {
         try {
           const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
           const regionMap = {
-            // Likely start Feb 19 in many calendars
-            'America/': 'Likely start (Expected Feb 19)',
-            'Europe/': 'Likely start (Expected Feb 19)',
-            'Asia/Riyadh': 'Likely start (Expected Feb 19)',
-            'Asia/Dubai': 'Likely start (Expected Feb 19)',
+            // Expected Feb 18
+            'America/': 'USA/Canada (Expected Feb 18)',
+            'Europe/': 'Middle East/Europe (Expected Feb 18)',
+            'Asia/Riyadh': 'Middle East/Europe (Expected Feb 18)',
+            'Asia/Dubai': 'Middle East/Europe (Expected Feb 18)',
             
-            // Early sighting possibility
-            'Asia/Kolkata': 'Early sighting (Possible Feb 18)',
-            'Asia/Karachi': 'Early sighting (Possible Feb 18)',
-            'Asia/Dhaka': 'Early sighting (Possible Feb 18)'
+            // Possible Feb 19
+            'Asia/Kolkata': 'South Asia (Possible Feb 19)',
+            'Asia/Karachi': 'South Asia (Possible Feb 19)',
+            'Asia/Dhaka': 'South Asia (Possible Feb 19)'
           };
           
           for (const [tzPrefix, region] of Object.entries(regionMap)) {

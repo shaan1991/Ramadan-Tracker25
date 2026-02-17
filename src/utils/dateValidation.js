@@ -2,16 +2,17 @@
 // Utilities for validating dates related to Ramadan with region support
 
 // Default Ramadan dates (expected, subject to moon sighting)
-// Many astronomical sources point to first fast on Feb 19, 2026 (if the crescent isn't visible on Feb 17).
-export const DEFAULT_RAMADAN_START_DATE = new Date(2026, 1, 19); // February 19, 2026 (expected)
-export const DEFAULT_RAMADAN_END_DATE = new Date(2026, 2, 20);   // March 20, 2026 (expected end if 30 days)
+// Default to first fast on Feb 18, 2026 in the US/Canada profile.
+export const DEFAULT_RAMADAN_START_DATE = new Date(2026, 1, 18); // February 18, 2026
+export const DEFAULT_RAMADAN_END_DATE = new Date(2026, 2, 19);   // March 19, 2026 (30 days)
 
 // Region-specific start dates (exported for use in RegionSelector)
-export const DEFAULT_RAMADAN_REGION = 'Likely start (Expected Feb 19)';
+export const DEFAULT_RAMADAN_REGION = 'USA/Canada (Expected Feb 18)';
 
 export const RAMADAN_REGIONS = {
-  'Early sighting (Possible Feb 18)': '2026-02-18',
-  'Likely start (Expected Feb 19)': '2026-02-19'
+  'USA/Canada (Expected Feb 18)': '2026-02-18',
+  'Middle East/Europe (Expected Feb 18)': '2026-02-18',
+  'South Asia (Possible Feb 19)': '2026-02-19'
 };
 
 const parseDateString = (dateStr) => {

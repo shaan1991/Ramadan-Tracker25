@@ -1,7 +1,7 @@
 // src/components/RegionSelector.js
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
-import { RAMADAN_REGIONS } from '../utils/dateValidation';
+import { RAMADAN_REGIONS, DEFAULT_RAMADAN_REGION } from '../utils/dateValidation';
 import './RegionSelector.css';
 
 const RegionSelector = () => {
@@ -12,7 +12,7 @@ const RegionSelector = () => {
   // Load the user's selected region when component mounts
   useEffect(() => {
     if (userData) {
-      setSelectedRegion(userData.ramadanRegion || 'Likely start (Expected Feb 19)'); // Default
+      setSelectedRegion(userData.ramadanRegion || DEFAULT_RAMADAN_REGION); // Default
     }
   }, [userData]);
 
