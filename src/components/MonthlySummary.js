@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { getAllStreaks, getBestStreak } from '../services/streakService';
+import { getRamadanStartDate, getRamadanEndDate } from '../utils/dateValidation';
 import './MonthlySummary.css';
 
 const MonthlySummary = () => {
@@ -109,7 +110,21 @@ const MonthlySummary = () => {
     );
   }
   
-  const isRamadan = isWithinRamadan ? isWithinRamadan(new Date()) : false;
+  const now = new Date();
+  const isTaraweehWindow = (() => {
+    const start = getRamadanStartDate(userData);
+    const end = getRamadanEndDate(userData);
+    const lastRamadanNight = new Date(end);
+    lastRamadanNight.setDate(lastRamadanNight.getDate() - 1);
+    const preRamadanNight = new Date(start);
+    preRamadanNight.setDate(preRamadanNight.getDate() - 1);
+    const check = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0);
+    start.setHours(12, 0, 0, 0);
+    end.setHours(12, 0, 0, 0);
+    lastRamadanNight.setHours(12, 0, 0, 0);
+    preRamadanNight.setHours(12, 0, 0, 0);
+    return check >= preRamadanNight && check <= lastRamadanNight;
+  })();
 
   return (
     <div className="monthly-summary">
@@ -137,7 +152,7 @@ const MonthlySummary = () => {
           <div className="daily-value">{userData.fasting ? 'Yes' : 'No'}</div>
         </div>
 
-        {isRamadan && (
+        {isTaraweehWindow && (
           <div className="daily-glance-item">
             <div className="daily-icon-bg yellow">
               <span className="daily-icon">🌙</span>
@@ -191,7 +206,7 @@ const MonthlySummary = () => {
           </div>
         </div>
         
-        {isRamadan && (
+        {isTaraweehWindow && (
           <div className="streak-category">
             <div className="streak-icon">🕌</div>
             <div className="streak-info">

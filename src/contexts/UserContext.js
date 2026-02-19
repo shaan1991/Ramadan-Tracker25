@@ -13,6 +13,8 @@ import {
 
 export const UserContext = createContext();
 
+const PRAYER_KEYS = ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'];
+
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -396,55 +398,49 @@ export const UserProvider = ({ children }) => {
       // Calculate Ramadan day using region-aware function
       const currentRamadanDay = calculateDayFromDate(new Date(), userData);
       
-      // Comprehensive reset of daily tracking data
+      const todayHistory = userData?.history?.[today] || {};
+      const seededNamaz = todayHistory.namaz || {
+        fajr: false,
+        zuhr: false,
+        asr: false,
+        maghrib: false,
+        isha: false
+      };
+      const seededCompleted = todayHistory.salah?.completed
+        ?? PRAYER_KEYS.filter((k) => seededNamaz?.[k]).length;
+
+      // Preserve already-recorded today's history (e.g., Ramadan night mapped before midnight)
       const resetData = {
-        // Reset namaz (prayer) status
-        namaz: {
-          fajr: false,
-          zuhr: false,
-          asr: false,
-          maghrib: false,
-          isha: false
+        namaz: seededNamaz,
+        salah: {
+          completed: seededCompleted,
+          total: 5
         },
-        // EXPLICITLY reset salah tracking to 0 completed
-        salah: { 
-          completed: 0, 
-          total: 5 
-        },
-        // Reset fasting status
-        fasting: false,
-        // Reset taraweeh status
-        prayedTaraweeh: false,
-        // Update last active date
+        fasting: todayHistory.fasting ?? false,
+        prayedTaraweeh: (todayHistory.prayedTaraweeh ?? todayHistory.taraweeh) ?? false,
         lastActiveDate: today,
-        // Recalculate Ramadan day with region awareness
         day: currentRamadanDay
       };
       
-      if (isHistoricalView && historicalDate) {
-        const userDocRef = doc(db, 'users', user.uid);
-        const historyUpdate = {};
-        for (const key in resetData) {
-          historyUpdate[`history.${today}.${key}`] = resetData[key];
-        }
-        historyUpdate[`history.${today}.day`] = currentRamadanDay;
-        const combinedUpdates = { ...resetData, ...historyUpdate };
-        await updateDoc(userDocRef, combinedUpdates);
-        setUserData(prevData => {
-          if (!prevData) return prevData;
-          const nextData = { ...prevData, ...resetData };
-          if (!nextData.history) nextData.history = {};
-          if (!nextData.history[today]) nextData.history[today] = {};
-          for (const key in resetData) {
-            nextData.history[today][key] = resetData[key];
-          }
-          nextData.history[today].day = currentRamadanDay;
-          return nextData;
-        });
-      } else {
-        // Update the user data with a clean slate for today
-        await updateUserData(resetData);
+      const userDocRef = doc(db, 'users', user.uid);
+      const historyUpdate = {};
+      for (const key in resetData) {
+        historyUpdate[`history.${today}.${key}`] = resetData[key];
       }
+      historyUpdate[`history.${today}.day`] = currentRamadanDay;
+      const combinedUpdates = { ...resetData, ...historyUpdate };
+      await updateDoc(userDocRef, combinedUpdates);
+      setUserData(prevData => {
+        if (!prevData) return prevData;
+        const nextData = { ...prevData, ...resetData };
+        if (!nextData.history) nextData.history = {};
+        if (!nextData.history[today]) nextData.history[today] = {};
+        for (const key in resetData) {
+          nextData.history[today][key] = resetData[key];
+        }
+        nextData.history[today].day = currentRamadanDay;
+        return nextData;
+      });
       
       // Update local state
       setLastActiveDate(today);
@@ -455,7 +451,7 @@ export const UserProvider = ({ children }) => {
       setHistoricalDate(null);
       setCurrentViewData(null);
     }
-  }, [userData, user, lastActiveDate, updateUserData, isHistoricalView, historicalDate]); // Add proper dependencies
+  }, [userData, user, lastActiveDate]); // Add proper dependencies
 
   // Effect for checking day change - run on initial load and when userData changes
   useEffect(() => {

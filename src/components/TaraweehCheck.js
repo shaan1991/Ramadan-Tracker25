@@ -33,22 +33,38 @@ const TaraweehCheck = () => {
     return new Date(startYear, startMonth - 1, startDay, 12, 0, 0, 0);
   }, [userData?.ramadanStartDate]);
 
+  const getRamadanEndForUser = useCallback(() => {
+    const start = getRamadanStartForUser();
+    const length = userData?.ramadanLength || 30;
+    const end = new Date(start);
+    end.setDate(start.getDate() + (length - 1));
+    end.setHours(12, 0, 0, 0);
+    return end;
+  }, [getRamadanStartForUser, userData?.ramadanLength]);
+
   const getTaraweehTargetDate = useCallback((sourceDate) => {
     const dateToUse = new Date(sourceDate.getFullYear(), sourceDate.getMonth(), sourceDate.getDate(), 12, 0, 0, 0);
     const startDate = getRamadanStartForUser();
-
-    if (isWithinRamadan ? isWithinRamadan(dateToUse) : false) {
-      return dateToUse;
-    }
-
+    const endDate = getRamadanEndForUser();
     const preRamadanNight = new Date(startDate);
     preRamadanNight.setDate(preRamadanNight.getDate() - 1);
-    if (dateToUse.getTime() === preRamadanNight.getTime()) {
-      return startDate;
+    preRamadanNight.setHours(12, 0, 0, 0);
+
+    const lastRamadanNight = new Date(endDate);
+    lastRamadanNight.setDate(lastRamadanNight.getDate() - 1);
+    lastRamadanNight.setHours(12, 0, 0, 0);
+
+    // Taraweeh logging is date-based for the night, mapped to next fasting day.
+    // 17 -> 18 (night 1), 18 -> 19 (night 2), ...
+    if (dateToUse >= preRamadanNight && dateToUse <= lastRamadanNight) {
+      const target = new Date(dateToUse);
+      target.setDate(target.getDate() + 1);
+      target.setHours(12, 0, 0, 0);
+      return target;
     }
 
     return null;
-  }, [getRamadanStartForUser, isWithinRamadan]);
+  }, [getRamadanStartForUser, getRamadanEndForUser]);
 
   const effectiveDate = getEffectiveDate();
   const taraweehTargetDate = getTaraweehTargetDate(effectiveDate);

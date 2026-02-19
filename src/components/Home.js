@@ -266,6 +266,8 @@ const Home = () => {
   const isTaraweehLoggingWindow = (() => {
     const start = getRamadanStartDate(userData);
     const end = getRamadanEndDate(userData);
+    const lastRamadanNight = new Date(end);
+    lastRamadanNight.setDate(lastRamadanNight.getDate() - 1);
     const preRamadanNight = new Date(start);
     preRamadanNight.setDate(preRamadanNight.getDate() - 1);
 
@@ -273,9 +275,10 @@ const Home = () => {
     view.setHours(12, 0, 0, 0);
     start.setHours(12, 0, 0, 0);
     end.setHours(12, 0, 0, 0);
+    lastRamadanNight.setHours(12, 0, 0, 0);
     preRamadanNight.setHours(12, 0, 0, 0);
 
-    return view >= preRamadanNight && view <= end;
+    return view >= preRamadanNight && view <= lastRamadanNight;
   })();
 
   return (
