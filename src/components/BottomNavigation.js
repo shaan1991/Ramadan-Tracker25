@@ -12,12 +12,13 @@ const BottomNavigation = ({ currentPath, onNavigate }) => {
     home: 'Home',
     dua: 'Dua',
     tasbeeh: 'Tasbeeh',
+    focus: 'Focus',
     profile: 'More'
   };
   
   const isActive = (path) => currentPath === path;
   
-  const activeIndex = ['/', '/dua', '/tasbeeh', '/profile'].indexOf(currentPath);
+  const activeIndex = ['/', '/dua', '/tasbeeh', '/focus', '/profile'].indexOf(currentPath);
   const pillStyle = {
     '--pill-index': Math.max(activeIndex, 0)
   };
@@ -46,6 +47,13 @@ const BottomNavigation = ({ currentPath, onNavigate }) => {
         >
           <div className="nav-icon">◎</div>
           <p>{labels.tasbeeh}</p>
+        </div>
+        <div 
+          className={`nav-item ${isActive('/focus') ? 'active' : ''}`}
+          onClick={() => onNavigate('/focus')}
+        >
+          <div className="nav-icon">◉</div>
+          <p>{labels.focus}</p>
         </div>
         <div 
           className={`nav-item ${isActive('/profile') ? 'active' : ''}`}

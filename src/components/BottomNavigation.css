@@ -33,7 +33,7 @@
     top: 6px;
     bottom: 6px;
     left: 0;
-    width: 25%;
+    width: 20%;
     border-radius: 999px;
     background: transparent;
     transform: translateX(calc(var(--pill-index) * 100%));

@@ -7,6 +7,7 @@ import { PrayerTimesProvider } from './contexts/PrayerTimesContext';
 import Login from './components/Login';
 import Home from './components/Home';
 import Tasbeeh from './components/Tasbeeh';
+import FocusMode from './components/FocusMode';
 import Dua from './components/Dua';
 import BottomNavigation from './components/BottomNavigation';
 import DayTransitionAlert from './components/DayTransitionAlert';
@@ -64,7 +65,7 @@ const AppContent = () => {
 
   useEffect(() => {
     if (!user) return;
-    const knownPaths = new Set(['/', '/dua', '/tasbeeh', '/profile']);
+    const knownPaths = new Set(['/', '/dua', '/tasbeeh', '/focus', '/profile']);
     if (!knownPaths.has(path)) {
       navigate('/', { replace: true });
     }
@@ -81,6 +82,8 @@ const AppContent = () => {
         return <Dua />;
       case '/tasbeeh':
         return <Tasbeeh />;
+      case '/focus':
+        return <FocusMode />;
       case '/profile':
         return <ProfileScreen onNavigate={navigate} />;
       default:

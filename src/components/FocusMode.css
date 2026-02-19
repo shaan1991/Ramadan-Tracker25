@@ -1,0 +1,228 @@
+.focus-mode-screen {
+  min-height: calc(100vh - 120px);
+  background: #fff;
+  padding: 20px 16px 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.focus-start-card {
+  max-width: 520px;
+  margin: 0 auto;
+  min-height: calc(100vh - 240px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 12px 10px;
+}
+
+.focus-start-card h2 {
+  margin: 0 0 8px 0;
+  font-size: 30px;
+  color: #111;
+  letter-spacing: 0.2px;
+}
+
+.focus-start-card p {
+  margin: 0;
+  color: #5e5e5e;
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 420px;
+}
+
+.focus-duration-group {
+  margin-top: 22px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.focus-duration {
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: rgba(0, 0, 0, 0.02);
+  color: #222;
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.focus-duration.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.focus-duration:active {
+  transform: scale(0.98);
+}
+
+.focus-start-btn {
+  margin-top: 20px;
+  border: none;
+  background: #111;
+  color: #fff;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.14);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.focus-start-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.focus-live {
+  position: relative;
+  min-height: calc(100vh - 180px);
+  padding-bottom: 90px;
+}
+
+.focus-progress-wrap {
+  width: 100%;
+  padding: 0 8px;
+}
+
+.focus-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+.focus-progress-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.focus-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #111;
+  transition: width 0.25s linear;
+}
+
+.focus-name-item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  animation: dissolveName 2.4s ease-in-out forwards;
+  pointer-events: none;
+  max-width: min(54vw, 300px);
+  z-index: 2;
+}
+
+.focus-name-arabic {
+  font-size: clamp(22px, 4.2vw, 32px);
+  line-height: 1.1;
+  color: #111;
+  font-family: 'Amiri', 'Noto Naskh Arabic', serif;
+  margin-bottom: 6px;
+}
+
+.focus-name-english {
+  font-size: clamp(12px, 2vw, 15px);
+  line-height: 1.2;
+  color: #3d3d3d;
+  font-weight: 500;
+}
+
+.focus-complete-card {
+  max-width: 420px;
+  margin: 28vh auto 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.focus-complete-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+}
+
+.focus-complete-card p {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.focus-bottom-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  padding: 0 8px;
+  z-index: 3;
+}
+
+.focus-progress-wrap.bottom {
+  margin-bottom: 8px;
+}
+
+.focus-control-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.focus-control-btn {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #222;
+  border-radius: 999px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.focus-control-btn.outline {
+  background: #f9f9f9;
+  border-color: #d9d9d9;
+}
+
+@keyframes dissolveName {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+    filter: blur(2px);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0);
+  }
+  82% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.03);
+    filter: blur(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focus-name-item {
+    animation: none;
+    opacity: 1;
+  }
+}
