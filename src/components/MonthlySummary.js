@@ -62,6 +62,18 @@ const MonthlySummary = () => {
             return date >= monthStart && date <= monthEnd;
           });
           setActiveDays(validDates.length);
+
+          const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+          const hasTodayHistory = validDates.includes(todayKey);
+
+          const monthlyFastingDaysFromHistory = validDates.filter((dateString) => {
+            const entry = userData.history?.[dateString];
+            const dateObj = parseDateKey(dateString);
+            const inRamadanWindow = !ramadanMode || (isWithinRamadan ? isWithinRamadan(dateObj) : false);
+            return inRamadanWindow && !!entry?.fasting;
+          }).length;
+          const todayEligible = !ramadanMode || (isWithinRamadan ? isWithinRamadan(now) : false);
+          const monthlyFastingDays = monthlyFastingDaysFromHistory + ((!hasTodayHistory && userData.fasting && todayEligible) ? 1 : 0);
           
           // Calculate monthly Quran progress from juzHistory if available
           const juzHistory = userData.juzHistory || {};
@@ -75,7 +87,8 @@ const MonthlySummary = () => {
           
           setReport({
             totalCompleted: monthlyJuzs.size,
-            completedJuzs: Array.from(monthlyJuzs)
+            completedJuzs: Array.from(monthlyJuzs),
+            fastingDays: monthlyFastingDays
           });
         }
         
@@ -202,7 +215,7 @@ const MonthlySummary = () => {
           <div className="streak-icon">🌙</div>
           <div className="streak-info">
             <div className="streak-label">Fasting</div>
-            <div className="streak-value">{streaks.fasting.current} days</div>
+            <div className="streak-value">{report?.fastingDays ?? 0} days</div>
           </div>
         </div>
         
